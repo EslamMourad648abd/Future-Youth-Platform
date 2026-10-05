@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "259169067995",
+    "project_id": "bbc-api-tool",
+    "storage_bucket": "bbc-api-tool.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:259169067995:android:9df42272f819de9e98fdfe",
+        "android_client_info": {
+          "package_name": "com.example.bbc_api_tool"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVccklkXr1ZEuQkDZt4ANedf41Uk3iQMA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

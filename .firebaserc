@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "bbc-api-tool"
+  },
+  "targets": {
+    "bbc-api-tool": {
+      "hosting": {
+        "master": [
+          "bbc-api-tool"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="BBC Operations Platform">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="BBC Operations Platform">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+  <title>BBC Operations Platform</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#003366">
+
+  <!-- ✅ Firebase SDKs for Web -->
+  <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDrknr-61yICu60A_uRhbO0a0FBMLOsBvA",
+        authDomain: "bbc-api-tool.firebaseapp.com",
+        projectId: "bbc-api-tool",
+        storageBucket: "bbc-api-tool.firebasestorage.app",
+        messagingSenderId: "259169067995",
+        appId: "1:259169067995:web:c46914fa0822888a98fdfe",
+        measurementId: "G-51Z1MV96CY"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      // 🔥 Expose to Flutter Web environment
+      window.firebaseApp = app;
+      window.firebaseAuth = auth;
+    </script>
+</head>
+<body>
+<script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
