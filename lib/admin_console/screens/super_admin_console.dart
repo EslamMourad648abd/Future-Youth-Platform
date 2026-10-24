@@ -7,11 +7,9 @@ import 'package:go_router/go_router.dart';
 import '../../services/theme_service.dart';
 import '../../router/app_router.dart';
 
-import 'training_management_screen.dart';
 import 'user_management_screen.dart';
+import 'training_management_screen.dart';
 import 'training_analytics_screen.dart';
-import 'meta_whatsapp_business_screen.dart';
-import 'logs_screen.dart';
 
 class PlatformAdminConsole extends StatefulWidget {
   const PlatformAdminConsole({
@@ -53,17 +51,14 @@ class _PlatformAdminConsoleState
           .authStateChanges()
           .first;
 
-      _functions =
-          FirebaseFunctions.instanceFor(
-            region: 'us-central1',
-          );
+      _functions = FirebaseFunctions.instanceFor(
+        region: 'us-central1',
+      );
 
       _pages = [
         UserManagement(functions: _functions!),
         TrainingManagement(functions: _functions!),
         const TrainingAnalyticsScreen(),
-        MetaWhatsAppBusinessScreen(functions: _functions!),
-        const AdminLogsScreen(),
       ];
 
       if (!mounted) return;
@@ -111,8 +106,7 @@ class _PlatformAdminConsoleState
     if (loading) {
       return const Scaffold(
         body: Center(
-          child:
-          CircularProgressIndicator(),
+          child: CircularProgressIndicator(),
         ),
       );
     }
@@ -126,8 +120,7 @@ class _PlatformAdminConsoleState
         body: Center(
           child: Text(
             error!,
-            style:
-            const TextStyle(
+            style: const TextStyle(
               color: Colors.red,
               fontSize: 16,
             ),
@@ -149,6 +142,11 @@ class _PlatformAdminConsoleState
           appBar: AppBar(
             backgroundColor: theme.colorScheme.surface,
             elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              tooltip: 'Back to Training Portal',
+              onPressed: () => context.go(AppRouter.training),
+            ),
             title: const Text('Admin Console', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             centerTitle: true,
             actions: [
@@ -179,8 +177,6 @@ class _PlatformAdminConsoleState
               NavigationDestination(icon: Icon(Icons.people_outlined), selectedIcon: Icon(Icons.people), label: 'Users'),
               NavigationDestination(icon: Icon(Icons.school_outlined), selectedIcon: Icon(Icons.school), label: 'Training'),
               NavigationDestination(icon: Icon(Icons.analytics_outlined), selectedIcon: Icon(Icons.analytics), label: 'Analytics'),
-              NavigationDestination(icon: Icon(Icons.business_outlined), selectedIcon: Icon(Icons.business), label: 'Meta'),
-              NavigationDestination(icon: Icon(Icons.terminal_outlined), selectedIcon: Icon(Icons.terminal), label: 'Logs'),
             ],
           ),
         );
@@ -201,7 +197,13 @@ class _PlatformAdminConsoleState
               labelType: NavigationRailLabelType.all,
               leading: Column(
                 children: [
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    tooltip: 'Back to Training Portal',
+                    onPressed: () => context.go(AppRouter.training),
+                  ),
+                  const SizedBox(height: 8),
                   ValueListenableBuilder<ThemeMode>(
                     valueListenable: ThemeService.themeNotifier,
                     builder: (context, mode, _) {
@@ -216,7 +218,7 @@ class _PlatformAdminConsoleState
                       );
                     },
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                 ],
               ),
               onDestinationSelected: (index) {
@@ -226,8 +228,6 @@ class _PlatformAdminConsoleState
                 NavigationRailDestination(icon: Icon(Icons.people_outlined), selectedIcon: Icon(Icons.people), label: Text('Users')),
                 NavigationRailDestination(icon: Icon(Icons.school_outlined), selectedIcon: Icon(Icons.school), label: Text('Training')),
                 NavigationRailDestination(icon: Icon(Icons.analytics_outlined), selectedIcon: Icon(Icons.analytics), label: Text('Analytics')),
-                NavigationRailDestination(icon: Icon(Icons.business_outlined), selectedIcon: Icon(Icons.business), label: Text('Meta')),
-                NavigationRailDestination(icon: Icon(Icons.terminal_outlined), selectedIcon: Icon(Icons.terminal), label: Text('Logs')),
               ],
             ),
             const VerticalDivider(width: 1),

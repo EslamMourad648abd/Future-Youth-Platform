@@ -1,15 +1,15 @@
+
 {
   "projects": {
-    "default": "bbc-api-tool"
+    "default": "future-youth-platform"
   },
   "targets": {
-    "bbc-api-tool": {
+    "future-youth-platform": {
       "hosting": {
         "master": [
-          "bbc-api-tool"
+          "future-youth-platform"
         ]
       }
     }
-  },
-  "etags": {}
+  }
 }

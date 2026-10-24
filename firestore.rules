@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSuperAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == "eslammourad2000@yahoo.com" ||
+        request.auth.token.role == "superadmin" ||
+        request.auth.token.superadmin == true ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin")
+      );
+    }
+
+    match /training_courses/{courseId} {
+      allow read: if request.auth != null;
+      allow write: if isSuperAdmin();
+
+      match /lessons/{lessonId} {
+        allow read: if request.auth != null;
+        allow write: if isSuperAdmin();
+      }
+    }
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+
+      match /training_progress/{courseId} {
+        allow read, write: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+
+        match /lessons/{lessonId} {
+          allow read, write: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        }
+      }
+    }
+
+    match /certificates/{certId} {
+      allow read: if request.auth != null;
+      allow write: if isSuperAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if isSuperAdmin();
+    }
+  }
+}

@@ -1,4 +1,4 @@
-package com.example.bbc_api_tool
+package com.example.future_youth_platform
 
 import io.flutter.embedding.android.FlutterActivity
 

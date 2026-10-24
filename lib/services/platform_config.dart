@@ -25,7 +25,7 @@ class PlatformConfig {
 
   static const PlatformConfig master = PlatformConfig(
     type: PlatformType.master,
-    title: 'BBC Operations Platform',
+    title: 'Future Youth Platform',
     subtitle: 'Master control and combined dashboards.',
     logoAsset: 'assets/logo.png',
     allowedRoles: ['superadmin', 'onboarding_agent', 'support_agent', 'trainee', 'agent'],

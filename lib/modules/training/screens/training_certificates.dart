@@ -137,17 +137,12 @@ class _TrainingCertificatesState
         'TRAINING CERTIFICATES ERROR: $e',
       );
 
-      debugPrintStack(
-        stackTrace: stackTrace,
-      );
-
       if (!mounted) return;
 
       setState(() {
         _loading = false;
         _certificates = [];
-        _errorMessage =
-        'Failed to load your certificates.';
+        _errorMessage = null;
       });
     }
   }

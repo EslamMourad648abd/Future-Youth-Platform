@@ -1,11 +1,11 @@
 {
-    "name": "BBC Operations Platform",
-    "short_name": "BBC Operations",
+    "name": "Future Youth Platform",
+    "short_name": "Future Youth",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "BBC Operations Platform",
+    "description": "Future Youth Platform",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

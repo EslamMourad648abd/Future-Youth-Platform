@@ -41,23 +41,22 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDrknr-61yICu60A_uRhbO0a0FBMLOsBvA',
-    appId: '1:259169067995:web:c46914fa0822888a98fdfe',
-    messagingSenderId: '259169067995',
-    projectId: 'bbc-api-tool',
-    authDomain: 'bbc-api-tool.firebaseapp.com',
-    storageBucket: 'bbc-api-tool.firebasestorage.app',
-    measurementId: 'G-51Z1MV96CY',
+    apiKey: 'AIzaSyBIZfRJmBkm5yhE8tA5gtflHiWjUefzpfg',
+    appId: '1:319728850374:web:acd2e3c93f90e097c2cec7',
+    messagingSenderId: '319728850374',
+    projectId: 'future-youth-platform',
+    authDomain: 'future-youth-platform.firebaseapp.com',
+    storageBucket: 'future-youth-platform.firebasestorage.app',
+    measurementId: 'G-T6MHZLCVG8',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBVccklkXr1ZEuQkDZt4ANedf41Uk3iQMA',
-    appId: '1:259169067995:android:9df42272f819de9e98fdfe',
-    messagingSenderId: '259169067995',
-    projectId: 'bbc-api-tool',
-    storageBucket: 'bbc-api-tool.firebasestorage.app',
+    apiKey: 'AIzaSyAyyVuYxu4DHtbJ9XA4-ejLJhlq_uFy2fw',
+    appId: '1:319728850374:android:8bbf8b9c98d07a58c2cec7',
+    messagingSenderId: '319728850374',
+    projectId: 'future-youth-platform',
+    storageBucket: 'future-youth-platform.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAMrMTtVV5erlMQPbO21xBl8mJh7SLd2bs',
     appId: '1:259169067995:ios:21039dda2d978e8e98fdfe',

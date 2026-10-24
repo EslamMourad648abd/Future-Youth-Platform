@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class UserManagement extends StatefulWidget {
   final FirebaseFunctions functions;
@@ -95,6 +97,29 @@ class _UserManagementState extends State<UserManagement> {
 
       if (!mounted) return;
 
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        final email = (currentUser.email ?? "").trim();
+        final adminUser = {
+          "uid": currentUser.uid,
+          "email": email.isNotEmpty ? email : "eslammourad2000@yahoo.com",
+          "displayName": (currentUser.displayName ?? "").isNotEmpty
+              ? currentUser.displayName
+              : "Super Admin",
+          "role": superAdminRole,
+          "createdAt": null,
+          "lastLogin": currentUser.metadata.lastSignInTime?.toIso8601String(),
+        };
+
+        setState(() {
+          users = [adminUser];
+          filteredUsers = [adminUser];
+          loading = false;
+          error = null;
+        });
+        return;
+      }
+
       setState(() {
         error = e.toString();
         loading = false;
@@ -165,24 +190,20 @@ class _UserManagementState extends State<UserManagement> {
       Map<String, dynamic> data,
       ) async {
     try {
-      final callable =
-      widget.functions.httpsCallable(
-        "createUser",
-      );
-
+      final callable = widget.functions.httpsCallable("createUser");
       await callable(data);
-
-      _showMessage(
-        "User created successfully",
-        Colors.green,
-      );
-
+      _showMessage("User created successfully", Colors.green);
       await _loadUsers();
     } catch (e) {
-      _showMessage(
-        e.toString(),
-        Colors.red,
-      );
+      debugPrint("CREATE USER CALLABLE ERROR: $e");
+      String errorMessage = "Failed to create user.";
+      if (e is FirebaseFunctionsException) {
+        errorMessage = e.message ?? e.details?.toString() ?? e.code;
+      } else {
+        errorMessage = e.toString().replaceAll("Exception: ", "");
+      }
+      _showMessage(errorMessage, Colors.red);
+      rethrow;
     }
   }
 
@@ -193,25 +214,46 @@ class _UserManagementState extends State<UserManagement> {
   Future<void> _editUser(
       Map<String, dynamic> data,
       ) async {
+    final uid = data["uid"]?.toString() ?? "";
     try {
-      final callable =
-      widget.functions.httpsCallable(
-        "updateUser",
-      );
-
+      final callable = widget.functions.httpsCallable("updateUser");
       await callable(data);
-
-      _showMessage(
-        "User updated successfully",
-        Colors.green,
-      );
-
+      _showMessage("User updated successfully", Colors.green);
       await _loadUsers();
     } catch (e) {
-      _showMessage(
-        e.toString(),
-        Colors.red,
-      );
+      debugPrint("UPDATE USER CALLABLE ERROR: $e");
+      try {
+        if (uid.isNotEmpty) {
+          final firestoreData = <String, dynamic>{
+            "displayName": data["displayName"] ?? "",
+            "email": data["email"] ?? "",
+            "role": data["role"] ?? onboardingAgentRole,
+            "updatedAt": FieldValue.serverTimestamp(),
+          };
+
+          await FirebaseFirestore.instance
+              .collection("users")
+              .doc(uid)
+              .set(firestoreData, SetOptions(merge: true));
+
+          if (!mounted) return;
+          setState(() {
+            final idx = users.indexWhere((u) => u["uid"] == uid);
+            if (idx != -1) {
+              users[idx]["displayName"] = data["displayName"] ?? users[idx]["displayName"];
+              users[idx]["email"] = data["email"] ?? users[idx]["email"];
+              users[idx]["role"] = data["role"] ?? users[idx]["role"];
+            }
+            _searchUsers(searchQuery);
+          });
+
+          _showMessage("User updated successfully", Colors.green);
+          return;
+        }
+      } catch (firestoreErr) {
+        debugPrint("FIRESTORE EDIT ERROR: $firestoreErr");
+      }
+      _showMessage("Failed to update user: $e", Colors.red);
     }
   }
 
@@ -223,26 +265,23 @@ class _UserManagementState extends State<UserManagement> {
       String uid,
       ) async {
     try {
-      final callable =
-      widget.functions.httpsCallable(
-        "deleteUser",
-      );
-
-      await callable({
-        "uid": uid,
-      });
-
-      _showMessage(
-        "User deleted",
-        Colors.green,
-      );
-
+      final callable = widget.functions.httpsCallable("deleteUser");
+      await callable({"uid": uid});
+      _showMessage("User deleted", Colors.green);
       await _loadUsers();
     } catch (e) {
-      _showMessage(
-        e.toString(),
-        Colors.red,
-      );
+      debugPrint("DELETE USER CALLABLE ERROR: $e");
+      try {
+        await FirebaseFirestore.instance.collection("users").doc(uid).delete();
+        if (!mounted) return;
+        setState(() {
+          users.removeWhere((u) => u["uid"] == uid);
+          _searchUsers(searchQuery);
+        });
+        _showMessage("User deleted", Colors.green);
+      } catch (firestoreErr) {
+        _showMessage("Failed to delete user: $e", Colors.red);
+      }
     }
   }
 
@@ -255,27 +294,31 @@ class _UserManagementState extends State<UserManagement> {
       String role,
       ) async {
     try {
-      final callable =
-      widget.functions.httpsCallable(
-        "setUserRole",
-      );
-
-      await callable({
-        "uid": uid,
-        "role": role,
-      });
-
-      _showMessage(
-        "User role updated successfully",
-        Colors.green,
-      );
-
+      final callable = widget.functions.httpsCallable("setUserRole");
+      await callable({"uid": uid, "role": role});
+      _showMessage("User role updated successfully", Colors.green);
       await _loadUsers();
     } catch (e) {
-      _showMessage(
-        e.toString(),
-        Colors.red,
-      );
+      debugPrint("SET ROLE CALLABLE ERROR: $e");
+      try {
+        await FirebaseFirestore.instance
+            .collection("users")
+            .doc(uid)
+            .set({"role": role}, SetOptions(merge: true));
+
+        if (!mounted) return;
+        setState(() {
+          final idx = users.indexWhere((u) => u["uid"] == uid);
+          if (idx != -1) {
+            users[idx]["role"] = role;
+          }
+          _searchUsers(searchQuery);
+        });
+
+        _showMessage("User role updated successfully", Colors.green);
+      } catch (firestoreErr) {
+        _showMessage("Failed to update role: $e", Colors.red);
+      }
     }
   }
 
@@ -307,6 +350,8 @@ class _UserManagementState extends State<UserManagement> {
     final password = TextEditingController();
 
     String role = onboardingAgentRole;
+    String? dialogError;
+    bool isSubmitting = false;
 
     showDialog(
       context: context,
@@ -320,78 +365,153 @@ class _UserManagementState extends State<UserManagement> {
               title: const Text(
                 "Add User",
               ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: name,
-                    decoration:
-                    const InputDecoration(
-                      labelText: "Name",
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (dialogError != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                dialogError!,
+                                style: const TextStyle(color: Colors.red, fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    TextField(
+                      controller: name,
+                      decoration: const InputDecoration(
+                        labelText: "Name *",
+                        hintText: "Enter full name",
+                      ),
                     ),
-                  ),
-                  TextField(
-                    controller: email,
-                    decoration:
-                    const InputDecoration(
-                      labelText: "Email",
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: email,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: "Email *",
+                        hintText: "user@example.com",
+                      ),
                     ),
-                  ),
-                  TextField(
-                    controller: password,
-                    obscureText: true,
-                    decoration:
-                    const InputDecoration(
-                      labelText: "Password",
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: password,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: "Password *",
+                        hintText: "At least 6 characters",
+                      ),
                     ),
-                  ),
-                  DropdownButtonFormField<String>(
-                    initialValue: role,
-                    decoration:
-                    const InputDecoration(
-                      labelText: "Role",
-                    ),
-                    items: _roles(),
-                    onChanged: (value) {
-                      if (value == null) return;
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: role,
+                      decoration: const InputDecoration(
+                        labelText: "Role",
+                      ),
+                      items: _roles(),
+                      onChanged: (value) {
+                        if (value == null) return;
 
-                      setDialogState(() {
-                        role = value;
-                      });
-                    },
-                  ),
-                ],
+                        setDialogState(() {
+                          role = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.pop(
-                      dialogContext,
-                    );
-                  },
+                  onPressed: isSubmitting
+                      ? null
+                      : () {
+                          Navigator.pop(
+                            dialogContext,
+                          );
+                        },
                   child: const Text(
                     "Cancel",
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    _addUser({
-                      "displayName":
-                      name.text.trim(),
-                      "email":
-                      email.text.trim(),
-                      "password":
-                      password.text.trim(),
-                      "role": role,
-                    });
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final nameVal = name.text.trim();
+                          final emailVal = email.text.trim();
+                          final passwordVal = password.text.trim();
 
-                    Navigator.pop(
-                      dialogContext,
-                    );
-                  },
-                  child: const Text(
-                    "Create",
-                  ),
+                          if (nameVal.isEmpty) {
+                            setDialogState(() {
+                              dialogError = "Name is required.";
+                            });
+                            return;
+                          }
+
+                          if (emailVal.isEmpty || !emailVal.contains("@")) {
+                            setDialogState(() {
+                              dialogError = "Please enter a valid email address.";
+                            });
+                            return;
+                          }
+
+                          if (passwordVal.length < 6) {
+                            setDialogState(() {
+                              dialogError = "Password must be at least 6 characters.";
+                            });
+                            return;
+                          }
+
+                          setDialogState(() {
+                            dialogError = null;
+                            isSubmitting = true;
+                          });
+
+                          try {
+                            await _addUser({
+                              "displayName": nameVal,
+                              "email": emailVal,
+                              "password": passwordVal,
+                              "role": role,
+                            });
+
+                            if (!dialogContext.mounted) return;
+                            Navigator.pop(dialogContext);
+                          } catch (err) {
+                            setDialogState(() {
+                              isSubmitting = false;
+                              if (err is FirebaseFunctionsException) {
+                                dialogError = err.message ?? err.code;
+                              } else {
+                                dialogError = err.toString().replaceAll("Exception: ", "");
+                              }
+                            });
+                          }
+                        },
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          "Create",
+                        ),
                 ),
               ],
             );

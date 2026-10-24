@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="bbc_api_tool"
+        android:label="future_youth_platform"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

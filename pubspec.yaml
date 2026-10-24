@@ -1,4 +1,4 @@
-name: bbc_api_tool
+name: future_youth_platform
 description: "An application that hosts our most used API calls"
 publish_to: "none"
 
@@ -40,8 +40,4 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/BBC_Request.postman_collection.json
-    - assets/backgound_asset.png
     - assets/logo.png
-    - assets/ramadan/
-    - assets/ramadan/islamic-lantern-svgrepo-com (1).png

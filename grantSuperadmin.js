@@ -1,12 +1,12 @@
 // grantSuperadmin.js
 const admin = require("firebase-admin");
-const serviceAccount = require("D:\\bbc_api_tool\\serviceAccountKey.json"); // path to your key
+const serviceAccount = require("D:\\future_youth_platform\\serviceAccountKey.json"); // path to your key
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-const targetEmail = "eslam.mourad@bevatel.com"; // <-- replace with your own email
+const targetEmail = "eslammourad2000@yahoo.com"; // <-- replace with your own email
 
 async function grantRole() {
   try {

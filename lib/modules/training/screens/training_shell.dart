@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../router/app_router.dart';
+import '../../../services/auth_service.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/localization_service.dart';
 import '../../../services/platform_config.dart';
+import 'dart:html' as html;
 
+const Color kPlatformBrandColor =
+Color(0xff003366);
 // ============================================================
 // TRAINING BRAND
 // ============================================================
@@ -42,7 +46,48 @@ Color(0xff7A8491);
 // Certificates contains earned certificates.
 //
 // ============================================================
+void _openAdminConsole() {
+  html.window.open(
+    '#${AppRouter.adminConsole}',
+    '_blank',
+  );
+}
+Future<void> _confirmSignOut(BuildContext context) async {
+  final shouldSignOut = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Log out?'),
+      content: const Text(
+        'Are you sure you want to log out of the platform?',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, true),
+          child: const Text('Log out'),
+        ),
+      ],
+    ),
+  );
 
+  if (shouldSignOut != true) return;
+
+  try {
+    await FirebaseAuth.instance.signOut();
+
+    if (!context.mounted) return;
+    context.go(AppRouter.login);
+  } catch (e) {
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to log out: $e')),
+    );
+  }
+}
 class TrainingShell extends StatelessWidget {
   const TrainingShell({
     super.key,
@@ -94,6 +139,12 @@ class TrainingShell extends StatelessWidget {
                     color: theme.colorScheme.primary,
                   );
                 },
+              ),
+              IconButton(
+                tooltip: 'Log out',
+                onPressed: () => _confirmSignOut(context),
+                icon: const Icon(Icons.logout),
+                color: theme.colorScheme.primary,
               ),
             ],
             shape: Border(
@@ -172,96 +223,6 @@ class _TrainingNavigation
           CrossAxisAlignment.stretch,
 
           children: [
-            // ==================================================
-            // BACK TO PLATFORM
-            // ==================================================
-
-            if (!PlatformConfig.current.isStandalone)
-              Padding(
-                padding:
-                const EdgeInsets.fromLTRB(
-                  12,
-                  12,
-                  12,
-                  4,
-                ),
-
-                child:
-                Material(
-                  color:
-                  Colors.transparent,
-
-                  borderRadius:
-                  BorderRadius.circular(
-                    10,
-                  ),
-
-                  child:
-                  InkWell(
-                    borderRadius:
-                    BorderRadius.circular(
-                      10,
-                    ),
-
-                    onTap: () {
-                      context.go(
-                        AppRouter.home,
-                      );
-                    },
-
-                    child:
-                    Padding(
-                      padding:
-                      const EdgeInsets.symmetric(
-                        horizontal:
-                        10,
-                        vertical:
-                        10,
-                      ),
-
-                      child:
-                      Row(
-                        children: [
-                          Icon(
-                            Icons
-                                .arrow_back_rounded,
-
-                            size:
-                            19,
-
-                            color:
-                            theme.colorScheme.primary,
-                          ),
-
-                          const SizedBox(
-                            width:
-                            9,
-                          ),
-
-                          Expanded(
-                            child:
-                            Text(
-                              l10n?.translate('back_to_platforms') ?? 'Back to Platforms',
-
-                              style:
-                              TextStyle(
-                                fontSize:
-                                13,
-
-                                fontWeight:
-                                FontWeight.bold,
-
-                                color:
-                                theme.colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
 
             // ==================================================
             // HEADER
@@ -382,17 +343,195 @@ class _TrainingNavigation
             ),
 
             // ==================================================
+            // ADMIN CONSOLE
+            // ==================================================
+
+            if (AuthService.isSuperAdmin) ...[
+              const SizedBox(
+                height: 16,
+              ),
+
+              const Divider(
+                color:
+                Color(0xffE5EAF0),
+              ),
+
+              const SizedBox(
+                height: 12,
+              ),
+
+              _PlatformNavItem(
+                icon:
+                Icons.admin_panel_settings_outlined,
+
+                selectedIcon:
+                Icons.admin_panel_settings,
+
+                title:
+                l10n?.translate('admin_console') ?? 'Admin Console',
+
+                selected:
+                false,
+
+                onTap: () {
+                  if (isDrawer) Navigator.pop(context);
+                  _openAdminConsole();
+                },
+              ),
+            ],
+
+            // ==================================================
             // FOOTER
             // ==================================================
 
             const _TrainingNavigationFooter(),
+
           ],
         ),
       ),
     );
   }
 }
+// ============================================================
+// NAVIGATION ITEM
+// ============================================================
 
+class _PlatformNavItem
+    extends StatelessWidget {
+  const _PlatformNavItem({
+    required this.icon,
+    required this.selectedIcon,
+    required this.title,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+
+  final String title;
+
+  final bool selected;
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding:
+      const EdgeInsets.only(
+        bottom: 4,
+      ),
+
+      child: Material(
+        color:
+        Colors.transparent,
+
+        borderRadius:
+        BorderRadius.circular(
+          10,
+        ),
+
+        child: InkWell(
+          onTap:
+          onTap,
+
+          borderRadius:
+          BorderRadius.circular(
+            10,
+          ),
+
+          child:
+          AnimatedContainer(
+            duration:
+            const Duration(
+              milliseconds: 180,
+            ),
+
+            padding:
+            const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
+
+            decoration:
+            BoxDecoration(
+              color: selected
+                  ? kPlatformBrandColor
+                  .withValues(alpha: 0.08)
+                  : Colors.transparent,
+
+              borderRadius:
+              BorderRadius.circular(
+                10,
+              ),
+            ),
+
+            child: Row(
+              children: [
+                Icon(
+                  selected
+                      ? selectedIcon
+                      : icon,
+
+                  size: 21,
+
+                  color: selected
+                      ? kPlatformBrandColor
+                      : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+
+                const SizedBox(
+                  width: 13,
+                ),
+
+                Expanded(
+                  child: Text(
+                    title,
+
+                    style:
+                    TextStyle(
+                      fontSize: 14,
+
+                      fontWeight:
+                      selected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+
+                      color: selected
+                          ? kPlatformBrandColor
+                          : const Color(
+                        0xff4D5763,
+                      ),
+                    ),
+                  ),
+                ),
+
+                if (selected)
+                  Container(
+                    width: 4,
+                    height: 22,
+
+                    decoration:
+                    BoxDecoration(
+                      color:
+                      kPlatformBrandColor,
+
+                      borderRadius:
+                      BorderRadius.circular(
+                        4,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 // ============================================================
 // HEADER
 // ============================================================
@@ -523,6 +662,15 @@ class _TrainingHeader
                 tooltip: isDark ? 'Light Mode' : 'Dark Mode',
               );
             },
+          ),
+          IconButton(
+            tooltip: 'Log out',
+            onPressed: () => _confirmSignOut(context),
+            icon: Icon(
+              Icons.logout,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              size: 20,
+            ),
           ),
         ],
       ),

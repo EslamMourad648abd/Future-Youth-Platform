@@ -1,4 +1,4 @@
-import 'package:bbc_api_tool/admin_console/services/training_analytics_service.dart';
+import 'package:future_youth_platform/admin_console/services/training_analytics_service.dart';
 import 'package:flutter/material.dart';
 
 import '../../modules/training/models/agent_training_analytics_model.dart';
@@ -53,8 +53,7 @@ class _TrainingAnalyticsScreenState
 
   Future<void> _loadAnalytics() async {
     try {
-      final result =
-      await service.getAllTraineeAnalytics();
+      final result = await service.getAllTraineeAnalytics();
 
       if (!mounted) return;
 
@@ -64,27 +63,15 @@ class _TrainingAnalyticsScreenState
         error = null;
       });
     } catch (e) {
-      debugPrint(
-        'ANALYTICS ERROR: $e',
-      );
+      debugPrint('ANALYTICS ERROR: $e');
 
       if (!mounted) return;
 
       setState(() {
+        agents = [];
         loading = false;
-        error = e.toString();
+        error = null;
       });
-
-      if (agents.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Failed to load analytics',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 
@@ -100,8 +87,7 @@ class _TrainingAnalyticsScreenState
     });
 
     try {
-      final result =
-      await service.getAllTraineeAnalytics(
+      final result = await service.getAllTraineeAnalytics(
         forceRefresh: true,
       );
 
@@ -113,24 +99,15 @@ class _TrainingAnalyticsScreenState
         error = null;
       });
     } catch (e) {
-      debugPrint(
-        'ANALYTICS REFRESH ERROR: $e',
-      );
+      debugPrint('ANALYTICS REFRESH ERROR: $e');
 
       if (!mounted) return;
 
       setState(() {
+        agents = [];
         refreshing = false;
+        error = null;
       });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Failed to refresh analytics',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 

@@ -102,11 +102,6 @@ class ApiTesterApp extends StatelessWidget {
                 return Stack(
                   children: [
                     child ?? const SizedBox.shrink(),
-                    const Positioned(
-                      right: 18,
-                      bottom: 10,
-                      child: AppWatermark(),
-                    ),
                     Positioned.directional(
                       textDirection: locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
                       end: 18,
@@ -172,40 +167,6 @@ class GlobalLanguageSwitch extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class AppWatermark extends StatelessWidget {
-  const AppWatermark({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmall = screenWidth < 600;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return IgnorePointer(
-      child: Opacity(
-        opacity: 0.45,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            color: (isDark ? Colors.blueGrey.shade900 : Colors.white).withValues(alpha: 0.82),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.withValues(alpha: 0.18)),
-          ),
-          child: Text(
-            'Powered by Eng. Eslam Mourad',
-            style: TextStyle(
-              fontSize: isSmall ? 12 : 16,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.grey.shade400 : const Color(0xff6B7280),
-              letterSpacing: 0.2,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

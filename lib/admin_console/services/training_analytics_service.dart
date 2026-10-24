@@ -52,89 +52,54 @@ class TrainingAnalyticsService {
   getAllTraineeAnalytics({
     bool forceRefresh = false,
   }) async {
-    // ----------------------------------------------------------
-    // RETURN ANALYTICS CACHE
-    // ----------------------------------------------------------
+    try {
+      if (!forceRefresh &&
+          _cachedAnalytics != null &&
+          _analyticsCacheTime != null &&
+          DateTime.now().difference(_analyticsCacheTime!) < _analyticsCacheDuration) {
+        return _cachedAnalytics!;
+      }
 
-    if (!forceRefresh &&
-        _cachedAnalytics != null &&
-        _analyticsCacheTime != null &&
-        DateTime.now()
-            .difference(_analyticsCacheTime!) <
-            _analyticsCacheDuration) {
-      return _cachedAnalytics!;
-    }
+      final traineesFuture = firestore
+          .collection('users')
+          .where('role', isEqualTo: 'trainee')
+          .get();
 
-    // ----------------------------------------------------------
-    // LOAD TRAINEES AND COURSE METADATA IN PARALLEL
-    // ----------------------------------------------------------
+      final courseMetadataFuture = _getCourseMetadata(forceRefresh: forceRefresh);
 
-    final traineesFuture = firestore
-        .collection('users')
-        .where(
-      'role',
-      isEqualTo: 'trainee',
-    )
-        .get();
+      final results = await Future.wait([
+        traineesFuture,
+        courseMetadataFuture,
+      ]);
 
-    final courseMetadataFuture =
-    _getCourseMetadata(
-      forceRefresh: forceRefresh,
-    );
+      final usersSnapshot = results[0] as QuerySnapshot<Map<String, dynamic>>;
+      final courseMetadata = results[1] as _CourseMetadata;
+      final realCourses = courseMetadata.realCourses;
 
-    final results = await Future.wait([
-      traineesFuture,
-      courseMetadataFuture,
-    ]);
+      if (usersSnapshot.docs.isEmpty || realCourses.isEmpty) {
+        final emptyResult = <AgentTrainingAnalyticsModel>[];
+        _cachedAnalytics = emptyResult;
+        _analyticsCacheTime = DateTime.now();
+        return emptyResult;
+      }
 
-    final usersSnapshot =
-    results[0]
-    as QuerySnapshot<Map<String, dynamic>>;
-
-    final courseMetadata =
-    results[1] as _CourseMetadata;
-
-    final realCourses =
-        courseMetadata.realCourses;
-
-    // ----------------------------------------------------------
-    // BUILD TRAINEE ANALYTICS IN PARALLEL
-    //
-    // Every trainee is processed independently.
-    // ----------------------------------------------------------
-
-    if (usersSnapshot.docs.isEmpty ||
-        realCourses.isEmpty) {
-      final emptyResult =
-      <AgentTrainingAnalyticsModel>[];
-
-      _cachedAnalytics = emptyResult;
-      _analyticsCacheTime = DateTime.now();
-
-      return emptyResult;
-    }
-
-    final analytics = await Future.wait(
-      usersSnapshot.docs.map(
-            (userDoc) => _buildTraineeAnalytics(
-          userDoc: userDoc,
-          realCourses: realCourses,
-          courseLessonIds:
-          courseMetadata.courseLessonIds,
-          courseNames:
-          courseMetadata.courseNames,
+      final analytics = await Future.wait(
+        usersSnapshot.docs.map(
+          (userDoc) => _buildTraineeAnalytics(
+            userDoc: userDoc,
+            realCourses: realCourses,
+            courseLessonIds: courseMetadata.courseLessonIds,
+            courseNames: courseMetadata.courseNames,
+          ),
         ),
-      ),
-    );
+      );
 
-    // ----------------------------------------------------------
-    // UPDATE CACHE
-    // ----------------------------------------------------------
-
-    _cachedAnalytics = analytics;
-    _analyticsCacheTime = DateTime.now();
-
-    return analytics;
+      _cachedAnalytics = analytics;
+      _analyticsCacheTime = DateTime.now();
+      return analytics;
+    } catch (e) {
+      return [];
+    }
   }
 
   // ============================================================
@@ -144,111 +109,68 @@ class TrainingAnalyticsService {
   Future<_CourseMetadata> _getCourseMetadata({
     bool forceRefresh = false,
   }) async {
-    // ----------------------------------------------------------
-    // RETURN COURSE CACHE
-    // ----------------------------------------------------------
+    try {
+      if (!forceRefresh &&
+          _cachedCourses != null &&
+          _cachedCourseNames != null &&
+          _cachedCourseLessonIds != null &&
+          _courseCacheTime != null &&
+          DateTime.now().difference(_courseCacheTime!) < _courseCacheDuration) {
+        return _CourseMetadata(
+          courses: _cachedCourses!,
+          courseNames: _cachedCourseNames!,
+          courseLessonIds: _cachedCourseLessonIds!,
+        );
+      }
 
-    if (!forceRefresh &&
-        _cachedCourses != null &&
-        _cachedCourseNames != null &&
-        _cachedCourseLessonIds != null &&
-        _courseCacheTime != null &&
-        DateTime.now()
-            .difference(_courseCacheTime!) <
-            _courseCacheDuration) {
+      final coursesSnapshot = await firestore.collection('training_courses').get();
+      final courseNames = <String, String>{};
+
+      final lessonResults = await Future.wait(
+        coursesSnapshot.docs.map(
+          (courseDoc) async {
+            final courseId = courseDoc.id;
+            final data = courseDoc.data();
+            courseNames[courseId] = data['title']?.toString() ?? courseId;
+
+            final lessonsSnapshot = await firestore
+                .collection('training_courses')
+                .doc(courseId)
+                .collection('lessons')
+                .get();
+
+            return MapEntry(
+              courseId,
+              lessonsSnapshot.docs.map((lessonDoc) => lessonDoc.id).toList(),
+            );
+          },
+        ),
+      );
+
+      final courseLessonIds = Map<String, List<String>>.fromEntries(lessonResults);
+
+      final realCourses = coursesSnapshot.docs.where((courseDoc) {
+        final lessons = courseLessonIds[courseDoc.id] ?? const <String>[];
+        return lessons.isNotEmpty;
+      }).toList();
+
+      _cachedCourses = realCourses;
+      _cachedCourseNames = courseNames;
+      _cachedCourseLessonIds = courseLessonIds;
+      _courseCacheTime = DateTime.now();
+
       return _CourseMetadata(
-        courses: _cachedCourses!,
-        courseNames: _cachedCourseNames!,
-        courseLessonIds:
-        _cachedCourseLessonIds!,
+        courses: realCourses,
+        courseNames: courseNames,
+        courseLessonIds: courseLessonIds,
+      );
+    } catch (e) {
+      return const _CourseMetadata(
+        courses: [],
+        courseNames: {},
+        courseLessonIds: {},
       );
     }
-
-    // ----------------------------------------------------------
-    // LOAD COURSES
-    // ----------------------------------------------------------
-
-    final coursesSnapshot = await firestore
-        .collection('training_courses')
-        .get();
-
-    final courseNames = <String, String>{};
-
-    // ----------------------------------------------------------
-    // LOAD LESSONS IN PARALLEL
-    // ----------------------------------------------------------
-
-    final lessonResults = await Future.wait(
-      coursesSnapshot.docs.map(
-            (courseDoc) async {
-          final courseId = courseDoc.id;
-
-          final data = courseDoc.data();
-
-          courseNames[courseId] =
-              data['title']?.toString() ??
-                  courseId;
-
-          final lessonsSnapshot =
-          await firestore
-              .collection(
-            'training_courses',
-          )
-              .doc(courseId)
-              .collection('lessons')
-              .get();
-
-          return MapEntry(
-            courseId,
-            lessonsSnapshot.docs
-                .map(
-                  (lessonDoc) =>
-              lessonDoc.id,
-            )
-                .toList(),
-          );
-        },
-      ),
-    );
-
-    final courseLessonIds =
-    Map<String, List<String>>.fromEntries(
-      lessonResults,
-    );
-
-    // ----------------------------------------------------------
-    // ONLY COURSES WITH LESSONS
-    // ----------------------------------------------------------
-
-    final realCourses =
-    coursesSnapshot.docs.where(
-          (courseDoc) {
-        final lessons =
-            courseLessonIds[courseDoc.id] ??
-                const <String>[];
-
-        return lessons.isNotEmpty;
-      },
-    ).toList();
-
-    // ----------------------------------------------------------
-    // UPDATE COURSE CACHE
-    // ----------------------------------------------------------
-
-    _cachedCourses = realCourses;
-
-    _cachedCourseNames = courseNames;
-
-    _cachedCourseLessonIds =
-        courseLessonIds;
-
-    _courseCacheTime = DateTime.now();
-
-    return _CourseMetadata(
-      courses: realCourses,
-      courseNames: courseNames,
-      courseLessonIds: courseLessonIds,
-    );
   }
 
   // ============================================================
@@ -459,10 +381,9 @@ class TrainingAnalyticsService {
             final date =
             completedAt.toDate();
 
-            if (latestCompletionDate ==
-                null ||
+            if (latestCompletionDate == null ||
                 date.isAfter(
-                  latestCompletionDate!,
+                  latestCompletionDate,
                 )) {
               latestCompletionDate =
                   date;

@@ -35,7 +35,7 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _localizedValues = {
     'en': {
-      'app_title': 'BBC Operations Platform',
+      'app_title': 'Future Youth Platform',
       'back_to_platforms': 'Back to Platforms',
       'dashboard': 'Dashboard',
       'tasks': 'Tasks',
@@ -269,7 +269,7 @@ class AppLocalizations {
       'voip': 'VoIP',
     },
     'ar': {
-      'app_title': 'منصة عمليات BBC',
+      'app_title': 'منصة شباب المستقبل',
       'back_to_platforms': 'العودة إلى المنصات',
       'dashboard': 'لوحة التحكم',
       'tasks': 'المهام',

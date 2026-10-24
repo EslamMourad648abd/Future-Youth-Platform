@@ -1,139 +1,91 @@
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 
 class AuthService {
-// ============================================================
-// CURRENT ROLE
-// ============================================================
+  // ============================================================
+  // CURRENT ROLE
+  // ============================================================
 
-// Default role for users before their role is loaded.
-//
-// IMPORTANT:
-// This does NOT assign a Firebase role.
-// The actual role comes from the Firebase Auth custom claim.
-static String role = "support_agent";
+  static String role = "trainee";
 
-// ============================================================
-// LOAD USER ROLE
-// ============================================================
+  // ============================================================
+  // LOAD USER ROLE
+  // ============================================================
 
-static Future<void> loadUserRole() async {
-final user =
-FirebaseAuth.instance.currentUser;
+  static Future<void> loadUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
 
-// ------------------------------------------------------------
-// No authenticated user
-// ------------------------------------------------------------
+    if (user == null) {
+      role = "trainee";
+      return;
+    }
 
-if (user == null) {
-role = "support_agent";
-return;
-}
+    final email = user.email?.trim().toLowerCase() ?? "";
+    if (email == "eslammourad2000@yahoo.com") {
+      role = "superadmin";
+      debugPrint("Loaded role: $role for primary admin $email");
+      return;
+    }
 
-// ------------------------------------------------------------
-// Get latest Firebase ID token claims
-// ------------------------------------------------------------
+    try {
+      final token = await user.getIdTokenResult(true);
+      debugPrint("Token claims: ${token.claims}");
 
-final token =
-await user.getIdTokenResult(true);
+      final claimRole = token.claims?['role'];
+      final isSuperAdminClaim = token.claims?['superadmin'] == true;
 
-debugPrint(
-"Token claims: ${token.claims}",
-);
+      if (claimRole is String && claimRole.isNotEmpty) {
+        role = claimRole;
+      } else if (isSuperAdminClaim) {
+        role = "superadmin";
+      } else {
+        // Fallback to Firestore user document
+        final doc = await FirebaseFirestore.instance.collection("users").doc(user.uid).get();
+        if (doc.exists) {
+          final firestoreRole = doc.data()?['role'];
+          if (firestoreRole is String && firestoreRole.isNotEmpty) {
+            role = firestoreRole;
+          } else {
+            role = "trainee";
+          }
+        } else {
+          role = "trainee";
+        }
+      }
+    } catch (e) {
+      debugPrint("Error reading token claims: $e");
+      try {
+        final doc = await FirebaseFirestore.instance.collection("users").doc(user.uid).get();
+        if (doc.exists && doc.data()?['role'] is String) {
+          role = doc.data()!['role'];
+        } else {
+          role = "trainee";
+        }
+      } catch (docErr) {
+        debugPrint("Error fallback reading user doc: $docErr");
+        role = "trainee";
+      }
+    }
 
-// ------------------------------------------------------------
-// Read role
-// ------------------------------------------------------------
+    debugPrint("Loaded role: $role");
+  }
 
-final claimRole =
-token.claims?['role'];
+  // ============================================================
+  // ROLE CHECKS
+  // ============================================================
 
-if (claimRole is String &&
-claimRole.isNotEmpty) {
-role = claimRole;
-} else {
-// ----------------------------------------------------------
-// Legacy/default fallback
-//
-// Existing users may still have the old "agent" role until
-// you manually migrate them from Super Admin > User
-// Management.
-//
-// Treat legacy "agent" as support_agent on the client side.
-// ----------------------------------------------------------
+  static bool get isSuperAdmin {
+    final user = FirebaseAuth.instance.currentUser;
+    final email = user?.email?.trim().toLowerCase() ?? "";
+    return role == "superadmin" || email == "eslammourad2000@yahoo.com";
+  }
 
-role = "support_agent";
-}
+  static bool get isOnboardingAgent => role == "onboarding_agent";
 
-debugPrint(
-"Loaded role: $role",
-);
-}
+  static bool get isSupportAgent => role == "support_agent";
 
-// ============================================================
-// ROLE CHECKS
-// ============================================================
+  static bool get isTrainee => role == "trainee";
 
-// ------------------------------------------------------------
-// SUPER ADMIN
-//
-// Full platform access.
-// ------------------------------------------------------------
-
-static bool get isSuperAdmin =>
-role == "superadmin";
-
-// ------------------------------------------------------------
-// ONBOARDING AGENT
-//
-// BBC API + Onboarding Platform.
-// ------------------------------------------------------------
-
-static bool get isOnboardingAgent =>
-role == "onboarding_agent";
-
-// ------------------------------------------------------------
-// SUPPORT AGENT
-//
-// BBC API only.
-// ------------------------------------------------------------
-
-static bool get isSupportAgent =>
-role == "support_agent";
-
-// ------------------------------------------------------------
-// TRAINEE
-//
-// BBC API + Training Portal.
-//
-// This role remains unchanged.
-// ------------------------------------------------------------
-
-static bool get isTrainee =>
-role == "trainee";
-
-// ============================================================
-// LEGACY AGENT COMPATIBILITY
-// ============================================================
-//
-// Keep this temporarily so existing screens/services that still
-// reference AuthService.isAgent do not immediately fail.
-//
-// It represents either of the two new agent roles.
-//
-// New code should use:
-//
-//   AuthService.isOnboardingAgent
-//
-// or:
-//
-//   AuthService.isSupportAgent
-//
-// instead.
-// ============================================================
-
-static bool get isAgent =>
-isOnboardingAgent ||
-isSupportAgent;
+  static bool get isAgent => isOnboardingAgent || isSupportAgent;
 }

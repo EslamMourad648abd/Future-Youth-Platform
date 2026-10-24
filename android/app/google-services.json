@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "259169067995",
-    "project_id": "bbc-api-tool",
-    "storage_bucket": "bbc-api-tool.firebasestorage.app"
+    "project_number": "319728850374",
+    "project_id": "future-youth-platform",
+    "storage_bucket": "future-youth-platform.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:259169067995:android:9df42272f819de9e98fdfe",
+        "mobilesdk_app_id": "1:319728850374:android:8bbf8b9c98d07a58c2cec7",
         "android_client_info": {
-          "package_name": "com.example.bbc_api_tool"
+          "package_name": "com.example.future_youth_platform"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBVccklkXr1ZEuQkDZt4ANedf41Uk3iQMA"
+          "current_key": "AIzaSyAyyVuYxu4DHtbJ9XA4-ejLJhlq_uFy2fw"
         }
       ],
       "services": {
