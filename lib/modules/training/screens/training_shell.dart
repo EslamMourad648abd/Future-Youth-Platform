@@ -5,7 +5,6 @@ import '../../../router/app_router.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/localization_service.dart';
-import '../../../services/platform_config.dart';
 import 'dart:html' as html;
 
 const Color kPlatformBrandColor =
@@ -549,9 +548,9 @@ class _TrainingHeader
     return Padding(
       padding:
       const EdgeInsets.fromLTRB(
-        20,
+        16,
         18,
-        20,
+        16,
         12,
       ),
 
@@ -563,11 +562,8 @@ class _TrainingHeader
           // ==================================================
 
           Container(
-            width:
-            42,
-
-            height:
-            42,
+            width: 40,
+            height: 40,
 
             decoration:
             BoxDecoration(
@@ -579,25 +575,23 @@ class _TrainingHeader
 
               borderRadius:
               BorderRadius.circular(
-                12,
+                10,
               ),
             ),
 
             child:
             Icon(
-              Icons.school_outlined,
+              Icons.school_rounded,
 
               color:
               theme.colorScheme.primary,
 
-              size:
-              23,
+              size: 22,
             ),
           ),
 
           const SizedBox(
-            width:
-            12,
+            width: 10,
           ),
 
           // ==================================================
@@ -609,36 +603,36 @@ class _TrainingHeader
             Column(
               crossAxisAlignment:
               CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
 
               children: [
                 Text(
-                  l10n?.translate('learning') ?? 'Learning',
+                  'Future Youth',
+
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
 
                   style:
                   TextStyle(
-                    fontSize:
-                    17,
+                    fontSize: 15,
 
                     fontWeight:
-                    FontWeight.w700,
+                    FontWeight.bold,
 
                     color:
                     Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
 
-                const SizedBox(
-                  height:
-                  2,
-                ),
-
                 Text(
-                  l10n?.translate('training_portal') ?? 'Training Portal',
+                  'Platform Portal',
+
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
 
                   style:
                   TextStyle(
-                    fontSize:
-                    12,
+                    fontSize: 11,
 
                     color:
                     theme.colorScheme.onSurface.withValues(alpha: 0.6),
@@ -662,15 +656,6 @@ class _TrainingHeader
                 tooltip: isDark ? 'Light Mode' : 'Dark Mode',
               );
             },
-          ),
-          IconButton(
-            tooltip: 'Log out',
-            onPressed: () => _confirmSignOut(context),
-            icon: Icon(
-              Icons.logout,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              size: 20,
-            ),
           ),
         ],
       ),
@@ -863,60 +848,84 @@ class _TrainingNavigationFooter
     extends StatelessWidget {
   const _TrainingNavigationFooter();
 
+  Future<void> _logout(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      if (!context.mounted) return;
+      context.go(AppRouter.login);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to logout: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(
       BuildContext context,
       ) {
     final theme = Theme.of(context);
-    return Container(
-      padding:
-      const EdgeInsets.fromLTRB(
-        20,
-        12,
-        20,
-        20,
-      ),
+    final l10n = AppLocalizations.of(context);
+    final user = FirebaseAuth.instance.currentUser;
+    final name = user?.displayName ?? user?.email ?? 'User';
 
-      decoration:
-      BoxDecoration(
-        border:
-        Border(
-          top:
-          BorderSide(
-            color:
-            theme.dividerColor,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: theme.dividerColor,
           ),
         ),
       ),
-
-      child:
-      Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.school_outlined,
-
-            size:
-            18,
-
-            color:
-            theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: theme.colorScheme.primary,
+                child: const Icon(Icons.person, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      AuthService.role.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-
-          const SizedBox(
-            width:
-            8,
-          ),
-
-          Text(
-            'Training Operations',
-
-            style:
-            TextStyle(
-              fontSize:
-              11,
-
-              color:
-              theme.colorScheme.onSurface.withValues(alpha: 0.6),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton.icon(
+              onPressed: () => _logout(context),
+              icon: const Icon(Icons.logout, size: 18),
+              label: Text(l10n?.translate('logout') ?? 'Logout'),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+              ),
             ),
           ),
         ],

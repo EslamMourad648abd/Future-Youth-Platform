@@ -9,7 +9,7 @@ import 'services/theme_service.dart';
 import 'services/platform_config.dart';
 
 Future<void> main() async {
-  await runAppWithConfig(PlatformConfig.master);
+  await runAppWithConfig(PlatformConfig.futureYouth);
 }
 
 Future<void> runAppWithConfig(PlatformConfig config) async {

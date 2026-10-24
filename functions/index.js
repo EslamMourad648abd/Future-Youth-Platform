@@ -63,19 +63,21 @@ setGlobalOptions({
 // ======================================================
 
 const ROLES = Object.freeze({
-  ONBOARDING_AGENT: "onboarding_agent",
-  SUPPORT_AGENT: "support_agent",
-  TRAINEE: "trainee",
+  ADMIN: "admin",
+  TEACHER: "teacher",
+  PARENT: "parent",
+  STUDENT: "student",
   SUPER_ADMIN: "superadmin",
-  LEGACY_AGENT: "agent",
+  TRAINEE: "trainee",
 });
 
 const allowedRoles = Object.freeze([
-  ROLES.ONBOARDING_AGENT,
-  ROLES.SUPPORT_AGENT,
-  ROLES.TRAINEE,
+  ROLES.ADMIN,
+  ROLES.TEACHER,
+  ROLES.PARENT,
+  ROLES.STUDENT,
   ROLES.SUPER_ADMIN,
-  ROLES.LEGACY_AGENT,
+  ROLES.TRAINEE,
 ]);
 
 // ======================================================
@@ -271,6 +273,7 @@ async function requireSuperAdmin(request) {
   const email = (request.auth.token?.email || "").toLowerCase().trim();
 
   if (
+    role === ROLES.ADMIN ||
     role === ROLES.SUPER_ADMIN ||
     isSuperAdminClaim ||
     email === "eslammourad2000@yahoo.com"

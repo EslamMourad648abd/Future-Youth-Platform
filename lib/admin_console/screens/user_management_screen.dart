@@ -29,17 +29,11 @@ class _UserManagementState extends State<UserManagement> {
   // ROLE CONSTANTS
   // ============================================================
 
-  static const String onboardingAgentRole =
-      "onboarding_agent";
-
-  static const String supportAgentRole =
-      "support_agent";
-
-  static const String traineeRole =
-      "trainee";
-
-  static const String superAdminRole =
-      "superadmin";
+  static const String adminRole = "admin";
+  static const String teacherRole = "teacher";
+  static const String parentRole = "parent";
+  static const String studentRole = "student";
+  static const String superAdminRole = "admin";
 
   // ============================================================
   // INIT
@@ -227,7 +221,7 @@ class _UserManagementState extends State<UserManagement> {
           final firestoreData = <String, dynamic>{
             "displayName": data["displayName"] ?? "",
             "email": data["email"] ?? "",
-            "role": data["role"] ?? onboardingAgentRole,
+            "role": data["role"] ?? studentRole,
             "updatedAt": FieldValue.serverTimestamp(),
           };
 
@@ -349,7 +343,7 @@ class _UserManagementState extends State<UserManagement> {
     final email = TextEditingController();
     final password = TextEditingController();
 
-    String role = onboardingAgentRole;
+    String role = studentRole;
     String? dialogError;
     bool isSubmitting = false;
 
@@ -667,26 +661,24 @@ class _UserManagementState extends State<UserManagement> {
     final role =
     (value ?? "")
         .toString()
-        .trim();
+        .trim()
+        .toLowerCase();
 
     switch (role) {
-      case "agent":
-        return onboardingAgentRole;
+      case "admin":
+      case "superadmin":
+        return adminRole;
 
-      case onboardingAgentRole:
-        return onboardingAgentRole;
+      case "teacher":
+        return teacherRole;
 
-      case supportAgentRole:
-        return supportAgentRole;
+      case "parent":
+        return parentRole;
 
-      case traineeRole:
-        return traineeRole;
-
-      case superAdminRole:
-        return superAdminRole;
-
+      case "student":
+      case "trainee":
       default:
-        return onboardingAgentRole;
+        return studentRole;
     }
   }
 
@@ -698,17 +690,17 @@ class _UserManagementState extends State<UserManagement> {
       String role,
       ) {
     switch (role) {
-      case onboardingAgentRole:
-        return "Onboarding Agent";
+      case adminRole:
+        return "Admin";
 
-      case supportAgentRole:
-        return "Support Agent";
+      case teacherRole:
+        return "Teacher";
 
-      case traineeRole:
-        return "Trainee";
+      case parentRole:
+        return "Parent";
 
-      case superAdminRole:
-        return "Super Admin";
+      case studentRole:
+        return "Student";
 
       default:
         return role;
@@ -722,27 +714,27 @@ class _UserManagementState extends State<UserManagement> {
   List<DropdownMenuItem<String>> _roles() {
     return const [
       DropdownMenuItem(
-        value: onboardingAgentRole,
+        value: adminRole,
         child: Text(
-          "Onboarding Agent",
+          "Admin",
         ),
       ),
       DropdownMenuItem(
-        value: supportAgentRole,
+        value: teacherRole,
         child: Text(
-          "Support Agent",
+          "Teacher",
         ),
       ),
       DropdownMenuItem(
-        value: traineeRole,
+        value: parentRole,
         child: Text(
-          "Trainee",
+          "Parent",
         ),
       ),
       DropdownMenuItem(
-        value: superAdminRole,
+        value: studentRole,
         child: Text(
-          "Super Admin",
+          "Student",
         ),
       ),
     ];
@@ -1146,7 +1138,7 @@ class _UserManagementState extends State<UserManagement> {
               dropdownColor: theme.cardTheme.color,
               underline: const SizedBox(),
               style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 13),
-              value: _roles().any((item) => item.value == role) ? role : onboardingAgentRole,
+              value: _roles().any((item) => item.value == role) ? role : studentRole,
               items: _roles(),
               onChanged: (value) {
                 if (value != null) _updateRole(user["uid"], value);
