@@ -1,46 +1,198 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
 
-    function isSuperAdmin() {
-      return request.auth != null && (
-        request.auth.token.email == "eslammourad2000@yahoo.com" ||
-        request.auth.token.role == "superadmin" ||
-        request.auth.token.superadmin == true ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin")
+    function userDocExists(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function currentRole() {
+      return !signedIn() ? '' :
+        (request.auth.token.role is string ? request.auth.token.role :
+          (userDocExists(request.auth.uid) &&
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role is string
+            ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+            : ''));
+    }
+
+    function isAdmin() {
+      return signedIn() && (
+        currentRole() == 'admin' ||
+        currentRole() == 'superadmin' ||
+        request.auth.token.superadmin == true
       );
     }
 
+    function isTeacher() { return signedIn() && currentRole() == 'teacher'; }
+    function isParent() { return signedIn() && currentRole() == 'parent'; }
+    function isStudent() { return signedIn() && currentRole() == 'student'; }
+
+    // Existing internal training portal. Role escalation via self-edited user
+    // documents is not permitted; trusted Admin SDK code manages role fields.
     match /training_courses/{courseId} {
-      allow read: if request.auth != null;
-      allow write: if isSuperAdmin();
+      allow read: if signedIn();
+      allow write: if isAdmin();
 
       match /lessons/{lessonId} {
-        allow read: if request.auth != null;
-        allow write: if isSuperAdmin();
+        allow read: if signedIn();
+        allow write: if isAdmin();
       }
     }
 
     match /users/{userId} {
-      allow read, write: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAdmin();
+      allow update: if isAdmin() ||
+        (signedIn() && request.auth.uid == userId &&
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'superadmin', 'isSuperAdmin']));
+      allow delete: if isAdmin();
 
       match /training_progress/{courseId} {
-        allow read, write: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+        allow read, write: if signedIn() && (request.auth.uid == userId || isAdmin());
 
         match /lessons/{lessonId} {
-          allow read, write: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+          allow read, write: if signedIn() && (request.auth.uid == userId || isAdmin());
         }
       }
     }
 
     match /certificates/{certId} {
-      allow read: if request.auth != null;
-      allow write: if isSuperAdmin();
+      allow read: if signedIn();
+      allow write: if isAdmin();
     }
 
+    // Future Youth: a teacher owns their drafts; only Admin can approve/reject.
+    match /playlists/{playlistId} {
+      allow create: if isTeacher() &&
+        request.resource.data.teacherUid == request.auth.uid &&
+        request.resource.data.status == 'draft';
+      allow read: if isAdmin() ||
+        (isTeacher() && resource.data.teacherUid == request.auth.uid) ||
+        (isStudent() && resource.data.status == 'published');
+      allow update: if isAdmin() ||
+        (isTeacher() &&
+         resource.data.teacherUid == request.auth.uid &&
+         request.resource.data.teacherUid == request.auth.uid &&
+         request.resource.data.status == resource.data.status);
+      allow delete: if isAdmin() ||
+        (isTeacher() && resource.data.teacherUid == request.auth.uid &&
+         resource.data.status == 'draft');
+    }
+
+    match /videos/{videoId} {
+      allow create: if isTeacher() &&
+        request.resource.data.teacherUid == request.auth.uid &&
+        request.resource.data.status in ['draft', 'submitted', 'pending_ai_review', 'pending_admin_review'];
+      allow read: if isAdmin() ||
+        (isTeacher() && resource.data.teacherUid == request.auth.uid) ||
+        (isStudent() && resource.data.status == 'approved' &&
+         resource.data.isFreePreview == true);
+      allow update: if isAdmin() ||
+        (isTeacher() &&
+         resource.data.teacherUid == request.auth.uid &&
+         request.resource.data.teacherUid == request.auth.uid &&
+         request.resource.data.status == resource.data.status &&
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+           'adminDecision', 'reviewedBy', 'reviewedAt', 'rejectionReason',
+           'rejectionTimecode', 'publishedAt'
+         ]));
+      allow delete: if isAdmin() ||
+        (isTeacher() && resource.data.teacherUid == request.auth.uid &&
+         resource.data.status in ['draft', 'rejected']);
+    }
+
+    match /teacherProfiles/{teacherUid} {
+      allow create: if signedIn() && request.auth.uid == teacherUid &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.approvalStatus == 'pending';
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == teacherUid) ||
+        (isStudent() && resource.data.approvalStatus == 'approved');
+      allow update: if isAdmin() ||
+        (signedIn() && request.auth.uid == teacherUid &&
+         request.resource.data.uid == request.auth.uid &&
+         request.resource.data.approvalStatus == resource.data.approvalStatus);
+      allow delete: if isAdmin();
+    }
+
+    match /studentProfiles/{profileId} {
+      allow create: if isParent() &&
+        request.resource.data.parentUid == request.auth.uid &&
+        request.resource.data.accountStatus == 'pending';
+      allow read: if isAdmin() ||
+        (isParent() && resource.data.parentUid == request.auth.uid) ||
+        (isStudent() && resource.data.studentUid == request.auth.uid);
+      allow update: if isAdmin() ||
+        (isParent() && resource.data.parentUid == request.auth.uid &&
+         request.resource.data.parentUid == request.auth.uid &&
+         request.resource.data.accountStatus == resource.data.accountStatus &&
+         request.resource.data.invitationStatus == resource.data.invitationStatus);
+      allow delete: if isAdmin();
+    }
+
+    match /paymentRequests/{requestId} {
+      allow create: if isParent() &&
+        request.resource.data.parentUid == request.auth.uid &&
+        request.resource.data.status == 'pending_verification';
+      allow read: if isAdmin() ||
+        (isParent() && resource.data.parentUid == request.auth.uid);
+      allow update: if isAdmin() ||
+        (isParent() && resource.data.parentUid == request.auth.uid &&
+         request.resource.data.parentUid == request.auth.uid &&
+         request.resource.data.status == resource.data.status &&
+         request.resource.data.verifiedBy == resource.data.verifiedBy &&
+         request.resource.data.verifiedAt == resource.data.verifiedAt);
+      allow delete: if isAdmin();
+    }
+
+    match /teacherSelections/{selectionId} {
+      allow create: if isStudent() &&
+        request.resource.data.studentUid == request.auth.uid &&
+        request.resource.data.confirmationCount in [1, 2] &&
+        request.resource.data.status == 'pending' &&
+        exists(/databases/$(database)/documents/teacherProfiles/$(request.resource.data.teacherUid)) &&
+        get(/databases/$(database)/documents/teacherProfiles/$(request.resource.data.teacherUid)).data.approvalStatus == 'approved';
+      allow read: if isAdmin() ||
+        (signedIn() && (resource.data.studentUid == request.auth.uid ||
+          resource.data.parentUid == request.auth.uid));
+      allow update: if isAdmin() ||
+        (isStudent() && resource.data.studentUid == request.auth.uid &&
+         request.resource.data.studentUid == request.auth.uid &&
+         request.resource.data.confirmationCount >= resource.data.confirmationCount &&
+         request.resource.data.confirmationCount <= 2 &&
+         exists(/databases/$(database)/documents/teacherProfiles/$(request.resource.data.teacherUid)) &&
+         get(/databases/$(database)/documents/teacherProfiles/$(request.resource.data.teacherUid)).data.approvalStatus == 'approved');
+      allow delete: if isAdmin();
+    }
+
+    match /pointTransactions/{transactionId} {
+      allow read: if isAdmin() ||
+        (signedIn() && (resource.data.studentUid == request.auth.uid ||
+          resource.data.parentUid == request.auth.uid));
+      // Point grants/deductions are written only by trusted Admin SDK code.
+      allow write: if isAdmin();
+    }
+
+    match /examResults/{resultId} {
+      allow create: if isStudent() &&
+        request.resource.data.studentUid == request.auth.uid;
+      allow read: if isAdmin() ||
+        (signedIn() && (resource.data.studentUid == request.auth.uid ||
+          resource.data.parentUid == request.auth.uid));
+      allow update, delete: if isAdmin();
+    }
+
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // Deny unrecognized collections by default.
     match /{document=**} {
-      allow read, write: if isSuperAdmin();
+      allow read, write: if isAdmin();
     }
   }
 }

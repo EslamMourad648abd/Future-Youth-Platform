@@ -29,8 +29,8 @@ class PlatformConfig {
     subtitle: 'Learning and development portal.',
     logoAsset: 'assets/logo.png',
     allowedRoles: ['admin', 'teacher', 'parent', 'student', 'superadmin', 'trainee'],
-    landingRoute: '/training',
-    primaryColor: Color(0xFF0284C7),
+    landingRoute: '/future-youth',
+    primaryColor: Color(0xFF263778),
   );
 
   bool isRoleAllowed(String role) => true;

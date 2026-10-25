@@ -72,7 +72,7 @@ class ApiTesterApp extends StatelessWidget {
                   surface: const Color(0xff0F172A),
                   onSurface: Colors.white,
                   primary: config.primaryColor,
-                  secondary: const Color(0xff818CF8),
+                  secondary: const Color(0xff00A651),
                 ),
                 scaffoldBackgroundColor: const Color(0xff0F172A),
                 cardTheme: CardThemeData(
@@ -138,7 +138,7 @@ class GlobalLanguageSwitch extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: (isDark ? Colors.blueGrey.shade800 : const Color(0xff003366)).withValues(alpha: 0.9),
+                color: (isDark ? Colors.blueGrey.shade800 : const Color(0xff263778)).withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(

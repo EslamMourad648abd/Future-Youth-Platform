@@ -278,8 +278,8 @@ class _LoginPageState extends State<LoginPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final gradientStart = isDark ? const Color(0xFF0F172A) : const Color(0xFF001C38);
-    final gradientEnd = isDark ? const Color(0xFF1E293B) : const Color(0xFF80CFFF);
+    final gradientStart = isDark ? const Color(0xFF0F172A) : const Color(0xFF263778);
+    final gradientEnd = isDark ? const Color(0xFF1E293B) : const Color(0xFF00A651);
 
     return Scaffold(
       body: Stack(

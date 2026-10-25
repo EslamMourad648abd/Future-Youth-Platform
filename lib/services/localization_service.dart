@@ -139,7 +139,7 @@ class AppLocalizations {
       'client_not_found': 'Client not found.',
       'api_operations': 'API Operations',
       'select_request_sidebar': 'Select a request from the collections sidebar to start testing APIs.',
-      'sign_in_title': 'Sign in to BBC Operations Platform',
+      'sign_in_title': 'Sign in to Future Youth Platform',
       'email': 'Email',
       'password': 'Password',
       'login': 'Login',
