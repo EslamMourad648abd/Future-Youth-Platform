@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/auth_service.dart';
+import '../features/future_youth/future_youth_home.dart';
 
 // ============================================================
 // LOGIN
@@ -44,6 +45,7 @@ class AppRouter {
   // ============================================================
 
   static const login = '/login';
+  static const futureYouthHome = '/future-youth';
   static const home = '/training';
 
   // ============================================================
@@ -140,7 +142,11 @@ class AppRouter {
       // --------------------------------------------------------
 
       if (isLogin || location == '/' || location == '/home') {
-        return training;
+        return futureYouthHome;
+      }
+
+      if (location == futureYouthHome || location.startsWith('$futureYouthHome/')) {
+        return null;
       }
 
       // --------------------------------------------------------
@@ -174,6 +180,12 @@ class AppRouter {
     // ==========================================================
 
     routes: [
+      GoRoute(
+        path: futureYouthHome,
+        name: 'future-youth-home',
+        builder: (context, state) => const FutureYouthHome(),
+      ),
+
       // ========================================================
       // LOGIN
       // ========================================================
@@ -322,8 +334,8 @@ class AppRouter {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () => context.go(training),
-                  child: const Text('Go to Training Portal'),
+                  onPressed: () => context.go(futureYouthHome),
+                  child: const Text('Go to Future Youth Platform'),
                 ),
               ],
             ),
@@ -521,7 +533,7 @@ class _RouteErrorPage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () => context.go(AppRouter.training),
+                onPressed: () => context.go(AppRouter.futureYouthHome),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: theme.colorScheme.onPrimary,
