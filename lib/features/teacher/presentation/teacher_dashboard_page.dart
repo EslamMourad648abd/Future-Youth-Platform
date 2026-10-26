@@ -36,7 +36,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     final price = double.tryParse(_price.text.trim());
     if (user == null || title.isEmpty || subject.isEmpty || price == null || price <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Enter a title, subject and valid monthly price.')),
+        SnackBar(content: Text(fypTranslate(context, 'enter_course_fields', 'Enter a title, subject and valid monthly price.'))),
       );
       return;
     }
@@ -94,13 +94,13 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             children: [
               Text(fypTranslate(context, 'create_course_prompt', 'Create a course'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               SizedBox(height: 16),
-              TextField(controller: _title, decoration: InputDecoration(labelText: 'Course title', prefixIcon: Icon(Icons.menu_book_outlined))),
+              TextField(controller: _title, decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'course_title', 'Course title'), prefixIcon: Icon(Icons.menu_book_outlined))),
               SizedBox(height: 12),
-              TextField(controller: _subject, decoration: InputDecoration(labelText: 'Subject', prefixIcon: Icon(Icons.category_outlined))),
+              TextField(controller: _subject, decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'subject_label', 'Subject'), prefixIcon: Icon(Icons.category_outlined))),
               SizedBox(height: 12),
-              TextField(controller: _description, maxLines: 3, decoration: InputDecoration(labelText: 'Description')),
+              TextField(controller: _description, maxLines: 3, decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'description_label', 'Description'))),
               SizedBox(height: 12),
-              TextField(controller: _price, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'Monthly price (EGP)', prefixIcon: Icon(Icons.payments_outlined))),
+              TextField(controller: _price, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'monthly_price_egp', 'Monthly price (EGP)'), prefixIcon: Icon(Icons.payments_outlined))),
               SizedBox(height: 18),
               SizedBox(
                 width: double.infinity,
@@ -163,7 +163,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                     children: [
                       Icon(Icons.auto_stories, color: Colors.white, size: 32),
                       SizedBox(height: 12),
-                      Text('Welcome, ${profile['displayName'] ?? user?.displayName ?? 'Teacher'}',
+                      Text('${fypTranslate(context, 'welcome_teacher', 'Welcome')}, ${profile['displayName'] ?? user?.displayName ?? fypTranslate(context, 'teacher_label', 'Teacher')}',
                         style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
                       SizedBox(height: 8),
                       Text(
@@ -188,7 +188,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance.collection('courses').where('teacherId', isEqualTo: user?.uid).snapshots(),
               builder: (context, snap) {
-                if (snap.hasError) return Text('Could not load courses: ${snap.error}');
+                if (snap.hasError) return Text('${fypTranslate(context, 'courses_load_failed', 'Could not load courses')}: ${snap.error}');
                 if (!snap.hasData) return Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
                 final docs = snap.data!.docs;
                 if (docs.isEmpty) {
@@ -219,7 +219,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                           child: Icon(Icons.play_lesson, color: Theme.of(context).colorScheme.primary),
                         ),
                         title: Text((data['title'] ?? 'Untitled course').toString(), style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${data['subject'] ?? 'Subject'} • ${data['videoCount'] ?? 0} videos • ${data['price'] ?? '—'} EGP/month\n${data['status'] ?? 'draft'} • ${data['approvalStatus'] ?? 'pending review'}'),
+                        subtitle: Text('${data['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${data['videoCount'] ?? 0} ${fypTranslate(context, 'videos_label', 'videos')} • ${data['price'] ?? '—'} EGP/month\n${data['status'] ?? 'draft'} • ${data['approvalStatus'] ?? 'pending review'}'),
                         isThreeLine: true,
                         trailing: IconButton(
                           tooltip: 'Course analytics',
