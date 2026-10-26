@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/fyp_routes.dart';
 import '../../../core/constants/firestore_paths.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
 
 class ParentDashboardPage extends StatefulWidget {
   const ParentDashboardPage({super.key});
@@ -136,7 +137,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Subscriptions & access', style: TextStyle(fontWeight: FontWeight.bold, color: BrandColors.navy, fontSize: 16)),
+                            Text(fypTranslate(context, 'subscription_access', 'Subscriptions & access'), style: TextStyle(fontWeight: FontWeight.bold, color: BrandColors.navy, fontSize: 16)),
                             SizedBox(height: 4),
                             Text('Review course options and see the checkout interface. Payment processing is disabled for now.', style: TextStyle(color: Colors.blueGrey, fontSize: 12)),
                           ],
