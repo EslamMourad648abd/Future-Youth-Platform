@@ -170,7 +170,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       Text(fypTranslate(context, 'platform_control_center', 'Platform control center'), style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
                       SizedBox(height: 8),
                       Text(
-                        'Review educator applications and course submissions before students can access them.',
+                        fypTranslate(context, 'review_educators_courses', 'Review educator applications and course submissions before students can access them.'),
                         style: TextStyle(color: Colors.white70, height: 1.4),
                       ),
                     ],
