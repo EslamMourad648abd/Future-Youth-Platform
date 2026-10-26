@@ -122,7 +122,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Theme.of(context).colorScheme.onSurfaceVariant.shade100),
+                  side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
@@ -194,7 +194,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.face, size: 60, color: Theme.of(context).colorScheme.onSurfaceVariant.shade400),
+                Icon(Icons.face, size: 60, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 SizedBox(height: 12),
                 Text(
                   'No student accounts created yet.',
