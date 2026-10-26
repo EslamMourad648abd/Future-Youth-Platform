@@ -106,7 +106,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: _saving ? null : () => _createCourse(sheetContext),
-                  child: Text(_saving ? 'Saving…' : 'Save draft'),
+                  child: Text(_saving ? fypTranslate(context, 'saving_label', 'Saving…') : fypTranslate(context, 'save_draft', 'Save draft')),
                 ),
               ),
             ],
