@@ -72,7 +72,7 @@ class _FypAppState extends State<FypApp> {
                           ? TextDirection.rtl
                           : TextDirection.ltr,
                       end: 18,
-                      bottom: 70,
+                      bottom: MediaQuery.of(context).padding.bottom + 70,
                       child: const GlobalLanguageSwitch(),
                     ),
                     Positioned.directional(
@@ -80,7 +80,7 @@ class _FypAppState extends State<FypApp> {
                           ? TextDirection.rtl
                           : TextDirection.ltr,
                       end: 18,
-                      bottom: 18,
+                      bottom: MediaQuery.of(context).padding.bottom + 18,
                       child: const GlobalThemeSwitch(),
                     ),
                   ],
