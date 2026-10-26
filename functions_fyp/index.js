@@ -24,12 +24,20 @@ export const completeSignup = onCall(async (request) => {
     throw new HttpsError("unauthenticated", "Authentication required.");
   }
 
-  const role = validateSignupRole(request.data?.role);
   const uid = request.auth.uid;
+  const tokenRole = request.auth.token?.role || null;
+  const existingUser = await db.collection("users").doc(uid).get();
+  const storedRole = existingUser.exists ? existingUser.data()?.role || null : null;
+  const role = validateSignupRole(request.data?.role, tokenRole || storedRole);
   const email = (request.auth.token?.email || "").toLowerCase().trim();
-  const displayName = request.data?.displayName || "";
+  const displayName = String(request.data?.displayName || "").trim();
 
-  await auth.setCustomUserClaims(uid, { role });
+  // Preserve unrelated custom claims while setting the approved signup role.
+  const authUser = await auth.getUser(uid);
+  await auth.setCustomUserClaims(uid, {
+    ...(authUser.customClaims || {}),
+    role,
+  });
 
   await db.collection("users").doc(uid).set(
     {
@@ -37,12 +45,19 @@ export const completeSignup = onCall(async (request) => {
       email,
       displayName,
       role,
+      ...(role === ROLES.TEACHER ? { approvalStatus: "pending" } : {}),
       createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     },
     { merge: true }
   );
 
-  return { ok: true, uid, role };
+  return {
+    ok: true,
+    uid,
+    role,
+    ...(role === ROLES.TEACHER ? { approvalStatus: "pending" } : {}),
+  };
 });
 
 export const createAdmin = onCall(async (request) => {
