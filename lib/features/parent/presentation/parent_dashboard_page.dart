@@ -92,7 +92,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                     children: [
                       CircleAvatar(
                         radius: 28,
-                        backgroundColor: BrandColors.navyTint,
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                         child: Icon(Icons.family_restroom, color: Theme.of(context).colorScheme.primary, size: 30),
                       ),
                       SizedBox(width: 16),
@@ -129,7 +129,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                   child: Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: BrandColors.navyTint,
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                         child: Icon(Icons.subscriptions_outlined, color: Theme.of(context).colorScheme.primary),
                       ),
                       SizedBox(width: 14),
@@ -235,7 +235,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                 Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: BrandColors.navyTint,
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                       child: Icon(Icons.school, color: Theme.of(context).colorScheme.primary),
                     ),
                     SizedBox(width: 14),
