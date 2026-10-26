@@ -314,5 +314,9 @@ export const getPreviewVideoUrl = onCall(async (request) => {
       !sourceSnap.exists || sourceSnap.data()?.courseId !== courseId) {
     throw new HttpsError("permission-denied", "Only the first approved lesson can be previewed.");
   }
+  const teacherSnap = await db.collection("users").doc(courseSnap.data()?.teacherId).get();
+  if (!teacherSnap.exists || teacherSnap.data()?.approvalStatus !== "approved") {
+    throw new HttpsError("permission-denied", "The teacher is not currently approved.");
+  }
   return { ok: true, videoUrl: sourceSnap.data()?.videoUrl };
 });
