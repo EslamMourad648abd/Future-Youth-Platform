@@ -83,14 +83,13 @@ class StudentCourseDetailsPage extends StatelessWidget {
                 stream: FirebaseFirestore.instance.collection('courses').doc(courseId).collection('videos')
                     .where('status', isEqualTo: 'published')
                     .where('approvalStatus', isEqualTo: 'approved')
-                    .orderBy('order')
                     .snapshots(),
                 builder: (context, videoSnapshot) {
                   if (videoSnapshot.hasError) return Text('Could not load lessons: ${videoSnapshot.error}');
                   if (!videoSnapshot.hasData) return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
-                  final lessons = videoSnapshot.data!.docs.where((doc) =>
-                    doc.data()['status'] == 'published' && doc.data()['approvalStatus'] == 'approved'
-                  ).toList();
+                  final lessons = videoSnapshot.data!.docs.toList()
+                    ..sort((a, b) => ((a.data()['order'] as num?)?.toInt() ?? 0)
+                        .compareTo((b.data()['order'] as num?)?.toInt() ?? 0));
                   if (lessons.isEmpty) {
                     return const _EmptyLessons();
                   }
