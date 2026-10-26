@@ -310,7 +310,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     ),
                     SizedBox(height: 16),
                     if (comments.isEmpty)
-                      Text('No comments yet. Be the first to ask a question!', style: TextStyle(color: Colors.grey))
+                      Text('No comments yet. Be the first to ask a question!', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
                     else
                       ListView.separated(
                         shrinkWrap: true,
