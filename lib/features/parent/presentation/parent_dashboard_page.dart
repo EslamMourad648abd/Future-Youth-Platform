@@ -139,7 +139,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                           children: [
                             Text(fypTranslate(context, 'subscription_access', 'Subscriptions & access'), style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary, fontSize: 16)),
                             SizedBox(height: 4),
-                            Text('Review course options and see the checkout interface. Payment processing is disabled for now.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+                            Text(fypTranslate(context, 'checkout_disabled_parent_note', 'Review course options and see the checkout interface. Payment processing is disabled for now.'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
                           ],
                         ),
                       ),
