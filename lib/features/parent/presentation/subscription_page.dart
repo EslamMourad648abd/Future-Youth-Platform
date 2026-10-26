@@ -114,7 +114,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         icon: Icon(Icons.construction_outlined, color: Theme.of(context).colorScheme.primary, size: 38),
-        title: Text('Checkout preview'),
+        title: Text(fypTranslate(dialogContext, 'checkout_preview', 'Checkout preview')),
         content: Text(
           'The checkout screen is ready for review, but payment processing is currently disabled. '
           'No transfer has been submitted, no subscription has been activated, and no points have been granted.',
@@ -169,7 +169,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                   Icon(Icons.payment, size: 32, color: Theme.of(context).colorScheme.primary),
                                   SizedBox(width: 12),
                                   Text(
-                                    'Egyptian Payment Gateway',
+                                    fypTranslate(context, 'egyptian_payment_gateway', 'Egyptian payment options'),
                                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                                   ),
                                 ],
@@ -180,7 +180,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               DropdownButtonFormField<String>(
                                 value: selectedStudentId,
                                 decoration: InputDecoration(
-                                  labelText: 'Select Student Child',
+                                  labelText: fypTranslate(context, 'select_student_child', 'Select student'),
                                   prefixIcon: Icon(Icons.person_outline),
                                 ),
                                 items: students.map((s) {
@@ -196,7 +196,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               DropdownButtonFormField<String>(
                                 value: selectedCourseId,
                                 decoration: InputDecoration(
-                                  labelText: 'Select Course / Teacher Playlist',
+                                  labelText: fypTranslate(context, 'select_course', 'Select course'),
                                   prefixIcon: Icon(Icons.school_outlined),
                                 ),
                                 items: courses.map((c) {
@@ -221,7 +221,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('Total Amount:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    Text(fypTranslate(context, 'total_amount', 'Total amount'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                     Text('$coursePrice EGP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.primary)),
                                   ],
                                 ),
@@ -285,7 +285,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                 ),
                                 child: submitting
                                     ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                    : Text('Preview Checkout (Payments Disabled)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                    : Text(fypTranslate(context, 'preview_checkout_disabled', 'Preview checkout (payments disabled)'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               ),
                             ],
                           ),
