@@ -76,7 +76,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
               SizedBox(height: 24),
               Text(fypTranslate(context, 'course_lessons', 'Course lessons'), style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
               SizedBox(height: 8),
-              Text(fypTranslate(context, 'preview_hint', 'Preview the first approved lesson. Other lessons stay locked until your parent arranges access.'), style: TextStyle(color: Colors.blueGrey, height: 1.4)),
+              Text(fypTranslate(context, 'preview_hint', 'Preview the first approved lesson. Other lessons stay locked until your parent arranges access.'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.4)),
               SizedBox(height: 12),
               StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: FirebaseFirestore.instance.collection('courses').doc(courseId).collection('videos')
@@ -102,7 +102,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
                         margin: const EdgeInsets.only(bottom: 10),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Colors.blueGrey.shade100),
+                          side: BorderSide(color: Theme.of(context).colorScheme.onSurfaceVariant.shade100),
                         ),
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(14),
