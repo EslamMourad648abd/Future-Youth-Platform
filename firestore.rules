@@ -59,7 +59,9 @@ service cloud.firestore {
         request.resource.data.approvalStatus == "pending" &&
         !("reviewedBy" in request.resource.data) &&
         !("reviewedAt" in request.resource.data);
-      allow update: if isAdmin() ||
+      allow update: if (isAdmin() &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(["approvalStatus", "status", "reviewedBy", "reviewedAt", "rejectionReason"])) ||
         (isTeacher() &&
          resource.data.teacherId == request.auth.uid &&
          resource.data.status == "draft" &&
@@ -83,7 +85,9 @@ service cloud.firestore {
           request.resource.data.approvalStatus == "pending" &&
           !("storagePath" in request.resource.data) &&
           !("videoUrl" in request.resource.data);
-        allow update: if isAdmin() ||
+        allow update: if (isAdmin() &&
+          !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(["approvalStatus", "status", "reviewedBy", "reviewedAt", "rejectionReason", "storagePath", "videoUrl", "viewCount", "ratingSum", "ratingCount", "commentCount"])) ||
           (isTeacher() &&
            get(/databases/$(database)/documents/courses/$(courseId)).data.teacherId == request.auth.uid &&
            resource.data.teacherId == request.auth.uid &&
@@ -136,26 +140,27 @@ service cloud.firestore {
       allow read: if isAdmin() ||
         (request.auth != null && resource.data.parentId == request.auth.uid);
       allow create: if false; // Use createPaymentRequest Cloud Function.
-      allow update, delete: if isAdmin();
+      allow update: if false; // Payment verification must be a trusted server action.
+      allow delete: if isAdmin();
     }
 
     match /subscriptions/{subscriptionId} {
       allow read: if isAdmin() ||
         (request.auth != null &&
          (resource.data.parentId == request.auth.uid || resource.data.studentId == request.auth.uid));
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if false; // Subscription state is server-managed.
     }
 
     match /points_ledger/{entryId} {
       allow read: if isAdmin() ||
         (request.auth != null && resource.data.studentId == request.auth.uid);
-      allow write: if isAdmin();
+      allow write: if false; // Points ledger is append-only through trusted functions.
     }
 
     match /video_views/{viewId} {
       allow read: if isAdmin() ||
         (request.auth != null && resource.data.studentId == request.auth.uid);
-      allow write: if isAdmin();
+      allow write: if false; // View completion and point deductions are server-managed.
     }
 
     // Raw storage paths and video source metadata are never client-readable.
