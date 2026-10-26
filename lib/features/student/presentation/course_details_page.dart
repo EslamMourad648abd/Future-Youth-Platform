@@ -14,7 +14,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.lock_outline, color: BrandColors.navy, size: 36),
+        icon: Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.primary, size: 36),
         title: const Text('Subscription required'),
         content: const Text(
           'The first approved lesson is a free preview. Access to later lessons requires a subscription. '
@@ -56,14 +56,14 @@ class StudentCourseDetailsPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.menu_book_rounded, color: Colors.white, size: 34),
+                    Icon(Icons.menu_book_rounded, color: Colors.white, size: 34),
                     const SizedBox(height: 14),
-                    Text((course['title'] ?? 'Course').toString(), style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                    Text((course['title'] ?? 'Course').toString(), style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    Text('${course['subject'] ?? 'General'} • ${course['teacherName'] ?? 'Teacher'}', style: const TextStyle(color: Colors.white70)),
+                    Text('${course['subject'] ?? 'General'} • ${course['teacherName'] ?? 'Teacher'}', style: TextStyle(color: Colors.white70)),
                     if ((course['description'] ?? '').toString().isNotEmpty) ...[
                       const SizedBox(height: 12),
-                      Text(course['description'].toString(), style: const TextStyle(color: Colors.white, height: 1.4)),
+                      Text(course['description'].toString(), style: TextStyle(color: Colors.white, height: 1.4)),
                     ],
                     const SizedBox(height: 16),
                     Wrap(spacing: 8, runSpacing: 8, children: [
@@ -75,7 +75,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              Text(fypTranslate(context, 'course_lessons', 'Course lessons'), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+              Text(fypTranslate(context, 'course_lessons', 'Course lessons'), style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
               const SizedBox(height: 8),
               const Text('Preview the first approved lesson. Other lessons display as locked until your parent arranges access.', style: TextStyle(color: Colors.blueGrey, height: 1.4)),
               const SizedBox(height: 12),
@@ -112,14 +112,14 @@ class StudentCourseDetailsPage extends StatelessWidget {
                             child: Icon(preview ? Icons.play_arrow_rounded : Icons.lock_outline,
                               color: preview ? BrandColors.greenText : BrandColors.navy),
                           ),
-                          title: Text((data['title'] ?? 'Lesson ${index + 1}').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                          title: Text((data['title'] ?? 'Lesson ${index + 1}').toString(), style: TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Padding(
                             padding: const EdgeInsets.only(top: 5),
                             child: Text(preview ? 'Free preview • No subscription required' : 'Locked • Subscription required'),
                           ),
                           trailing: preview
-                              ? const Icon(Icons.arrow_forward_ios_rounded, size: 16)
-                              : const Icon(Icons.lock_outline, color: BrandColors.navy),
+                              ? Icon(Icons.arrow_forward_ios_rounded, size: 16)
+                              : Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.primary),
                           onTap: preview
                               ? () => context.go(FypRoutes.studentVideoFor(courseId, lesson.id))
                               : () => _showLockedLesson(context),
@@ -148,7 +148,7 @@ class _Tag extends StatelessWidget {
     child: Row(mainAxisSize: MainAxisSize.min, children: [
       Icon(icon, color: Colors.white, size: 16),
       const SizedBox(width: 6),
-      Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+      Text(label, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
     ]),
   );
 }
@@ -160,7 +160,7 @@ class _EmptyLessons extends StatelessWidget {
     padding: const EdgeInsets.all(24),
     decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16)),
     child: const Column(children: [
-      Icon(Icons.video_library_outlined, color: BrandColors.navy, size: 38),
+      Icon(Icons.video_library_outlined, color: Theme.of(context).colorScheme.primary, size: 38),
       SizedBox(height: 10),
       Text('No approved lessons yet.'),
     ]),
