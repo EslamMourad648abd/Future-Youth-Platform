@@ -50,6 +50,15 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     super.dispose();
   }
 
+  double _priceForCourse(String? id) {
+    for (final course in courses) {
+      if (course['id']?.toString() == id) {
+        return (course['price'] as num?)?.toDouble() ?? 250.0;
+      }
+    }
+    return 250.0;
+  }
+
   Future<void> _loadCheckoutData() async {
     final parentUser = FirebaseAuth.instance.currentUser;
     if (parentUser == null) return;
@@ -76,6 +85,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         courses = courseList;
         selectedStudentId = widget.studentId ?? (students.isNotEmpty ? students.first['id'] : null);
         selectedCourseId = widget.courseId ?? (courses.isNotEmpty ? courses.first['id'] : null);
+        coursePrice = _priceForCourse(selectedCourseId);
         loading = false;
       });
     } catch (e) {
@@ -195,7 +205,10 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                     child: Text(c['title'] ?? 'Course'),
                                   );
                                 }).toList(),
-                                onChanged: (val) => setState(() => selectedCourseId = val),
+                                onChanged: (val) => setState(() {
+                                  selectedCourseId = val;
+                                  coursePrice = _priceForCourse(val);
+                                }),
                                 validator: (val) => val == null ? 'Please select a course' : null,
                               ),
                               const SizedBox(height: 20),
