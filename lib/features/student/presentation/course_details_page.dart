@@ -15,13 +15,13 @@ class StudentCourseDetailsPage extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.primary, size: 36),
-        title: Text('Subscription required'),
+        title: Text(fypTranslate(dialogContext, 'subscription_required', 'Subscription required')),
         content: Text(
           'The first approved lesson is a free preview. Access to later lessons requires a subscription. '
           'Ask your parent to open Parent Workspace to review subscription options. Payment processing is not enabled in this build.',
         ),
         actions: [
-          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text('Got it')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text(fypTranslate(dialogContext, 'got_it', 'Got it'))),
         ],
       ),
     );
@@ -33,7 +33,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         
-        title: Text('Course details'),
+        title: Text(fypTranslate(context, 'course_details', 'Course details')),
       ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('courses').doc(courseId).snapshots(),
@@ -77,7 +77,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
               SizedBox(height: 24),
               Text(fypTranslate(context, 'course_lessons', 'Course lessons'), style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
               SizedBox(height: 8),
-              Text('Preview the first approved lesson. Other lessons display as locked until your parent arranges access.', style: TextStyle(color: Colors.blueGrey, height: 1.4)),
+              Text(fypTranslate(context, 'preview_hint', 'Preview the first approved lesson. Other lessons stay locked until your parent arranges access.'), style: TextStyle(color: Colors.blueGrey, height: 1.4)),
               SizedBox(height: 12),
               StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: FirebaseFirestore.instance.collection('courses').doc(courseId).collection('videos')
@@ -115,7 +115,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
                           title: Text((data['title'] ?? 'Lesson ${index + 1}').toString(), style: TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Padding(
                             padding: const EdgeInsets.only(top: 5),
-                            child: Text(preview ? 'Free preview • No subscription required' : 'Locked • Subscription required'),
+                            child: Text(preview ? fypTranslate(context, 'free_preview_no_subscription', 'Free preview • No subscription required') : fypTranslate(context, 'locked_subscription_required', 'Locked • Subscription required')),
                           ),
                           trailing: preview
                               ? Icon(Icons.arrow_forward_ios_rounded, size: 16)
