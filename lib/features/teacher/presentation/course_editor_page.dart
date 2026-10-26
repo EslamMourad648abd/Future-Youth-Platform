@@ -250,7 +250,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                   SizedBox(height: 6),
                   Text('${course['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${course['price'] ?? '—'} EGP/month', style: TextStyle(color: Colors.white70)),
                   SizedBox(height: 12),
-                  Text('${fypTranslate(context, 'status_label', 'Status')}: ${course['status'] ?? 'draft'} • ${fypTranslate(context, 'review_label', 'Review')}: ${course['approvalStatus'] ?? 'pending'}', style: TextStyle(color: Colors.white)),
+                  Text('${fypTranslate(context, 'status_label', 'Status')}: ${AppLocalizations.of(context)?.translateStatus((course['status'] ?? 'draft').toString()) ?? (course['status'] ?? 'draft')} • ${fypTranslate(context, 'review_label', 'Review')}: ${AppLocalizations.of(context)?.translateStatus((course['approvalStatus'] ?? 'pending').toString()) ?? (course['approvalStatus'] ?? 'pending')}', style: TextStyle(color: Colors.white)),
                 ]),
               ),
               SizedBox(height: 20),
@@ -274,7 +274,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                         child: ListTile(
                           leading: CircleAvatar(backgroundColor: Theme.of(context).colorScheme.primaryContainer, child: Text('${data['order'] ?? '•'}')),
                           title: Text((data['title'] ?? 'Lesson').toString(), style: TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['sourceLinked'] == true ? fypTranslate(context, 'video_linked', 'Video linked') : fypTranslate(context, 'video_not_linked', 'Video not linked')} • ${data['approvalStatus'] ?? 'pending review'}'),
+                          subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['sourceLinked'] == true ? fypTranslate(context, 'video_linked', 'Video linked') : fypTranslate(context, 'video_not_linked', 'Video not linked')} • ${AppLocalizations.of(context)?.translateStatus((data['approvalStatus'] ?? 'pending review').toString()) ?? (data['approvalStatus'] ?? 'pending review')}'),
                           trailing: IconButton(
                             tooltip: fypTranslate(context, 'upload_video', 'Upload video'),
                             icon: Icon(data['sourceLinked'] == true ? Icons.check_circle_outline : Icons.upload_file_outlined, color: Theme.of(context).colorScheme.primary),
