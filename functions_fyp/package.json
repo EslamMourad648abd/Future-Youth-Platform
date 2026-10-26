@@ -12,7 +12,7 @@
   "private": true,
   "scripts": {
     "test": "node --test",
-    "lint": "node --check index.js && node --check src/config.js && node --check src/guards.js",
+    "lint": "node --check index.js && node --check src/config.js && node --check src/guards.js && node --check src/entitlements.js",
     "bootstrap:admin": "node scripts/bootstrap-admin.js"
   }
 }
