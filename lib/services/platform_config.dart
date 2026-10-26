@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/brand_colors.dart';
+
 enum PlatformType { futureYouth }
 
 class PlatformConfig {
@@ -18,7 +20,7 @@ class PlatformConfig {
     required this.logoAsset,
     required this.allowedRoles,
     required this.landingRoute,
-    this.primaryColor = const Color(0xFF0284C7),
+    this.primaryColor = BrandColors.navy,
   });
 
   static PlatformConfig current = futureYouth;
@@ -26,14 +28,12 @@ class PlatformConfig {
   static const PlatformConfig futureYouth = PlatformConfig(
     type: PlatformType.futureYouth,
     title: 'Future Youth Platform',
-    subtitle: 'Learning and development portal.',
+    subtitle: 'Learning platform for students, parents and teachers.',
     logoAsset: 'assets/logo.png',
-    allowedRoles: ['admin', 'teacher', 'parent', 'student', 'superadmin', 'trainee'],
+    allowedRoles: ['admin', 'teacher', 'parent', 'student'],
     landingRoute: '/training',
-    primaryColor: Color(0xFF0284C7),
+    primaryColor: BrandColors.navy,
   );
 
-  bool isRoleAllowed(String role) => true;
-
-  bool get isStandalone => false;
+  bool isRoleAllowed(String role) => allowedRoles.contains(role);
 }

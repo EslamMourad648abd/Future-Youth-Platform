@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/theme/brand_colors.dart';
 import '../../../router/app_router.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/theme_service.dart';
 import '../../../services/localization_service.dart';
 import 'dart:html' as html;
 
-const Color kPlatformBrandColor =
-Color(0xff003366);
+const Color kPlatformBrandColor = BrandColors.navy;
 // ============================================================
 // TRAINING BRAND
 // ============================================================
 
-const Color kTrainingBrandColor =
-Color(0xff003366);
+const Color kTrainingBrandColor = BrandColors.navy;
 
-const Color kTrainingAccentColor =
-Color(0xff80CFFF);
+const Color kTrainingAccentColor = BrandColors.green;
 
 const Color kTrainingBorderColor =
 Color(0xffE5EAF0);

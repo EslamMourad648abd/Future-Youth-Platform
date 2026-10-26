@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/brand_colors.dart';
 import '../models/lesson_model.dart';
 
 
@@ -106,8 +107,7 @@ class LessonTile extends StatelessWidget {
           Icons.play_arrow;
 
 
-      iconColor =
-      const Color(0xff80CFFF);
+      iconColor = BrandColors.green;
 
 
       status =

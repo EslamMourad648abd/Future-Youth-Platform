@@ -67,8 +67,6 @@ const ROLES = Object.freeze({
   TEACHER: "teacher",
   PARENT: "parent",
   STUDENT: "student",
-  SUPER_ADMIN: "superadmin",
-  TRAINEE: "trainee",
 });
 
 const allowedRoles = Object.freeze([
@@ -76,15 +74,21 @@ const allowedRoles = Object.freeze([
   ROLES.TEACHER,
   ROLES.PARENT,
   ROLES.STUDENT,
-  ROLES.SUPER_ADMIN,
-  ROLES.TRAINEE,
 ]);
+
+function normalizeStoredRole(role) {
+  const value = typeof role === "string" ? role.trim().toLowerCase() : "";
+  if (value === "superadmin") return ROLES.ADMIN;
+  if (value === "trainee" || value === "agent") return ROLES.STUDENT;
+  return value;
+}
 
 // ======================================================
 // Role Validation
 // ======================================================
 
 function validateRole(role) {
+  role = normalizeStoredRole(role);
   if (
     typeof role !== "string" ||
     !allowedRoles.includes(role)
@@ -268,16 +272,10 @@ async function requireSuperAdmin(request) {
     );
   }
 
-  const role = request.auth.token?.role;
-  const isSuperAdminClaim = request.auth.token?.superadmin === true;
-  const email = (request.auth.token?.email || "").toLowerCase().trim();
+  const role = normalizeStoredRole(request.auth.token?.role);
+  const isAdminClaim = request.auth.token?.superadmin === true;
 
-  if (
-    role === ROLES.ADMIN ||
-    role === ROLES.SUPER_ADMIN ||
-    isSuperAdminClaim ||
-    email === "eslammourad2000@yahoo.com"
-  ) {
+  if (role === ROLES.ADMIN || isAdminClaim) {
     return request.auth.uid;
   }
 
@@ -285,23 +283,56 @@ async function requireSuperAdmin(request) {
     const userDoc = await db.collection("users").doc(request.auth.uid).get();
     if (userDoc.exists) {
       const userData = userDoc.data() || {};
-      if (userData.role === ROLES.SUPER_ADMIN || userData.role === "superadmin") {
+      if (normalizeStoredRole(userData.role) === ROLES.ADMIN) {
         try {
-          await auth.setCustomUserClaims(request.auth.uid, { role: ROLES.SUPER_ADMIN });
+          await auth.setCustomUserClaims(request.auth.uid, { role: ROLES.ADMIN });
         } catch (claimErr) {
-          console.warn("Could not set superadmin custom claim:", claimErr);
+          console.warn("Could not set admin custom claim:", claimErr);
         }
         return request.auth.uid;
       }
     }
   } catch (dbErr) {
-    console.error("Error verifying superadmin in Firestore:", dbErr);
+    console.error("Error verifying admin in Firestore:", dbErr);
   }
 
   throw new HttpsError(
     "permission-denied",
-    "Super admin only."
+    "Admin only."
   );
+}
+
+function callerRoleFromToken(request) {
+  return normalizeStoredRole(request?.auth?.token?.role);
+}
+
+async function requireCanCreateRole(request, role) {
+  if (!request?.auth) {
+    throw new HttpsError("unauthenticated", "Authentication required.");
+  }
+
+  const callerRole = callerRoleFromToken(request);
+
+  if (callerRole === ROLES.PARENT) {
+    if (role !== ROLES.STUDENT) {
+      throw new HttpsError(
+        "permission-denied",
+        "A parent can only create a student account."
+      );
+    }
+    return request.auth.uid;
+  }
+
+  await requireSuperAdmin(request);
+
+  if (role === ROLES.STUDENT) {
+    throw new HttpsError(
+      "permission-denied",
+      "Only a parent can create a student account."
+    );
+  }
+
+  return request.auth.uid;
 }
 
 // ======================================================
@@ -324,7 +355,7 @@ function preventSelfDeletion(request, targetUid) {
 function preventSelfRoleChange(request, targetUid, newRole) {
   if (
     request.auth?.uid === targetUid &&
-    newRole !== ROLES.SUPER_ADMIN
+    newRole !== ROLES.ADMIN
   ) {
     throw new HttpsError(
       "failed-precondition",
@@ -356,39 +387,9 @@ export const listUsers = onCall(async (request) => {
         const firestoreData = firestoreUsers.get(user.uid) || {};
         const customRole = user.customClaims?.role;
         const firestoreRole = firestoreData.role;
-        const email = (user.email || "").toLowerCase().trim();
-
-        let role = customRole || firestoreRole;
-
-        if (email === "eslammourad2000@yahoo.com") {
-          role = ROLES.SUPER_ADMIN;
-
-          if (customRole !== ROLES.SUPER_ADMIN) {
-            try {
-              await auth.setCustomUserClaims(user.uid, { role: ROLES.SUPER_ADMIN });
-            } catch (claimErr) {
-              console.warn("Could not set custom claim for primary admin:", claimErr);
-            }
-          }
-
-          if (!firestoreData.role || firestoreData.role !== ROLES.SUPER_ADMIN) {
-            try {
-              await db.collection("users").doc(user.uid).set(
-                {
-                  uid: user.uid,
-                  email: user.email || "eslammourad2000@yahoo.com",
-                  displayName: resolveDisplayName(user.displayName, user.email),
-                  role: ROLES.SUPER_ADMIN,
-                  updatedAt: FieldValue.serverTimestamp(),
-                },
-                { merge: true }
-              );
-            } catch (docErr) {
-              console.warn("Could not sync firestore doc for primary admin:", docErr);
-            }
-          }
-        } else if (!role) {
-          role = ROLES.TRAINEE;
+        let role = normalizeStoredRole(customRole || firestoreRole);
+        if (!role) {
+          role = ROLES.STUDENT;
         }
 
         return {
@@ -415,12 +416,15 @@ export const listUsers = onCall(async (request) => {
 
 export const createUser = onCall(async (request) => {
   try {
-    await requireSuperAdmin(request);
-
     const data = request.data || {};
+    const callerRole = callerRoleFromToken(request);
+    const role = validateRole(
+      data.role || (callerRole === ROLES.PARENT ? ROLES.STUDENT : ROLES.TEACHER)
+    );
+    await requireCanCreateRole(request, role);
+
     const email = normalizeEmail(data.email);
     const password = validatePassword(data.password);
-    const role = validateRole(data.role || ROLES.TRAINEE);
 
     const displayName =
       typeof data.displayName === "string" && data.displayName.trim()
@@ -435,15 +439,26 @@ export const createUser = onCall(async (request) => {
 
     await auth.setCustomUserClaims(userRecord.uid, { role });
 
+    const profile = {
+      uid: userRecord.uid,
+      email,
+      displayName,
+      role,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+
+    if (role === ROLES.STUDENT) {
+      profile.parentId = request.auth.uid;
+      profile.approvalStatus = "pending";
+    } else if (role === ROLES.TEACHER) {
+      profile.approvalStatus = "pending";
+    } else {
+      profile.approvalStatus = "approved";
+    }
+
     await db.collection("users").doc(userRecord.uid).set(
-      {
-        uid: userRecord.uid,
-        email,
-        displayName,
-        role,
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
-      },
+      profile,
       { merge: true }
     );
 
@@ -671,7 +686,7 @@ export const migrateUserRolesToFirestore = onCall(async (request) => {
 
     for (const user of users) {
       const customRole = user.customClaims?.role;
-      const role = customRole || ROLES.TRAINEE;
+      const role = normalizeStoredRole(customRole) || ROLES.STUDENT;
 
       const userDocRef = db.collection("users").doc(user.uid);
 

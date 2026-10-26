@@ -1,3 +1,11 @@
+# Secrets and generated clutter (never commit)
+node_modules/
+.firebase/
+serviceAccountKey.json
+*adminsdk*.json
+.env
+.env.*
+
 # Miscellaneous
 *.class
 *.log

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/theme/brand_colors.dart';
 import '../../services/auth_service.dart';
 import '../../services/localization_service.dart';
 import '../../services/theme_service.dart';
@@ -278,8 +279,10 @@ class _LoginPageState extends State<LoginPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final gradientStart = isDark ? const Color(0xFF0F172A) : const Color(0xFF001C38);
-    final gradientEnd = isDark ? const Color(0xFF1E293B) : const Color(0xFF80CFFF);
+    final gradientStart =
+        isDark ? BrandColors.darkBackground : BrandColors.navy;
+    final gradientEnd =
+        isDark ? BrandColors.darkSurface : BrandColors.navyTint;
 
     return Scaffold(
       body: Stack(
@@ -336,7 +339,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 child: Card(
                   elevation: 20,
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  color: isDark ? BrandColors.darkSurface : Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                     side: BorderSide(
@@ -372,7 +375,9 @@ class _LoginPageState extends State<LoginPage> {
                                 style: TextStyle(
                                   fontSize: isCompact ? 19 : 22,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? const Color(0xff38BDF8) : const Color(0xFF1F5B8A),
+                                  color: isDark
+                                      ? BrandColors.darkNavyText
+                                      : BrandColors.navy,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -415,7 +420,9 @@ class _LoginPageState extends State<LoginPage> {
                                   style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                                   decoration: InputDecoration(
                                     filled: true,
-                                    fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFEEF6FB),
+                                    fillColor: isDark
+                                        ? BrandColors.darkBackground
+                                        : BrandColors.navyTint,
                                     contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                                     hintText: 'Enter your email',
                                     hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
@@ -464,7 +471,9 @@ class _LoginPageState extends State<LoginPage> {
                                   onFieldSubmitted: (_) { if (!_isSubmitting) _submit(); },
                                   decoration: InputDecoration(
                                     filled: true,
-                                    fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFEEF6FB),
+                                    fillColor: isDark
+                                        ? BrandColors.darkBackground
+                                        : BrandColors.navyTint,
                                     contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                                     hintText: 'Enter your password',
                                     hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
@@ -500,9 +509,10 @@ class _LoginPageState extends State<LoginPage> {
                                 ElevatedButton(
                                   onPressed: _isSubmitting ? null : _submit,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF38BDF8),
+                                    backgroundColor: BrandColors.navy,
                                     foregroundColor: Colors.white,
-                                    disabledBackgroundColor: const Color(0xFF38BDF8).withValues(alpha: 0.5),
+                                    disabledBackgroundColor:
+                                        BrandColors.navy.withValues(alpha: 0.5),
                                     padding: const EdgeInsets.symmetric(vertical: 16),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     elevation: 4,
@@ -524,7 +534,9 @@ class _LoginPageState extends State<LoginPage> {
                                   child: Text(
                                     l10n?.translate('forgot_password') ?? 'Forgot Password?',
                                     style: TextStyle(
-                                      color: isDark ? const Color(0xff38BDF8) : const Color(0xFF1F5B8A),
+                                      color: isDark
+                                          ? BrandColors.green
+                                          : BrandColors.greenText,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),

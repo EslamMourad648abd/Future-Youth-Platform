@@ -8,7 +8,7 @@ class AuthService {
   // ============================================================
 
   static const String adminRole = "admin";
-  static const String superAdminRole = "superadmin";
+  static const String superAdminRole = "admin";
   static const String teacherRole = "teacher";
   static const String parentRole = "parent";
   static const String studentRole = "student";
@@ -18,6 +18,23 @@ class AuthService {
   // ============================================================
 
   static String role = studentRole;
+
+  static String normalizeRole(String? value) {
+    switch ((value ?? "").trim().toLowerCase()) {
+      case "admin":
+      case "superadmin":
+        return adminRole;
+      case "teacher":
+        return teacherRole;
+      case "parent":
+        return parentRole;
+      case "student":
+      case "trainee":
+        return studentRole;
+      default:
+        return "";
+    }
+  }
 
   // ============================================================
   // LOAD USER ROLE
@@ -31,46 +48,30 @@ class AuthService {
       return;
     }
 
-    final email = user.email?.trim().toLowerCase() ?? "";
-    if (email == "eslammourad2000@yahoo.com") {
-      role = adminRole;
-      debugPrint("Loaded role: $role for primary admin $email");
-      return;
-    }
-
     try {
       final token = await user.getIdTokenResult(true);
       debugPrint("Token claims: ${token.claims}");
 
-      final claimRole = token.claims?['role'];
-      final isSuperAdminClaim = token.claims?['superadmin'] == true;
+      final claimRole = normalizeRole(token.claims?['role']?.toString());
+      final isAdminClaim = token.claims?['superadmin'] == true;
 
-      if (claimRole is String && claimRole.isNotEmpty) {
+      if (claimRole.isNotEmpty) {
         role = claimRole;
-      } else if (isSuperAdminClaim) {
+      } else if (isAdminClaim) {
         role = adminRole;
       } else {
-        final doc = await FirebaseFirestore.instance.collection("users").doc(user.uid).get();
-        if (doc.exists) {
-          final firestoreRole = doc.data()?['role'];
-          if (firestoreRole is String && firestoreRole.isNotEmpty) {
-            role = firestoreRole;
-          } else {
-            role = studentRole;
-          }
-        } else {
-          role = studentRole;
-        }
+        final doc =
+            await FirebaseFirestore.instance.collection("users").doc(user.uid).get();
+        final firestoreRole = normalizeRole(doc.data()?['role']?.toString());
+        role = firestoreRole.isNotEmpty ? firestoreRole : studentRole;
       }
     } catch (e) {
       debugPrint("Error reading token claims: $e");
       try {
-        final doc = await FirebaseFirestore.instance.collection("users").doc(user.uid).get();
-        if (doc.exists && doc.data()?['role'] is String) {
-          role = doc.data()!['role'];
-        } else {
-          role = studentRole;
-        }
+        final doc =
+            await FirebaseFirestore.instance.collection("users").doc(user.uid).get();
+        final firestoreRole = normalizeRole(doc.data()?['role']?.toString());
+        role = firestoreRole.isNotEmpty ? firestoreRole : studentRole;
       } catch (docErr) {
         debugPrint("Error fallback reading user doc: $docErr");
         role = studentRole;
@@ -84,11 +85,7 @@ class AuthService {
   // ROLE CHECKS
   // ============================================================
 
-  static bool get isAdmin {
-    final user = FirebaseAuth.instance.currentUser;
-    final email = user?.email?.trim().toLowerCase() ?? "";
-    return role == adminRole || role == superAdminRole || email == "eslammourad2000@yahoo.com";
-  }
+  static bool get isAdmin => role == adminRole;
 
   static bool get isSuperAdmin => isAdmin;
 
@@ -96,5 +93,5 @@ class AuthService {
 
   static bool get isParent => role == parentRole;
 
-  static bool get isStudent => role == studentRole || role == "trainee";
+  static bool get isStudent => role == studentRole;
 }

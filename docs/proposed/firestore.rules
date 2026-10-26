@@ -1,0 +1,185 @@
+rules_version = '2';
+
+// PROPOSED rules for the Future Youth Platform data model
+// (docs/ARCHITECTURE.md, "Data model"). NOT applied and NOT tested yet.
+//
+// Do not copy this over /firestore.rules by hand: that file belongs to the
+// older product. Task T17 merges the two and tests the result with the
+// Firebase emulator before anything is deployed.
+//
+// Principles: deny by default. The role comes from the `role` custom claim,
+// which only Cloud Functions set. Clients never write subscriptions, payments,
+// points, views, video sources or roles. Cloud Functions use the Admin SDK,
+// which is not limited by these rules.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isRole(r) {
+      return signedIn() && request.auth.token.role == r;
+    }
+
+    function isAdmin() {
+      return isRole('admin');
+    }
+
+    function course(courseId) {
+      return get(/databases/$(database)/documents/courses/$(courseId)).data;
+    }
+
+    function ownsCourse(courseId) {
+      return isRole('teacher') && course(courseId).teacherId == request.auth.uid;
+    }
+
+    function canSeeCourse(courseId) {
+      return signedIn() && (
+        course(courseId).status == 'published' ||
+        ownsCourse(courseId) ||
+        isAdmin()
+      );
+    }
+
+    function hasActiveSubscription(courseId) {
+      let path = /databases/$(database)/documents/subscriptions/$(request.auth.uid + '_' + courseId);
+      return exists(path) && get(path).data.status == 'active';
+    }
+
+    // ---------- users ----------
+
+    match /users/{uid} {
+      // Yourself, an admin, or the parent of this student.
+      allow read: if signedIn() && (
+        request.auth.uid == uid ||
+        isAdmin() ||
+        (isRole('parent') && resource.data.parentId == request.auth.uid)
+      );
+
+      // A user may change only their own display name. Never the role.
+      allow update: if signedIn() && request.auth.uid == uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName']);
+
+      // Accounts are created and deleted only by Cloud Functions.
+      allow create, delete: if false;
+    }
+
+    // ---------- courses and videos ----------
+
+    match /courses/{courseId} {
+      allow read: if signedIn() && (
+        resource.data.status == 'published' ||
+        resource.data.teacherId == request.auth.uid ||
+        isAdmin()
+      );
+
+      // A teacher creates a draft. Publishing and videoCount are server-side
+      // (FR-07: a course cannot be published before videoCount >= lessonCount).
+      allow create: if isRole('teacher') &&
+        request.resource.data.teacherId == request.auth.uid &&
+        request.resource.data.status == 'draft' &&
+        request.resource.data.videoCount == 0;
+
+      allow update: if isRole('teacher') &&
+        resource.data.teacherId == request.auth.uid &&
+        request.resource.data.teacherId == resource.data.teacherId &&
+        request.resource.data.status == resource.data.status &&
+        request.resource.data.videoCount == resource.data.videoCount;
+
+      allow delete: if false;
+
+      match /videos/{videoId} {
+        allow read: if canSeeCourse(courseId);
+
+        // Videos are created by a Cloud Function that also bumps videoCount.
+        // A teacher may only rename their own video.
+        allow update: if ownsCourse(courseId) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title']);
+        allow create, delete: if false;
+
+        match /comments/{commentId} {
+          allow read: if canSeeCourse(courseId);
+
+          allow create: if isRole('student') &&
+            hasActiveSubscription(courseId) &&
+            request.resource.data.keys().hasOnly(['uid', 'text', 'createdAt']) &&
+            request.resource.data.uid == request.auth.uid &&
+            request.resource.data.text is string &&
+            request.resource.data.text.size() > 0 &&
+            request.resource.data.text.size() <= 1000 &&
+            request.resource.data.createdAt == request.time;
+
+          allow delete: if signedIn() &&
+            (resource.data.uid == request.auth.uid || isAdmin());
+
+          allow update: if false;
+        }
+
+        match /ratings/{ratingUid} {
+          allow read: if signedIn() && (
+            ratingUid == request.auth.uid ||
+            ownsCourse(courseId) ||
+            isAdmin()
+          );
+
+          // One rating per student (the document id is the student's uid).
+          allow create, update: if isRole('student') &&
+            ratingUid == request.auth.uid &&
+            hasActiveSubscription(courseId) &&
+            request.resource.data.keys().hasOnly(['value', 'updatedAt']) &&
+            request.resource.data.value is int &&
+            request.resource.data.value >= 1 &&
+            request.resource.data.value <= 5;
+
+          allow delete: if false;
+        }
+      }
+
+      // Private storage paths. No client can read or write these.
+      match /video_sources/{videoId} {
+        allow read, write: if false;
+      }
+    }
+
+    // ---------- money and points: read only, never written by a client ----------
+
+    match /subscriptions/{subId} {
+      allow read: if signedIn() && (
+        resource.data.studentId == request.auth.uid ||
+        resource.data.parentId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if false;
+    }
+
+    match /payments/{paymentId} {
+      allow read: if signedIn() && (
+        resource.data.parentId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if false;
+    }
+
+    match /points_ledger/{entryId} {
+      allow read: if signedIn() && (
+        resource.data.studentId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if false;
+    }
+
+    match /video_views/{viewId} {
+      allow read: if signedIn() && (
+        resource.data.studentId == request.auth.uid ||
+        isAdmin()
+      );
+      allow write: if false;
+    }
+
+    // Everything else is closed.
+  }
+}

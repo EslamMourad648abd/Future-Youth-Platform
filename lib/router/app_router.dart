@@ -301,7 +301,7 @@ class AppRouter {
 
     errorBuilder: (context, state) {
       return Scaffold(
-        backgroundColor: const Color(0xffF5F8FC),
+        backgroundColor: const Color(0xFFF7F9FC),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),

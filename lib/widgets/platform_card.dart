@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/brand_colors.dart';
+
 class PlatformCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -17,8 +19,8 @@ class PlatformCard extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF003366);
-    const secondary = Color(0xFF80CFFF);
+    const primary = BrandColors.navy;
+    const secondary = BrandColors.green;
 
     final disabled = !enabled;
 

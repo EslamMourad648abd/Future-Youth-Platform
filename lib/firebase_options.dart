@@ -61,27 +61,27 @@ class DefaultFirebaseOptions {
     apiKey: 'AIzaSyAMrMTtVV5erlMQPbO21xBl8mJh7SLd2bs',
     appId: '1:259169067995:ios:21039dda2d978e8e98fdfe',
     messagingSenderId: '259169067995',
-    projectId: 'bbc-api-tool',
-    storageBucket: 'bbc-api-tool.firebasestorage.app',
-    iosBundleId: 'com.example.bbcApiTool',
+    projectId: 'future-youth-platform',
+    storageBucket: 'future-youth-platform.firebasestorage.app',
+    iosBundleId: 'com.example.FutureYouthPlatform',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyAMrMTtVV5erlMQPbO21xBl8mJh7SLd2bs',
     appId: '1:259169067995:ios:21039dda2d978e8e98fdfe',
     messagingSenderId: '259169067995',
-    projectId: 'bbc-api-tool',
-    storageBucket: 'bbc-api-tool.firebasestorage.app',
-    iosBundleId: 'com.example.bbcApiTool',
+    projectId: 'future-youth-platform',
+    storageBucket: 'future-youth-platform.firebasestorage.app',
+    iosBundleId: 'com.example.FutureYouthPlatform',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyDrknr-61yICu60A_uRhbO0a0FBMLOsBvA',
     appId: '1:259169067995:web:49b36decedc7584e98fdfe',
     messagingSenderId: '259169067995',
-    projectId: 'bbc-api-tool',
-    authDomain: 'bbc-api-tool.firebaseapp.com',
-    storageBucket: 'bbc-api-tool.firebasestorage.app',
+    projectId: 'future-youth-platform',
+    authDomain: 'future-youth-platform.firebaseapp.com',
+    storageBucket: 'future-youth-platform.firebasestorage.app',
     measurementId: 'G-JLVDB5Q97S',
   );
 }

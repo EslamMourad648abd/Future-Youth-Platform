@@ -2,14 +2,22 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSuperAdmin() {
+    function isAdmin() {
       return request.auth != null && (
-        request.auth.token.email == "eslammourad2000@yahoo.com" ||
+        request.auth.token.role == "admin" ||
         request.auth.token.role == "superadmin" ||
         request.auth.token.superadmin == true ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin")
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["admin", "superadmin"])
       );
+    }
+
+    function isSuperAdmin() {
+      return isAdmin();
+    }
+
+    function isParent() {
+      return request.auth != null && request.auth.token.role == "parent";
     }
 
     match /training_courses/{courseId} {
@@ -23,7 +31,18 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read, write: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());
+      allow read: if request.auth != null && (
+        request.auth.uid == userId ||
+        isAdmin() ||
+        (isParent() && resource.data.parentId == request.auth.uid)
+      );
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        request.auth != null &&
+        request.auth.uid == userId &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['role', 'parentId', 'approvalStatus'])
+      );
 
       match /training_progress/{courseId} {
         allow read, write: if request.auth != null && (request.auth.uid == userId || isSuperAdmin());

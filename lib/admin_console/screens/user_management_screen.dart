@@ -96,7 +96,7 @@ class _UserManagementState extends State<UserManagement> {
         final email = (currentUser.email ?? "").trim();
         final adminUser = {
           "uid": currentUser.uid,
-          "email": email.isNotEmpty ? email : "eslammourad2000@yahoo.com",
+          "email": email,
           "displayName": (currentUser.displayName ?? "").isNotEmpty
               ? currentUser.displayName
               : "Super Admin",
@@ -343,7 +343,7 @@ class _UserManagementState extends State<UserManagement> {
     final email = TextEditingController();
     final password = TextEditingController();
 
-    String role = studentRole;
+    String role = teacherRole;
     String? dialogError;
     bool isSubmitting = false;
 
