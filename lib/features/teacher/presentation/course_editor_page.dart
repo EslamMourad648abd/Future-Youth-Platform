@@ -212,10 +212,9 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     final courseRef = FirebaseFirestore.instance.collection('courses').doc(widget.courseId);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: BrandColors.navy,
-        foregroundColor: Colors.white,
+        
         title: const Text('Course editor'),
       ),
       floatingActionButton: FloatingActionButton.extended(
