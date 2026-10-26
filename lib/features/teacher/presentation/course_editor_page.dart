@@ -246,7 +246,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Icon(Icons.edit_note, color: Colors.white, size: 32),
                   SizedBox(height: 12),
-                  Text((course['title'] ?? 'Course').toString(), style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
+                  Text((course['title'] ?? fypTranslate(context, 'course_label', 'Course')).toString(), style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
                   SizedBox(height: 6),
                   Text('${course['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${course['price'] ?? '—'} EGP/month', style: TextStyle(color: Colors.white70)),
                   SizedBox(height: 12),
