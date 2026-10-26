@@ -151,7 +151,6 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     if (text.isEmpty) return;
 
     final user = FirebaseAuth.instance.currentUser;
-    final userName = user?.displayName ?? user?.email ?? 'Student';
 
     _commentCtrl.clear();
 
