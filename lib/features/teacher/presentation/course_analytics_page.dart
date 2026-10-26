@@ -34,8 +34,8 @@ class CourseAnalyticsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FC),
-      appBar: AppBar(backgroundColor: BrandColors.navy, foregroundColor: Colors.white, title: const Text('Course analytics')),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(title: const Text('Course analytics')),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('courses').doc(courseId).snapshots(),
         builder: (context, courseSnap) {
@@ -153,7 +153,7 @@ class _EmptyAnalytics extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+    decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16)),
     child: const Column(children: [
       Icon(Icons.insights_outlined, size: 40, color: BrandColors.navy),
       SizedBox(height: 8),
