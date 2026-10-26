@@ -196,18 +196,32 @@ export const reviewCourseContent = onCall(async (request) => {
 
   if (decision === "approve" && videoId) {
     const source = await db.collection("video_sources").doc(videoId).get();
-    if (!source.exists || source.data()?.courseId !== courseId || !source.data()?.storagePath) {
-      throw new HttpsError("failed-precondition", "Link a valid video source before approving this lesson.");
+    const sourceData = source.data();
+    if (!source.exists || sourceData?.courseId !== courseId ||
+        sourceData?.provider !== "firebase_storage" || !sourceData?.storagePath) {
+      throw new HttpsError("failed-precondition", "Upload a private video before approving this lesson.");
+    }
+    const [objectExists] = await getStorage().bucket().file(sourceData.storagePath).exists();
+    if (!objectExists) {
+      throw new HttpsError("failed-precondition", "The uploaded video is missing from private storage.");
     }
   }
   if (decision === "approve" && !videoId) {
     const videos = await contentRef.collection("videos").get();
     if (videos.empty) {
-      throw new HttpsError("failed-precondition", "Add lessons and link their video sources before approving this course.");
+      throw new HttpsError("failed-precondition", "Add lessons and upload private videos before approving this course.");
     }
-    const sources = await Promise.all(videos.docs.map((video) => db.collection("video_sources").doc(video.id).get()));
-    if (sources.some((source) => !source.exists || source.data()?.courseId !== courseId || !source.data()?.storagePath)) {
-      throw new HttpsError("failed-precondition", "Every lesson needs a linked video source before the course can be approved.");
+    for (const video of videos.docs) {
+      const source = await db.collection("video_sources").doc(video.id).get();
+      const sourceData = source.data();
+      if (!source.exists || sourceData?.courseId !== courseId ||
+          sourceData?.provider !== "firebase_storage" || !sourceData?.storagePath) {
+        throw new HttpsError("failed-precondition", "Every lesson needs a private uploaded video before the course can be approved.");
+      }
+      const [objectExists] = await getStorage().bucket().file(sourceData.storagePath).exists();
+      if (!objectExists) {
+        throw new HttpsError("failed-precondition", "A lesson video is missing from private storage.");
+      }
     }
   }
 
@@ -251,9 +265,8 @@ export const reviewCourseContent = onCall(async (request) => {
 });
 
 /**
- * Stores a teacher-submitted Google Drive video source outside the public
- * course document. The source is available to students only through the
- * preview callable after the lesson and course have been approved.
+ * Registers a teacher-uploaded private Firebase Storage object outside the
+ * public course document. Playback is issued only through trusted callables.
  */
 export const registerVideoSource = onCall(async (request) => {
   const teacherUid = requireRole(request, [ROLES.TEACHER]);
