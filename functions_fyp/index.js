@@ -3,6 +3,7 @@ import { setGlobalOptions } from "firebase-functions/v2/options";
 import { initializeApp, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getStorage } from "firebase-admin/storage";
 
 import { REGION, ROLES } from "./src/config.js";
 import { requireRole, validateSignupRole } from "./src/guards.js";
@@ -195,7 +196,7 @@ export const reviewCourseContent = onCall(async (request) => {
 
   if (decision === "approve" && videoId) {
     const source = await db.collection("video_sources").doc(videoId).get();
-    if (!source.exists || source.data()?.courseId !== courseId || !source.data()?.videoUrl) {
+    if (!source.exists || source.data()?.courseId !== courseId || !source.data()?.storagePath) {
       throw new HttpsError("failed-precondition", "Link a valid video source before approving this lesson.");
     }
   }
@@ -205,7 +206,7 @@ export const reviewCourseContent = onCall(async (request) => {
       throw new HttpsError("failed-precondition", "Add lessons and link their video sources before approving this course.");
     }
     const sources = await Promise.all(videos.docs.map((video) => db.collection("video_sources").doc(video.id).get()));
-    if (sources.some((source) => !source.exists || source.data()?.courseId !== courseId || !source.data()?.videoUrl)) {
+    if (sources.some((source) => !source.exists || source.data()?.courseId !== courseId || !source.data()?.storagePath)) {
       throw new HttpsError("failed-precondition", "Every lesson needs a linked video source before the course can be approved.");
     }
   }
@@ -258,11 +259,12 @@ export const registerVideoSource = onCall(async (request) => {
   const teacherUid = requireRole(request, [ROLES.TEACHER]);
   const courseId = String(request.data?.courseId || "").trim();
   const videoId = String(request.data?.videoId || "").trim();
-  const videoUrl = String(request.data?.videoUrl || "").trim();
-  const driveMatch = videoUrl.match(/^https:\/\/(?:drive\.google\.com)\/(?:file\/d\/([\w-]+)|open\?id=([\w-]+))/);
-  const driveId = driveMatch?.[1] || driveMatch?.[2];
-  if (!courseId || !videoId || !driveId) {
-    throw new HttpsError("invalid-argument", "Provide a valid Google Drive share URL.");
+  const storagePath = String(request.data?.storagePath || "").trim();
+  const expectedPrefix = `course-videos/${courseId}/${videoId}/`;
+
+  if (!courseId || !videoId || !storagePath.startsWith(expectedPrefix) ||
+      storagePath.split("/").length !== 4) {
+    throw new HttpsError("invalid-argument", "A valid private video upload path is required.");
   }
 
   const courseRef = db.collection("courses").doc(courseId);
@@ -277,13 +279,24 @@ export const registerVideoSource = onCall(async (request) => {
     throw new HttpsError("permission-denied", "The lesson must be your own draft lesson.");
   }
 
+  const file = getStorage().bucket().file(storagePath);
+  const [exists] = await file.exists();
+  if (!exists) {
+    throw new HttpsError("failed-precondition", "The uploaded video file could not be found.");
+  }
+  const [metadata] = await file.getMetadata();
+  if (!String(metadata.contentType || "").startsWith("video/")) {
+    throw new HttpsError("invalid-argument", "The uploaded file must have a video content type.");
+  }
+
   await db.collection("video_sources").doc(videoId).set({
     courseId,
     videoId,
     teacherId: teacherUid,
-    provider: "google_drive",
-    driveFileId: driveId,
-    videoUrl: `https://drive.google.com/file/d/${driveId}/preview`,
+    provider: "firebase_storage",
+    storagePath,
+    contentType: metadata.contentType,
+    sizeBytes: Number(metadata.size || 0),
     updatedAt: FieldValue.serverTimestamp(),
   }, { merge: true });
   await videoRef.update({ sourceLinked: true, updatedAt: FieldValue.serverTimestamp() });
@@ -291,7 +304,7 @@ export const registerVideoSource = onCall(async (request) => {
   return { ok: true, courseId, videoId };
 });
 
-/** Returns only the first lesson's Google Drive preview URL after publication. */
+/** Issues a short-lived signed URL only for the approved free first lesson. */
 export const getPreviewVideoUrl = onCall(async (request) => {
   requireRole(request, [ROLES.STUDENT]);
   const courseId = String(request.data?.courseId || "").trim();
@@ -350,5 +363,16 @@ export const getPreviewVideoUrl = onCall(async (request) => {
     }
   });
 
-  return { ok: true, videoUrl: sourceSnap.data()?.videoUrl };
+  const storagePath = sourceSnap.data()?.storagePath;
+  if (sourceSnap.data()?.provider !== "firebase_storage" ||
+      typeof storagePath !== "string" ||
+      !storagePath.startsWith(`course-videos/${courseId}/${videoId}/`)) {
+    throw new HttpsError("failed-precondition", "Private video storage is not configured for this lesson.");
+  }
+  const [videoUrl] = await getStorage().bucket().file(storagePath).getSignedUrl({
+    action: "read",
+    expires: Date.now() + 5 * 60 * 1000,
+  });
+
+  return { ok: true, videoUrl, expiresInSeconds: 300 };
 });
