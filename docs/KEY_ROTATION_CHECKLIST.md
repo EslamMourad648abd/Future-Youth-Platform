@@ -4,8 +4,8 @@
 
 ## Required owner/admin actions
 
-1. Open Google Cloud Console for project `future-youth-platform` → **IAM & Admin → Service Accounts**.
-2. Identify the service account associated with the historical file `functions/bbc-api-tool-firebase-adminsdk-fbsvc-344ab63826.json`. Confirm its email and key ID from the exposed JSON/file history; do not paste the private key into issues or chat.
+1. Open the exposed JSON file from Git history in a secure local environment and read only its `project_id`, `client_email`, and `private_key_id` fields (never print or share `private_key`). Open Google Cloud Console for that `project_id` → **IAM & Admin → Service Accounts**. The filename suggests this may be the legacy BBC API Tool project, so do not assume it is `future-youth-platform`.
+2. Identify the service account associated with `client_email` and locate the exact `private_key_id` in the service account's Keys tab. Do not paste the private key into issues or chat.
 3. Create a replacement key only if a long-lived key is genuinely required. Prefer Application Default Credentials / the Cloud Functions runtime service account instead of downloaded JSON keys.
 4. **Disable/delete the exposed key ID** in the service account's **Keys** tab. Do not delete the whole service account unless you have verified it is unused.
 5. Check Cloud Audit Logs for use of the exposed key after the earliest known exposure and review IAM bindings for unnecessary privileges.
