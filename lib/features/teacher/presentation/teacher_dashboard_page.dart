@@ -119,10 +119,9 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: BrandColors.navy,
-        foregroundColor: Colors.white,
+        
         title: const Text('Teacher Studio'),
         actions: [
           IconButton(
@@ -194,7 +193,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 if (docs.isEmpty) {
                   return Container(
                     padding: const EdgeInsets.all(26),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+                    decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(18)),
                     child: const Column(children: [
                       Icon(Icons.video_library_outlined, size: 42, color: BrandColors.navy),
                       SizedBox(height: 10),
