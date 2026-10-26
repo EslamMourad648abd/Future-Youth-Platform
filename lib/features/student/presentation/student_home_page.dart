@@ -41,7 +41,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
           .collection(FirestorePaths.courses)
           .get();
 
-      final list = snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+      final list = snapshot.docs
+          .where((doc) => doc.data()['status'] == 'published' && doc.data()['approvalStatus'] == 'approved')
+          .map((doc) => {'id': doc.id, ...doc.data()})
+          .toList();
 
       if (!mounted) return;
       setState(() {
@@ -56,60 +59,21 @@ class _StudentHomePageState extends State<StudentHomePage> {
     }
   }
 
-  Future<void> _requestParentInvoice(Map<String, dynamic> course) async {
-    final studentUser = FirebaseAuth.instance.currentUser;
-    if (studentUser == null) return;
-
-    try {
-      final userDoc = await FirebaseFirestore.instance
-          .collection(FirestorePaths.users)
-          .doc(studentUser.uid)
-          .get();
-
-      final parentId = userDoc.data()?['parentId'];
-      final studentName = userDoc.data()?['displayName'] ?? studentUser.email ?? 'Student';
-
-      if (parentId == null || parentId.toString().isEmpty) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No parent account linked. Please ask your parent to register you.'),
-            backgroundColor: BrandColors.error,
-          ),
-        );
-        return;
-      }
-
-      await FirebaseFirestore.instance.collection('invoices').add({
-        'parentId': parentId,
-        'studentId': studentUser.uid,
-        'studentName': studentName,
-        'teacherId': course['teacherId'] ?? '',
-        'teacherName': course['teacherName'] ?? 'Teacher',
-        'courseId': course['id'],
-        'courseTitle': course['title'] ?? 'Course',
-        'amount': 250,
-        'currency': 'EGP',
-        'status': 'pending',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invoice notification sent to your parent for checkout!'),
-          backgroundColor: BrandColors.greenText,
+  Future<void> _showEnrollmentInfo(Map<String, dynamic> course) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.family_restroom, color: BrandColors.navy, size: 36),
+        title: const Text('Ask your parent to enrol'),
+        content: Text(
+          'Your parent can review subscription options for "${course['title'] ?? 'this course'}" from Parent Workspace. '
+          'Checkout is currently a UI preview only; no invoice or payment request will be created.',
         ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to request invoice: $e'),
-          backgroundColor: BrandColors.error,
-        ),
-      );
-    }
+        actions: [
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Understood')),
+        ],
+      ),
+    );
   }
 
   Future<void> _signOut() async {
@@ -318,7 +282,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          context.go('/student/courses/${course['id']}/videos/lesson_1');
+                          context.go(FypRoutes.studentCourseFor(course['id'].toString()));
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: BrandColors.green,
@@ -332,14 +296,14 @@ class _StudentHomePageState extends State<StudentHomePage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => _requestParentInvoice(course),
+                        onPressed: () => _showEnrollmentInfo(course),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: BrandColors.navy,
                           side: const BorderSide(color: BrandColors.navy),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         icon: const Icon(Icons.receipt, size: 18),
-                        label: const Text('Request Enrollment'),
+                        label: const Text('Subscription Info'),
                       ),
                     ),
                   ],
