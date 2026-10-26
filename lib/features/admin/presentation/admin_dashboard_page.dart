@@ -136,12 +136,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         title: Text(fypTranslate(context, 'future_youth_admin', 'Future Youth • Admin')),
         actions: [
           IconButton(
-            tooltip: 'Create admin',
+            tooltip: fypTranslate(context, 'create_admin', 'Create admin'),
             onPressed: () => context.push(FypRoutes.adminCreateAdmin),
             icon: Icon(Icons.person_add_alt_1),
           ),
           IconButton(
-            tooltip: 'Sign out',
+            tooltip: fypTranslate(context, 'sign_out', 'Sign out'),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
               if (context.mounted) context.go(FypRoutes.entry);
