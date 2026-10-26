@@ -210,7 +210,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                     return Card(
                       elevation: 0,
                       margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Theme.of(context).colorScheme.onSurfaceVariant.shade100)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
                       child: ListTile(
                         contentPadding: const EdgeInsets.all(14),
                         leading: Container(
