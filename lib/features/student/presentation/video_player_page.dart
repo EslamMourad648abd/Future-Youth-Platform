@@ -263,7 +263,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                                 Row(
                                   children: List.generate(5, (index) => IconButton(
                                     visualDensity: VisualDensity.compact,
-                                    tooltip: 'Rate ${index + 1} stars',
+                                    tooltip: AppLocalizations.of(context)?.translate('rate_stars', params: {'count': '${index + 1}'}) ?? 'Rate ${index + 1} stars',
                                     onPressed: () => _setRating(index + 1),
                                     icon: Icon(index < userRating ? Icons.star_rounded : Icons.star_outline_rounded,
                                       color: const Color(0xFFFFB300)),
