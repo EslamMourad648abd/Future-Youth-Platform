@@ -99,6 +99,65 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('محرر الدورة'), findsOneWidget);
   });
+
+  testWidgets('theme and language controls render without overflow across widths and themes', (tester) async {
+    for (final width in [320.0, 768.0, 1440.0]) {
+      for (final dark in [false, true]) {
+        tester.view.physicalSize = Size(width, 900);
+        tester.view.devicePixelRatio = 1;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            locale: const Locale('ar'),
+            supportedLocales: const [Locale('en'), Locale('ar')],
+            localizationsDelegates: const [
+              AppLocalizationsDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            theme: FypTheme.light,
+            darkTheme: FypTheme.dark,
+            themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+            home: Scaffold(
+              body: SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: const [
+                        Text('اختبار واجهة Future Youth — Responsive layout audit'),
+                        SizedBox(height: 16),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            GlobalLanguageSwitch(),
+                            GlobalThemeSwitch(),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(GlobalLanguageSwitch), findsOneWidget);
+        expect(find.byType(GlobalThemeSwitch), findsOneWidget);
+        expect(tester.takeException(), isNull,
+            reason: 'Expected no layout exception at width $width, dark theme $dark');
+      }
+    }
+
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+  });
+
 }
 
 double _contrast(Color foreground, Color background) {
