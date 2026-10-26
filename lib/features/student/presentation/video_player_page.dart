@@ -25,6 +25,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   final _commentCtrl = TextEditingController();
 
   bool loading = true;
+  bool locked = false;
+  String? loadError;
   String? videoUrl;
   String title = 'Lesson Video';
   String description = '';
@@ -50,15 +52,16 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   Future<void> _loadVideoAndComments() async {
     try {
       final lessonDoc = await FirebaseFirestore.instance
-          .collection('training_courses')
+          .collection('courses')
           .doc(widget.courseId)
-          .collection('lessons')
+          .collection('videos')
           .doc(widget.videoId)
           .get();
 
       if (lessonDoc.exists) {
         final data = lessonDoc.data()!;
         title = data['title'] ?? 'Lesson Video';
+        locked = ((data['order'] as num?)?.toInt() ?? 1) > 1 || data['status'] != 'published' || data['approvalStatus'] != 'approved';
         description = data['description'] ?? '';
         videoUrl = data['videoUrl']?.toString();
         likesCount = data['likesCount'] ?? 0;
@@ -85,6 +88,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       if (!mounted) return;
       setState(() {
         loading = false;
+        loadError = e.toString();
       });
     }
   }
@@ -194,7 +198,30 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       body: SafeArea(
         child: loading
             ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
+            : locked
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(28),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.lock_outline, size: 52, color: BrandColors.navy),
+                              const SizedBox(height: 14),
+                              const Text('This lesson is locked', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+                              const SizedBox(height: 8),
+                              const Text('Only the first approved lesson is available as a free preview. Ask your parent about subscription options.', textAlign: TextAlign.center),
+                              const SizedBox(height: 16),
+                              FilledButton(onPressed: () => context.go(FypRoutes.student), child: const Text('Back to courses')),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,8 +238,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                           color: Colors.black12,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Center(
-                          child: Text('Video preview available for this lesson.'),
+                        child: Center(
+                          child: Text(loadError == null ? 'Video preview is not configured for this lesson yet.' : 'Could not load lesson: $loadError', textAlign: TextAlign.center),
                         ),
                       ),
                     const SizedBox(height: 16),
