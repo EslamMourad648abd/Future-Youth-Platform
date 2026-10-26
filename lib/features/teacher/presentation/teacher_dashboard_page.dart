@@ -141,7 +141,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         backgroundColor: const Color(0xFF00A651),
         foregroundColor: Colors.white,
         icon: Icon(Icons.add),
-        label: Text('New course'),
+        label: Text(fypTranslate(context, 'new_course', 'New course')),
       ),
       body: SafeArea(
         child: ListView(
@@ -219,7 +219,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                           child: Icon(Icons.play_lesson, color: Theme.of(context).colorScheme.primary),
                         ),
                         title: Text((data['title'] ?? 'Untitled course').toString(), style: TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${data['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${data['videoCount'] ?? 0} ${fypTranslate(context, 'videos_label', 'videos')} • ${data['price'] ?? '—'} EGP/month\n${data['status'] ?? 'draft'} • ${data['approvalStatus'] ?? 'pending review'}'),
+                        subtitle: Text('${data['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${data['videoCount'] ?? 0} ${fypTranslate(context, 'videos_label', 'videos')} • ${data['price'] ?? '—'} EGP/month\n${AppLocalizations.of(context)?.translateStatus((data['status'] ?? 'draft').toString()) ?? (data['status'] ?? 'draft')} • ${AppLocalizations.of(context)?.translateStatus((data['approvalStatus'] ?? 'pending review').toString()) ?? (data['approvalStatus'] ?? 'pending review')}'),
                         isThreeLine: true,
                         trailing: IconButton(
                           tooltip: 'Course analytics',
