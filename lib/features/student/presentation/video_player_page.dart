@@ -61,14 +61,19 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       if (lessonDoc.exists) {
         final data = lessonDoc.data()!;
         title = data['title'] ?? 'Lesson Video';
-        locked = ((data['order'] as num?)?.toInt() ?? 1) > 1 || data['status'] != 'published' || data['approvalStatus'] != 'approved';
+        final lessonOrder = (data['order'] as num?)?.toInt() ?? 1;
+        locked = data['status'] != 'published' || data['approvalStatus'] != 'approved';
         description = data['description'] ?? '';
         if (!locked) {
-          final result = await FirebaseFunctions.instance.httpsCallable('getPreviewVideoUrl').call({
+          final callableName = lessonOrder == 1
+              ? 'getPreviewVideoUrl'
+              : 'getPaidLessonVideoUrl';
+          final result = await FirebaseFunctions.instance.httpsCallable(callableName).call({
             'courseId': widget.courseId,
             'videoId': widget.videoId,
           });
           videoUrl = (result.data as Map)['videoUrl']?.toString();
+          locked = videoUrl == null || videoUrl!.isEmpty;
         }
 
       }
