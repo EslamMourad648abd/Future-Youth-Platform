@@ -815,7 +815,7 @@ class AppLocalizations {
   };
 
   String translate(String key, {Map<String, String>? params}) {
-    String value = _localizedValues[locale.languageCode]?[key] ?? key;
+    String value = _localizedValues[locale.languageCode]?[key] ?? _localizedValues['en']?[key] ?? key;
     if (params != null) {
       params.forEach((k, v) {
         value = value.replaceAll('{$k}', v);
