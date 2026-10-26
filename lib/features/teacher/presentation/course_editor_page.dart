@@ -35,23 +35,23 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
               children: [
                 TextFormField(
                   controller: titleController,
-                  decoration: InputDecoration(labelText: 'Lesson title'),
-                  validator: (value) => value == null || value.trim().isEmpty ? 'Enter a lesson title' : null,
+                  decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'lesson_title', 'Lesson title')),
+                  validator: (value) => value == null || value.trim().isEmpty ? fypTranslate(dialogContext, 'lesson_title_required', 'Enter a lesson title') : null,
                 ),
                 SizedBox(height: 12),
                 TextFormField(
                   controller: descriptionController,
                   maxLines: 3,
-                  decoration: InputDecoration(labelText: 'Description'),
+                  decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'lesson_description', 'Description')),
                 ),
                 SizedBox(height: 12),
                 TextFormField(
                   controller: durationController,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Duration (minutes)'),
+                  decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'duration_minutes', 'Duration (minutes)')),
                   validator: (value) {
                     final duration = int.tryParse(value ?? '');
-                    return duration == null || duration < 1 ? 'Enter a valid duration' : null;
+                    return duration == null || duration < 1 ? fypTranslate(dialogContext, 'enter_valid_duration', 'Enter a valid duration') : null;
                   },
                 ),
                 SizedBox(height: 12),
@@ -64,7 +64,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(fypTranslate(dialogContext, 'cancel_action', 'Cancel'))),
           FilledButton(
             onPressed: () {
               if (!formKey.currentState!.validate()) return;
@@ -74,7 +74,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                 'duration': durationController.text.trim(),
               });
             },
-            child: Text('Add lesson'),
+            child: Text(fypTranslate(dialogContext, 'add_lesson', 'Add lesson')),
           ),
         ],
       ),
@@ -117,7 +117,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lesson details saved. Upload its video using the video button.')),
+          SnackBar(content: Text(fypTranslate(context, 'lesson_saved_upload_video', 'Lesson details saved. Upload its video using the video button.'))),
         );
       }
     } catch (error) {
@@ -145,13 +145,13 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
     final bytes = file.bytes;
     if (bytes == null || bytes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not read the selected video file. Please try again.')),
+        SnackBar(content: Text(fypTranslate(context, 'upload_read_error', 'Could not read the selected video file. Please try again.'))),
       );
       return;
     }
     if (bytes.length > 500 * 1024 * 1024) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Videos must be 500 MB or smaller.')),
+        SnackBar(content: Text(fypTranslate(context, 'video_size_limit', 'Videos must be 500 MB or smaller.'))),
       );
       return;
     }
