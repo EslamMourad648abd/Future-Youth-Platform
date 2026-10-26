@@ -16,8 +16,13 @@ class GlobalThemeSwitch extends StatelessWidget {
         final isDark = mode == ThemeMode.dark;
         return Material(
           color: Colors.transparent,
-          child: Tooltip(
-            message: fypTranslate(context, 'theme_switch_hint', 'Switch between light and dark themes'),
+          child: Semantics(
+            button: true,
+            label: fypTranslate(
+              context,
+              'theme_switch_hint',
+              'Switch between light and dark themes',
+            ),
             child: InkWell(
               onTap: ThemeService.toggleTheme,
               borderRadius: BorderRadius.circular(30),

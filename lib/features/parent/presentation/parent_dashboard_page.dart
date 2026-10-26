@@ -144,9 +144,14 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                         ),
                       ),
                       SizedBox(width: 8),
-                      FilledButton(
-                        onPressed: () => context.go(FypRoutes.parentSubscriptions),
-                        child: Text(fypTranslate(context, 'open_action', 'Open')),
+                      SizedBox(
+                        width: 90,
+                        child: FilledButton(
+                          onPressed: () => context.go(FypRoutes.parentSubscriptions),
+                          child: Text(
+                            fypTranslate(context, 'open_action', 'Open'),
+                          ),
+                        ),
                       ),
                     ],
                   ),
