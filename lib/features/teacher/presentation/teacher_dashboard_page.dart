@@ -36,7 +36,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     final price = double.tryParse(_price.text.trim());
     if (user == null || title.isEmpty || subject.isEmpty || price == null || price <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a title, subject and valid monthly price.')),
+        SnackBar(content: Text('Enter a title, subject and valid monthly price.')),
       );
       return;
     }
@@ -67,7 +67,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       if (!mounted) return;
       Navigator.of(sheetContext).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Course draft created. Add lessons before submitting for review.')),
+        SnackBar(content: Text('Course draft created. Add lessons before submitting for review.')),
       );
     } catch (e) {
       if (mounted) {
@@ -92,16 +92,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Create a course', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              TextField(controller: _title, decoration: const InputDecoration(labelText: 'Course title', prefixIcon: Icon(Icons.menu_book_outlined))),
-              const SizedBox(height: 12),
-              TextField(controller: _subject, decoration: const InputDecoration(labelText: 'Subject', prefixIcon: Icon(Icons.category_outlined))),
-              const SizedBox(height: 12),
-              TextField(controller: _description, maxLines: 3, decoration: const InputDecoration(labelText: 'Description')),
-              const SizedBox(height: 12),
-              TextField(controller: _price, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Monthly price (EGP)', prefixIcon: Icon(Icons.payments_outlined))),
-              const SizedBox(height: 18),
+              Text('Create a course', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              SizedBox(height: 16),
+              TextField(controller: _title, decoration: InputDecoration(labelText: 'Course title', prefixIcon: Icon(Icons.menu_book_outlined))),
+              SizedBox(height: 12),
+              TextField(controller: _subject, decoration: InputDecoration(labelText: 'Subject', prefixIcon: Icon(Icons.category_outlined))),
+              SizedBox(height: 12),
+              TextField(controller: _description, maxLines: 3, decoration: InputDecoration(labelText: 'Description')),
+              SizedBox(height: 12),
+              TextField(controller: _price, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'Monthly price (EGP)', prefixIcon: Icon(Icons.payments_outlined))),
+              SizedBox(height: 18),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -123,7 +123,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         
-        title: const Text('Teacher Studio'),
+        title: Text('Teacher Studio'),
         actions: [
           IconButton(
             tooltip: 'Sign out',
@@ -141,7 +141,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         backgroundColor: const Color(0xFF00A651),
         foregroundColor: Colors.white,
         icon: Icon(Icons.add),
-        label: const Text('New course'),
+        label: Text('New course'),
       ),
       body: SafeArea(
         child: ListView(
@@ -155,22 +155,22 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 return Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [BrandColors.navy, Color(0xFF3E58AA)]),
+                    gradient: LinearGradient(colors: [BrandColors.navy, Color(0xFF3E58AA)]),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(Icons.auto_stories, color: Colors.white, size: 32),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       Text('Welcome, ${profile['displayName'] ?? user?.displayName ?? 'Teacher'}',
                         style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         approved ? 'Your educator profile is approved. Build your learning library.' : 'Your profile is awaiting admin approval. Publishing remains locked until approved.',
                         style: TextStyle(color: Colors.white70, height: 1.4),
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       Chip(
                         avatar: Icon(approved ? Icons.verified : Icons.hourglass_top, color: Colors.white, size: 18),
                         label: Text(approved ? 'Approved educator' : 'Approval pending'),
@@ -182,20 +182,20 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 );
               },
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             Text(fypTranslate(context, 'your_courses', 'Your courses'), style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance.collection('courses').where('teacherId', isEqualTo: user?.uid).snapshots(),
               builder: (context, snap) {
                 if (snap.hasError) return Text('Could not load courses: ${snap.error}');
-                if (!snap.hasData) return const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
+                if (!snap.hasData) return Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
                 final docs = snap.data!.docs;
                 if (docs.isEmpty) {
                   return Container(
                     padding: const EdgeInsets.all(26),
                     decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(18)),
-                    child: const Column(children: [
+                    child: Column(children: [
                       Icon(Icons.video_library_outlined, size: 42, color: Theme.of(context).colorScheme.primary),
                       SizedBox(height: 10),
                       Text('Your teaching library starts here', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
@@ -233,7 +233,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 );
               },
             ),
-            const SizedBox(height: 80),
+            SizedBox(height: 80),
           ],
         ),
       ),
