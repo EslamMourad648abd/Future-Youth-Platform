@@ -133,7 +133,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                         child: Icon(Icons.subscriptions_outlined, color: Theme.of(context).colorScheme.primary),
                       ),
                       SizedBox(width: 14),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
