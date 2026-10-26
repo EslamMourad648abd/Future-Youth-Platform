@@ -3,6 +3,7 @@ import { setGlobalOptions } from "firebase-functions/v2/options";
 import { initializeApp, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getStorage } from "firebase-admin/storage";
 
 import { REGION, ROLES } from "./src/config.js";
 import { requireRole, validateSignupRole } from "./src/guards.js";
@@ -354,4 +355,114 @@ export const confirmPayment = onCall(async (request) => {
     result = { ok: true, alreadyConfirmed: false, pointsGranted: points, pointsBalance: newBalance };
   });
   return result;
+});
+
+/** Issues a short-lived playback URL only after checking preview/subscription access. */
+export const getVideoPlaybackUrl = onCall(async (request) => {
+  const studentId = requireRole(request, [ROLES.STUDENT]);
+  const courseId = String(request.data?.courseId || "").trim();
+  const videoId = String(request.data?.videoId || "").trim();
+  if (!courseId || !videoId) throw new HttpsError("invalid-argument", "courseId and videoId are required.");
+  const courseRef = db.collection("courses").doc(courseId);
+  const videoRef = courseRef.collection("videos").doc(videoId);
+  const [courseSnap, videoSnap] = await Promise.all([courseRef.get(), videoRef.get()]);
+  if (!courseSnap.exists || !videoSnap.exists) throw new HttpsError("not-found", "Course or video not found.");
+  const course = courseSnap.data();
+  const video = videoSnap.data();
+  if (course.status !== "published" || course.approvalStatus !== "approved" ||
+      video.status !== "published" || video.approvalStatus !== "approved") {
+    throw new HttpsError("failed-precondition", "This lesson is not published and approved.");
+  }
+  const teacher = await db.collection("users").doc(course.teacherId).get();
+  if (!teacher.exists || teacher.data()?.approvalStatus !== "approved") {
+    throw new HttpsError("failed-precondition", "This teacher is not approved.");
+  }
+  const isPreview = Number(video.order) === 1;
+  const subscriptionRef = db.collection("subscriptions").doc(`${studentId}_${courseId}`);
+  const subscriptionSnap = await subscriptionRef.get();
+  if (!isPreview) {
+    const sub = subscriptionSnap.exists ? subscriptionSnap.data() : null;
+    const expiresAt = sub?.expiresAt?.toDate ? sub.expiresAt.toDate() : null;
+    if (!sub || sub.status !== "active" || !expiresAt || expiresAt <= new Date() || Number(sub.pointsBalance || 0) < 1) {
+      throw new HttpsError("permission-denied", "A valid subscription point is required to play this lesson.");
+    }
+  }
+  const sourceSnap = await db.collection("video_sources").doc(videoId).get();
+  const storagePath = sourceSnap.data()?.storagePath;
+  if (!sourceSnap.exists || typeof storagePath !== "string" || !storagePath) {
+    throw new HttpsError("failed-precondition", "The video source is not configured yet.");
+  }
+  const bucket = getStorage().bucket();
+  const [url] = await bucket.file(storagePath).getSignedUrl({
+    action: "read",
+    expires: Date.now() + 5 * 60 * 1000,
+  });
+  const sessionRef = db.collection("video_views").doc();
+  await sessionRef.set({
+    studentId, courseId, videoId, isPreview,
+    startedAt: FieldValue.serverTimestamp(),
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+    status: "started",
+  });
+  return { ok: true, url, sessionId: sessionRef.id, isPreview };
+});
+
+/** Completes a view once and deducts one point atomically for paid videos. */
+export const completeVideoView = onCall(async (request) => {
+  const studentId = requireRole(request, [ROLES.STUDENT]);
+  const sessionId = String(request.data?.sessionId || "").trim();
+  const watchedSeconds = Number(request.data?.watchedSeconds);
+  const durationSeconds = Number(request.data?.durationSeconds);
+  if (!sessionId || !Number.isFinite(watchedSeconds) || !Number.isFinite(durationSeconds) ||
+      durationSeconds <= 0 || watchedSeconds < durationSeconds * 0.9) {
+    throw new HttpsError("invalid-argument", "A view is complete after at least 90% playback.");
+  }
+  const sessionRef = db.collection("video_views").doc(sessionId);
+  let outcome;
+  await db.runTransaction(async (tx) => {
+    const sessionSnap = await tx.get(sessionRef);
+    if (!sessionSnap.exists || sessionSnap.data()?.studentId !== studentId) {
+      throw new HttpsError("not-found", "Playback session not found.");
+    }
+    const session = sessionSnap.data();
+    if (session.status === "completed") {
+      outcome = { ok: true, alreadyCompleted: true, pointsDeducted: 0 };
+      return;
+    }
+    const expiry = session.expiresAt?.toDate ? session.expiresAt.toDate() : null;
+    if (!expiry || expiry <= new Date() || session.status !== "started") {
+      throw new HttpsError("failed-precondition", "Playback session expired.");
+    }
+    const videoRef = db.collection("courses").doc(session.courseId).collection("videos").doc(session.videoId);
+    const subscriptionRef = db.collection("subscriptions").doc(`${studentId}_${session.courseId}`);
+    const [videoSnap, subSnap] = await Promise.all([tx.get(videoRef), tx.get(subscriptionRef)]);
+    if (!videoSnap.exists) throw new HttpsError("not-found", "Video not found.");
+    let deducted = 0;
+    if (!session.isPreview) {
+      if (!subSnap.exists || Number(subSnap.data()?.pointsBalance || 0) < 1 || subSnap.data()?.status !== "active") {
+        throw new HttpsError("failed-precondition", "No subscription point remains.");
+      }
+      const sub = subSnap.data();
+      deducted = 1;
+      tx.update(subscriptionRef, {
+        pointsBalance: Number(sub.pointsBalance) - 1,
+        pointsSpent: Number(sub.pointsSpent || 0) + 1,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      const ledgerRef = db.collection("points_ledger").doc();
+      tx.set(ledgerRef, {
+        studentId, courseId: session.courseId, subscriptionId: subscriptionRef.id,
+        videoId: session.videoId, viewSessionId: sessionId, type: "spend",
+        points: -1, balanceAfter: Number(sub.pointsBalance) - 1,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    }
+    tx.update(sessionRef, {
+      status: "completed", completedAt: FieldValue.serverTimestamp(),
+      watchedSeconds, durationSeconds, pointsDeducted: deducted,
+    });
+    tx.update(videoRef, { viewCount: FieldValue.increment(1) });
+    outcome = { ok: true, alreadyCompleted: false, pointsDeducted: deducted };
+  });
+  return outcome;
 });
