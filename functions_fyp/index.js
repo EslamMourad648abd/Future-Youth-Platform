@@ -339,10 +339,13 @@ export const getPaidLessonVideoUrl = onCall(async (request) => {
       courseSnap.data()?.approvalStatus !== "approved" ||
       videoSnap.data()?.status !== "published" ||
       videoSnap.data()?.approvalStatus !== "approved" ||
+      videoSnap.data()?.teacherId !== courseSnap.data()?.teacherId ||
       Number(videoSnap.data()?.order || 0) <= 1 ||
       !sourceSnap.exists || sourceSnap.data()?.courseId !== courseId ||
+      sourceSnap.data()?.teacherId !== courseSnap.data()?.teacherId ||
       sourceSnap.data()?.provider !== "firebase_storage" ||
-      typeof sourceSnap.data()?.storagePath !== "string") {
+      typeof sourceSnap.data()?.storagePath !== "string" ||
+      !sourceSnap.data()?.storagePath.startsWith(`course-videos/${courseId}/${videoId}/`)) {
     throw new HttpsError("permission-denied", "This paid lesson is not available for playback.");
   }
 
@@ -358,7 +361,9 @@ export const getPaidLessonVideoUrl = onCall(async (request) => {
   }
 
   const teacherSnap = await db.collection("users").doc(courseSnap.data()?.teacherId).get();
-  if (!teacherSnap.exists || teacherSnap.data()?.approvalStatus !== "approved") {
+  if (!teacherSnap.exists ||
+      teacherSnap.data()?.role !== ROLES.TEACHER ||
+      teacherSnap.data()?.approvalStatus !== "approved") {
     throw new HttpsError("permission-denied", "The teacher is not currently approved.");
   }
 
@@ -420,7 +425,9 @@ export const getPreviewVideoUrl = onCall(async (request) => {
     throw new HttpsError("permission-denied", "Only the first approved lesson can be previewed.");
   }
   const teacherSnap = await db.collection("users").doc(courseSnap.data()?.teacherId).get();
-  if (!teacherSnap.exists || teacherSnap.data()?.approvalStatus !== "approved") {
+  if (!teacherSnap.exists ||
+      teacherSnap.data()?.role !== ROLES.TEACHER ||
+      teacherSnap.data()?.approvalStatus !== "approved") {
     throw new HttpsError("permission-denied", "The teacher is not currently approved.");
   }
 
