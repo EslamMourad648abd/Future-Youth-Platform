@@ -202,6 +202,13 @@ export const reviewCourseContent = onCall(async (request) => {
     if (!data?.teacherId) {
       throw new HttpsError("failed-precondition", "Content must include teacherId before review.");
     }
+    if (!videoId && decision === "approve") {
+      const lessonCount = Number(data.lessonCount || 0);
+      const videoCount = Number(data.videoCount || 0);
+      if (!Number.isInteger(lessonCount) || lessonCount < 1 || videoCount < lessonCount) {
+        throw new HttpsError("failed-precondition", "A course needs at least as many published videos as its lesson count before approval.");
+      }
+    }
     const teacherSnap = await tx.get(db.collection("users").doc(data.teacherId));
     if (!teacherSnap.exists || teacherSnap.data()?.role !== ROLES.TEACHER ||
         teacherSnap.data()?.approvalStatus !== "approved") {
