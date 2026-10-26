@@ -79,10 +79,10 @@ class CourseAnalyticsPage extends StatelessWidget {
                             Text('${course['subject'] ?? 'Subject'} • ${course['status'] ?? 'draft'}', style: TextStyle(color: Colors.white70)),
                             SizedBox(height: 18),
                             Wrap(spacing: 10, runSpacing: 10, children: [
-                              _Metric(label: 'Views', value: '$views', icon: Icons.visibility_outlined),
-                              _Metric(label: 'Avg. rating', value: ratingCount == 0 ? '—' : average.toStringAsFixed(1), icon: Icons.star_outline),
-                              _Metric(label: 'Ratings', value: '$ratingCount', icon: Icons.rate_review_outlined),
-                              _Metric(label: 'Comments', value: '$commentCount', icon: Icons.forum_outlined),
+                              _Metric(label: fypTranslate(context, 'views', 'Views'), value: '$views', icon: Icons.visibility_outlined),
+                              _Metric(label: fypTranslate(context, 'average_rating_short', 'Avg. rating'), value: ratingCount == 0 ? '—' : average.toStringAsFixed(1), icon: Icons.star_outline),
+                              _Metric(label: fypTranslate(context, 'ratings', 'Ratings'), value: '$ratingCount', icon: Icons.rate_review_outlined),
+                              _Metric(label: fypTranslate(context, 'comments', 'Comments'), value: '$commentCount', icon: Icons.forum_outlined),
                             ]),
                           ],
                         ),
@@ -158,7 +158,7 @@ class _EmptyAnalytics extends StatelessWidget {
     child: Column(children: [
       Icon(Icons.insights_outlined, size: 40, color: Theme.of(context).colorScheme.primary),
       SizedBox(height: 8),
-      Text('No lesson analytics yet'),
+      Text(fypTranslate(context, 'no_lesson_analytics', 'No lesson analytics yet.')),
     ]),
   );
 }
