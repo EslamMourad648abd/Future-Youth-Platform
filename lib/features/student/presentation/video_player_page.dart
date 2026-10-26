@@ -195,7 +195,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         title: Text(title),
         
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => context.go(FypRoutes.student),
         ),
       ),
@@ -212,9 +212,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.lock_outline, size: 52, color: BrandColors.navy),
+                              Icon(Icons.lock_outline, size: 52, color: Theme.of(context).colorScheme.primary),
                               const SizedBox(height: 14),
-                              Text(fypTranslate(context, 'lesson_locked', 'This lesson is locked'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+                              Text(fypTranslate(context, 'lesson_locked', 'This lesson is locked'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
                               const SizedBox(height: 8),
                               Text(fypTranslate(context, 'only_first_preview', 'Only the first approved lesson is available as a free preview. Ask your parent about subscription options.'), textAlign: TextAlign.center),
                               const SizedBox(height: 16),
@@ -252,14 +252,14 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                       decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(14)),
                       child: Row(
                         children: [
-                          const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 28),
+                          Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 28),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(ratingCount == 0 ? 'Be the first to rate this lesson' : '${ratingAverage.toStringAsFixed(1)} / 5 • $ratingCount ratings',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, color: BrandColors.navy)),
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
                                 const SizedBox(height: 6),
                                 Row(
                                   children: List.generate(5, (index) => IconButton(
@@ -283,7 +283,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     // ========================================================
                     const Text(
                       'Student Comments & Questions',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -304,7 +304,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                             
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           ),
-                          child: const Icon(Icons.send, size: 20),
+                          child: Icon(Icons.send, size: 20),
                         ),
                       ],
                     ),
@@ -331,10 +331,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                               children: [
                                 Text(
                                   c['authorName'] ?? c['uid'] ?? 'Student',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: BrandColors.navy),
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).colorScheme.primary),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(c['text'] ?? c['comment'] ?? '', style: const TextStyle(fontSize: 14)),
+                                Text(c['text'] ?? c['comment'] ?? '', style: TextStyle(fontSize: 14)),
                               ],
                             ),
                           );
