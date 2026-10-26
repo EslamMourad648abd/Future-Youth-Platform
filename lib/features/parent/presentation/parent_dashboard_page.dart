@@ -70,7 +70,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
         
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout),
             tooltip: 'Sign Out',
             onPressed: _signOut,
           ),
@@ -93,7 +93,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                       const CircleAvatar(
                         radius: 28,
                         backgroundColor: BrandColors.navyTint,
-                        child: Icon(Icons.family_restroom, color: BrandColors.navy, size: 30),
+                        child: Icon(Icons.family_restroom, color: Theme.of(context).colorScheme.primary, size: 30),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -102,7 +102,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                           children: [
                             Text(
                               'Welcome, $displayName',
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                             ),
                             const SizedBox(height: 4),
                             const Text(
@@ -130,14 +130,14 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                     children: [
                       const CircleAvatar(
                         backgroundColor: BrandColors.navyTint,
-                        child: Icon(Icons.subscriptions_outlined, color: BrandColors.navy),
+                        child: Icon(Icons.subscriptions_outlined, color: Theme.of(context).colorScheme.primary),
                       ),
                       const SizedBox(width: 14),
                       const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(fypTranslate(context, 'subscription_access', 'Subscriptions & access'), style: TextStyle(fontWeight: FontWeight.bold, color: BrandColors.navy, fontSize: 16)),
+                            Text(fypTranslate(context, 'subscription_access', 'Subscriptions & access'), style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary, fontSize: 16)),
                             SizedBox(height: 4),
                             Text('Review course options and see the checkout interface. Payment processing is disabled for now.', style: TextStyle(color: Colors.blueGrey, fontSize: 12)),
                           ],
@@ -158,11 +158,11 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                 children: [
                   const Text(
                     'Enrolled Students / Children',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                   ),
                   ElevatedButton.icon(
                     onPressed: () => context.go(FypRoutes.parentCreateStudent),
-                    icon: const Icon(Icons.person_add, size: 18),
+                    icon: Icon(Icons.person_add, size: 18),
                     label: const Text('Add Student'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: BrandColors.green,
@@ -236,7 +236,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                   children: [
                     const CircleAvatar(
                       backgroundColor: BrandColors.navyTint,
-                      child: Icon(Icons.school, color: BrandColors.navy),
+                      child: Icon(Icons.school, color: Theme.of(context).colorScheme.primary),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -245,9 +245,9 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                         children: [
                           Text(
                             student['displayName'] ?? student['email'] ?? 'Student',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
-                          Text(student['email'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                          Text(student['email'] ?? '', style: TextStyle(fontSize: 12, color: Colors.grey)),
                         ],
                       ),
                     ),
@@ -260,7 +260,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                 const Divider(height: 24),
                 const Text(
                   'Learning analytics',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: BrandColors.navy),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).colorScheme.primary),
                 ),
                 const SizedBox(height: 8),
                 const Text(
