@@ -291,7 +291,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                           child: TextField(
                             controller: _commentCtrl,
                             decoration: InputDecoration(
-                              hintText: 'Add a comment or ask a question...',
+                              hintText: fypTranslate(context, 'add_comment_hint', 'Ask a question or leave a comment'),
                               border: OutlineInputBorder(),
                             ),
                           ),
@@ -303,7 +303,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                             
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           ),
-                          child: Icon(Icons.send, size: 20),
+                          child: Tooltip(message: fypTranslate(context, 'submit_comment', 'Send comment'), child: Icon(Icons.send, size: 20)),
                         ),
                       ],
                     ),
