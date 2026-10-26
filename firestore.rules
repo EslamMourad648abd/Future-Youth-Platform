@@ -46,6 +46,12 @@ service cloud.firestore {
         teacherApproved(get(/databases/$(database)/documents/courses/$(courseId)).data.teacherId);
     }
 
+    function ownsCourse(courseId) {
+      return isTeacher() &&
+        exists(/databases/$(database)/documents/courses/$(courseId)) &&
+        get(/databases/$(database)/documents/courses/$(courseId)).data.teacherId == request.auth.uid;
+    }
+
     // Future Youth course catalog. Approval and publication are server-managed.
     match /courses/{courseId} {
       allow read: if isAdmin() ||
@@ -103,7 +109,7 @@ service cloud.firestore {
            resource.data.status == "draft");
 
         match /comments/{commentId} {
-          allow read: if isAdmin() ||
+          allow read: if isAdmin() || ownsCourse(courseId) ||
             (approvedCourse(courseId) &&
              get(/databases/$(database)/documents/courses/$(courseId)/videos/$(videoId)).data.status == "published");
           allow create: if isStudent() && approvedCourse(courseId) &&
