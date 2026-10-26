@@ -113,7 +113,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.construction_outlined, color: BrandColors.navy, size: 38),
+        icon: Icon(Icons.construction_outlined, color: Theme.of(context).colorScheme.primary, size: 38),
         title: const Text('Checkout preview'),
         content: const Text(
           'The checkout screen is ready for review, but payment processing is currently disabled. '
@@ -138,7 +138,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         title: const Text('Course Subscription Checkout'),
         
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => context.go(FypRoutes.parent),
         ),
       ),
@@ -166,11 +166,11 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                             children: [
                               const Row(
                                 children: [
-                                  Icon(Icons.payment, size: 32, color: BrandColors.navy),
+                                  Icon(Icons.payment, size: 32, color: Theme.of(context).colorScheme.primary),
                                   SizedBox(width: 12),
                                   Text(
                                     'Egyptian Payment Gateway',
-                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                                   ),
                                 ],
                               ),
@@ -215,19 +215,19 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: BrandColors.navyTint,
+                                  color: Theme.of(context).colorScheme.primaryTint,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text('Total Amount:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                    Text('$coursePrice EGP', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: BrandColors.navy)),
+                                    Text('$coursePrice EGP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.primary)),
                                   ],
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              Text(fypTranslate(context, 'select_payment_method', 'Select Payment Method'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: BrandColors.navy)),
+                              Text(fypTranslate(context, 'select_payment_method', 'Select Payment Method'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Theme.of(context).colorScheme.primary)),
                               const SizedBox(height: 12),
                               RadioListTile<String>(
                                 title: const Text('InstaPay (National Bank / App Transfer)'),
