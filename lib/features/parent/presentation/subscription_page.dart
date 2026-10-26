@@ -132,11 +132,10 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Course Subscription Checkout'),
-        backgroundColor: BrandColors.navy,
-        foregroundColor: Colors.white,
+        
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go(FypRoutes.parent),
