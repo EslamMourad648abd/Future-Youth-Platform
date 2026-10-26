@@ -40,7 +40,7 @@ class CourseAnalyticsPage extends StatelessWidget {
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('courses').doc(courseId).snapshots(),
         builder: (context, courseSnap) {
-          if (courseSnap.hasError) return Center(child: Text('Unable to load course: ${courseSnap.error}'));
+          if (courseSnap.hasError) return Center(child: Text('${fypTranslate(context, 'course_load_failed', 'Could not load course')}: ${courseSnap.error}'));
           if (!courseSnap.hasData) return Center(child: CircularProgressIndicator());
           final course = courseSnap.data!.data();
           if (course == null) return Center(child: Text(fypTranslate(context, 'course_not_found', 'Course not found.')));
@@ -48,13 +48,13 @@ class CourseAnalyticsPage extends StatelessWidget {
           return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
             stream: FirebaseFirestore.instance.collection('courses').doc(courseId).collection('videos').orderBy('order').snapshots(),
             builder: (context, videosSnap) {
-              if (videosSnap.hasError) return Center(child: Text('Unable to load lessons: ${videosSnap.error}'));
+              if (videosSnap.hasError) return Center(child: Text('${fypTranslate(context, 'lessons_load_failed', 'Could not load lessons')}: ${videosSnap.error}'));
               if (!videosSnap.hasData) return Center(child: CircularProgressIndicator());
               final docs = videosSnap.data!.docs;
               return FutureBuilder<List<_LessonStats>>(
                 future: _loadStats(docs),
                 builder: (context, statsSnap) {
-                  if (statsSnap.hasError) return Center(child: Text('Unable to load ratings and comments: ${statsSnap.error}'));
+                  if (statsSnap.hasError) return Center(child: Text('${fypTranslate(context, 'ratings_load_failed', 'Unable to load ratings and comments')}: ${statsSnap.error}'));
                   if (!statsSnap.hasData) return Center(child: CircularProgressIndicator());
                   final stats = statsSnap.data!;
                   final views = stats.fold<int>(0, (total, item) => total + item.views);
@@ -101,12 +101,12 @@ class CourseAnalyticsPage extends StatelessWidget {
                             child: ListTile(
                               leading: CircleAvatar(backgroundColor: Color(0xFFEAF0FF), child: Icon(Icons.play_circle_outline, color: Theme.of(context).colorScheme.primary)),
                               title: Text(item.title, style: TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text('Views: ${item.views} • Rating: $avg • Comments: ${item.commentCount}'),
+                              subtitle: Text('${fypTranslate(context, 'views', 'Views')}: ${item.views} • ${fypTranslate(context, 'ratings', 'Rating')}: $avg • ${fypTranslate(context, 'comments', 'Comments')}: ${item.commentCount}'),
                             ),
                           );
                         }),
                       SizedBox(height: 18),
-                      Text('Views count unique students who received authorized playback access. Paid lesson views require an active subscription.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.4)),
+                      Text(fypTranslate(context, 'views_count_note', 'Views count unique students who received authorized playback access. Paid lesson views require an active subscription.'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.4)),
                     ],
                   );
                 },
