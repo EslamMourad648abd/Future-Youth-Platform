@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -88,35 +87,34 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   Future<void> _processPayment() async {
     if (!_formKey.currentState!.validate()) return;
     if (selectedStudentId == null || selectedCourseId == null || selectedPaymentMethod == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a student, course and payment method.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a student, course and payment method.')),
+      );
       return;
     }
+
+    // Checkout is intentionally a UI prototype. Do not write payment data,
+    // activate a subscription, or grant points from the client.
     setState(() => submitting = true);
-    try {
-      final callable = FirebaseFunctions.instance.httpsCallable('createPaymentRequest');
-      final result = await callable.call(<String, dynamic>{
-        'studentId': selectedStudentId,
-        'courseId': selectedCourseId,
-        'provider': selectedPaymentMethod,
-        'months': 1,
-        'providerRef': _referenceCtrl.text.trim(),
-      });
-      final data = Map<String, dynamic>.from(result.data as Map);
-      if (!mounted) return;
-      await showDialog<void>(context: context, barrierDismissible: false, builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.hourglass_top_rounded, color: Color(0xFF00A651), size: 38),
-        title: const Text('Payment request submitted'),
-        content: Text('Request ID: ${data['paymentId']}\nAmount: ${data['amount']} EGP\n\nYour subscription will unlock after an administrator verifies receipt of your transfer.'),
-        actions: [FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Done'))],
-      ));
-      if (mounted) context.go(FypRoutes.parent);
-    } on FirebaseFunctionsException catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message ?? 'Could not submit payment request.'), backgroundColor: BrandColors.error));
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not submit payment request: $e'), backgroundColor: BrandColors.error));
-    } finally {
-      if (mounted) setState(() => submitting = false);
-    }
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.construction_outlined, color: BrandColors.navy, size: 38),
+        title: const Text('Checkout preview'),
+        content: const Text(
+          'The checkout screen is ready for review, but payment processing is currently disabled. '
+          'No transfer has been submitted, no subscription has been activated, and no points have been granted.',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Understood'),
+          ),
+        ],
+      ),
+    );
+    if (mounted) setState(() => submitting = false);
   }
 
   @override
@@ -218,7 +216,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               const SizedBox(height: 12),
                               RadioListTile<String>(
                                 title: const Text('InstaPay (National Bank / App Transfer)'),
-                                subtitle: const Text('Transfer to InstaPay IPA: futureyouth@instapay'),
+                                subtitle: const Text('Illustrative account details — to be configured'),
                                 value: 'instapay',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
@@ -226,7 +224,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               ),
                               RadioListTile<String>(
                                 title: const Text('Vodafone Cash'),
-                                subtitle: const Text('Transfer to Wallet: 01012345678'),
+                                subtitle: const Text('Illustrative wallet details — to be configured'),
                                 value: 'vodafone_cash',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
@@ -234,7 +232,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               ),
                               RadioListTile<String>(
                                 title: const Text('Orange Cash'),
-                                subtitle: const Text('Transfer to Wallet: 01212345678'),
+                                subtitle: const Text('Illustrative wallet details — to be configured'),
                                 value: 'orange_cash',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
@@ -242,7 +240,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               ),
                               RadioListTile<String>(
                                 title: const Text('Etisalat Cash'),
-                                subtitle: const Text('Transfer to Wallet: 01112345678'),
+                                subtitle: const Text('Illustrative wallet details — to be configured'),
                                 value: 'etisalat_cash',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
@@ -272,7 +270,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                 ),
                                 child: submitting
                                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                    : const Text('Confirm Payment & Subscribe', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                    : const Text('Preview Checkout (Payments Disabled)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               ),
                             ],
                           ),
