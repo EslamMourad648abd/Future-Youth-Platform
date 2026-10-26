@@ -25,6 +25,8 @@ dependencies:
   url_launcher: ^6.3.2
   cupertino_icons: ^1.0.8
   cloud_functions: ^4.7.6
+  firebase_storage: ^11.7.7
+  file_picker: ^8.1.7
   webview_flutter: ^4.14.1
   flutter_widget_from_html: ^0.16.1
   universal_html: ^2.3.0
