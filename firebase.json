@@ -61,6 +61,7 @@
     "rules": "storage.rules"
   },
   "firestore": {
-    "indexes": "firestore.indexes.json"
+    "indexes": "firestore.indexes.json",
+    "rules": "firestore.rules"
   }
 }
