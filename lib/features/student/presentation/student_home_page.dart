@@ -300,7 +300,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                         onPressed: () => _showEnrollmentInfo(course),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: BrandColors.navy,
-                          side: const BorderSide(color: Theme.of(context).colorScheme.primary),
+                          side: BorderSide(color: Theme.of(context).colorScheme.primary),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         icon: Icon(Icons.receipt, size: 18),
