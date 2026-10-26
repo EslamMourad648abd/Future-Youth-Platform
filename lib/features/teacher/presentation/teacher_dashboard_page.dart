@@ -123,7 +123,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         
-        title: Text('Teacher Studio'),
+        title: Text(fypTranslate(context, 'teacher_studio', 'Teacher Studio')),
         actions: [
           IconButton(
             tooltip: 'Sign out',
@@ -200,7 +200,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                       SizedBox(height: 10),
                       Text('Your teaching library starts here', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
                       SizedBox(height: 6),
-                      Text('Create a course draft to start organising your lessons.', textAlign: TextAlign.center),
+                      Text(fypTranslate(context, 'create_course', 'Create course'), textAlign: TextAlign.center),
                     ]),
                   );
                 }
