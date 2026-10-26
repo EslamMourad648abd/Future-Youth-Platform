@@ -122,7 +122,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text('Understood'),
+            child: Text(fypTranslate(dialogContext, 'got_it', 'Understood')),
           ),
         ],
       ),
@@ -135,7 +135,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Course Subscription Checkout'),
+        title: Text(fypTranslate(context, 'subscription_access', 'Course subscription checkout')),
         
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
