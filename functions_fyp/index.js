@@ -295,3 +295,63 @@ export const createPaymentRequest = onCall(async (request) => {
 
   return { ok: true, paymentId: paymentRef.id, amount, currency: "EGP", status: "pending" };
 });
+
+/**
+ * Admin confirms receipt of a manually transferred payment. A transaction
+ * prevents duplicate point grants when the same request is reviewed twice.
+ */
+export const confirmPayment = onCall(async (request) => {
+  const adminUid = requireRole(request, [ROLES.ADMIN]);
+  const paymentId = String(request.data?.paymentId || "").trim();
+  if (!paymentId) throw new HttpsError("invalid-argument", "paymentId is required.");
+  const paymentRef = db.collection("payments").doc(paymentId);
+  const now = new Date();
+  let result;
+  await db.runTransaction(async (tx) => {
+    const paymentSnap = await tx.get(paymentRef);
+    if (!paymentSnap.exists) throw new HttpsError("not-found", "Payment request not found.");
+    const payment = paymentSnap.data();
+    if (payment.status === "confirmed") {
+      result = { ok: true, alreadyConfirmed: true, pointsGranted: payment.pointsGranted || 0 };
+      return;
+    }
+    if (payment.status !== "pending") throw new HttpsError("failed-precondition", "Only pending payment requests can be confirmed.");
+    const courseRef = db.collection("courses").doc(payment.courseId);
+    const subscriptionRef = db.collection("subscriptions").doc(payment.subscriptionId);
+    const [courseSnap, subSnap] = await Promise.all([tx.get(courseRef), tx.get(subscriptionRef)]);
+    if (!courseSnap.exists || courseSnap.data()?.status !== "published" || courseSnap.data()?.approvalStatus !== "approved") {
+      throw new HttpsError("failed-precondition", "The course is not currently approved.");
+    }
+    const course = courseSnap.data();
+    const videoCount = Number(course.videoCount || 0);
+    const months = Number(payment.months || 0);
+    if (!Number.isInteger(videoCount) || videoCount < 1 || !Number.isInteger(months) || months < 1) {
+      throw new HttpsError("failed-precondition", "Course video count or payment duration is invalid.");
+    }
+    const points = videoCount * months;
+    const existing = subSnap.exists ? subSnap.data() : {};
+    const oldExpiry = existing.expiresAt?.toDate ? existing.expiresAt.toDate() : now;
+    const base = oldExpiry > now && existing.status === "active" ? oldExpiry : now;
+    const expiry = new Date(base.getTime());
+    expiry.setMonth(expiry.getMonth() + months);
+    const newBalance = Number(existing.pointsBalance || 0) + points;
+    tx.set(subscriptionRef, {
+      parentId: payment.parentId, studentId: payment.studentId, courseId: payment.courseId,
+      status: "active", pointsBalance: newBalance, pointsGranted: Number(existing.pointsGranted || 0) + points,
+      startsAt: existing.startsAt || FieldValue.serverTimestamp(),
+      expiresAt: expiry, updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    const ledgerRef = db.collection("points_ledger").doc();
+    tx.set(ledgerRef, {
+      studentId: payment.studentId, parentId: payment.parentId, courseId: payment.courseId,
+      subscriptionId: payment.subscriptionId, paymentId, type: "grant", points,
+      balanceAfter: newBalance, createdBy: adminUid, createdAt: FieldValue.serverTimestamp(),
+    });
+    tx.update(paymentRef, {
+      status: "confirmed", confirmedBy: adminUid, confirmedAt: FieldValue.serverTimestamp(),
+      pointsGranted: points, updatedAt: FieldValue.serverTimestamp(),
+    });
+    result = { ok: true, alreadyConfirmed: false, pointsGranted: points, pointsBalance: newBalance };
+  });
+  return result;
+});
