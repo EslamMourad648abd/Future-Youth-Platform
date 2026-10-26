@@ -184,11 +184,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(title),
-        backgroundColor: BrandColors.navy,
-        foregroundColor: Colors.white,
+        
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go(FypRoutes.student),
@@ -244,7 +243,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(14)),
                       child: Row(
                         children: [
                           const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 28),
@@ -296,8 +295,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                         ElevatedButton(
                           onPressed: _postComment,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: BrandColors.navy,
-                            foregroundColor: Colors.white,
+                            
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           ),
                           child: const Icon(Icons.send, size: 20),
