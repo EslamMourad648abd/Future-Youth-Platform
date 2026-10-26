@@ -1,0 +1,42 @@
+name: Future Youth checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, fix/security-and-fyp-requirements]
+
+jobs:
+  functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions_fyp/package.json
+      - name: Install Future Youth function dependencies
+        working-directory: functions_fyp
+        run: npm install
+      - name: Check function syntax
+        working-directory: functions_fyp
+        run: npm run lint
+      - name: Test role guards
+        working-directory: functions_fyp
+        run: npm test
+
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Install Flutter dependencies
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze
+      - name: Test
+        run: flutter test
