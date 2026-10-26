@@ -152,8 +152,8 @@ service cloud.firestore {
     match /payments/{paymentId} {
       allow read: if isAdmin() ||
         (request.auth != null && resource.data.parentId == request.auth.uid);
-      allow create: if false; // Use createPaymentRequest Cloud Function.
-      allow update: if false; // Payment verification must be a trusted server action.
+      allow create: if false; // Payment requests are UI-only in this stage.
+      allow update: if false; // Payment verification is deferred until checkout is enabled.
       allow delete: if isAdmin();
     }
 
