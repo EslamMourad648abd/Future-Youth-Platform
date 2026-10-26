@@ -97,7 +97,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     } on FirebaseFunctionsException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message ?? 'Action failed.')),
+          SnackBar(content: Text(error.message ?? fypTranslate(context, 'action_failed_prefix', 'Action failed'))),
         );
       }
     } catch (error) {
@@ -118,8 +118,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         icon: Icon(Icons.construction_outlined, color: Theme.of(context).colorScheme.primary, size: 36),
         title: Text(fypTranslate(dialogContext, 'payment_controls_ui_only', 'Payment controls are UI-only')),
         content: Text(
-          'Payment verification is intentionally disabled for this development stage. '
-          'No payment will be confirmed, no subscription will be activated, and no points will be granted.',
+          fypTranslate(dialogContext, 'payment_full_notice', 'Payment verification is intentionally disabled for this development stage. No payment will be confirmed, no subscription will be activated, and no points will be granted.'),
         ),
         actions: [
           FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text(fypTranslate(dialogContext, 'got_it', 'Got it'))),
