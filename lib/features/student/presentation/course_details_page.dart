@@ -102,7 +102,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
                         margin: const EdgeInsets.only(bottom: 10),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Theme.of(context).colorScheme.onSurfaceVariant.shade100),
+                          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                         ),
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(14),
