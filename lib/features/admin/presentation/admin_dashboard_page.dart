@@ -262,7 +262,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   color: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: Theme.of(context).colorScheme.onSurfaceVariant.shade100),
+                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(18),
@@ -312,7 +312,7 @@ class _SectionHeading extends StatelessWidget {
         children: [
           Text(title, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
           SizedBox(height: 4),
-          Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.shade600)),
+          Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ],
       );
 }
@@ -337,7 +337,7 @@ class _ReviewCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Theme.of(context).colorScheme.onSurfaceVariant.shade100),
+          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -356,7 +356,7 @@ class _ReviewCard extends StatelessWidget {
                       children: [
                         Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         SizedBox(height: 4),
-                        Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.shade600)),
+                        Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                       ],
                     ),
                   ),
