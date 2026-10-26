@@ -23,6 +23,7 @@ class _PrivateLessonVideoPlayerState extends State<PrivateLessonVideoPlayer> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    _controller.addListener(_onControllerChanged);
     _initialize();
   }
 
@@ -37,18 +38,13 @@ class _PrivateLessonVideoPlayerState extends State<PrivateLessonVideoPlayer> {
     }
   }
 
-  @override
-  void didUpdateWidget(covariant PrivateLessonVideoPlayer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.url != widget.url) {
-      _controller.dispose();
-      // Signed URLs are refreshed by re-entering the lesson. This widget is
-      // keyed by the URL, so a URL change should normally create a new state.
-    }
+  void _onControllerChanged() {
+    if (mounted && _ready) setState(() {});
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_onControllerChanged);
     _controller.dispose();
     super.dispose();
   }
