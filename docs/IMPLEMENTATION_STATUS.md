@@ -7,7 +7,7 @@ This document describes what is implemented on `fix/security-and-fyp-requirement
 - Student catalog query is limited to published and approved courses.
 - Student course details show approved lessons, with the first approved lesson presented as a free preview and later lessons visibly locked in the UI.
 - Teacher Studio lists the teacher's courses and routes into a course editor.
-- Teachers can create lesson metadata and upload video files to private Firebase Storage. Upload rules limit writes to the owning teacher while a lesson is a draft; a callable validates the uploaded object.
+- Teachers can create lesson metadata and upload video files to private Firebase Storage. Upload rules limit writes to the owning teacher while a lesson is a draft; a callable validates the uploaded object. Student playback uses the cross-platform video player with server-issued short-lived URLs; the previous Google Drive player is no longer used by the Future Youth lesson flow.
 - Teacher analytics reads lesson ratings and comments from their Firestore subcollections. Preview and paid lesson playback requests are handled by trusted callables; each lesson counts a student once only after a playback URL is successfully issued. Paid playback and its view tracking require a matching active, unexpired server-side subscription.
 - Students can submit 1–5 star ratings and comments using the Firestore schema enforced by the current rules.
 - Admin UI includes teacher review, course review, and individual lesson review queues.
@@ -18,7 +18,7 @@ This document describes what is implemented on `fix/security-and-fyp-requirement
 ## Important limitations
 
 - Playback uses short-lived (five-minute) signed Firebase Storage URLs after server-side course, lesson, teacher, and access checks. Signed URLs remain shareable until they expire; this is access control, not DRM.
-- Private media upload and playback code are committed, but Storage rules, bucket configuration, upload size/MIME behavior, signed URLs, and deployed Functions still require emulator and staging verification before production.
+- Private media upload and playback code are committed, but Storage rules, bucket configuration, upload size/MIME behavior, signed URLs, and deployed Functions still require emulator and staging verification before production. Browser playback also requires the Firebase Storage bucket's CORS configuration to allow the deployed app origin.
 - Screenshot and screen-recording prevention cannot be guaranteed across web and desktop clients.
 - Global theme and language controls remain available in both themes; the language control collapses to an icon on narrow screens and exposes an accessible tooltip/label. Contrast regression tests cover foreground/background, primary, secondary, container, and error color pairs.
 - Teacher view analytics count unique students per lesson (not repeat play sessions). Paid-lesson playback checks for a matching active, unexpired subscription record before issuing a signed URL or recording the view. Payment UI remains disabled, so paid access stays denied until a trusted subscription-activation workflow exists.
