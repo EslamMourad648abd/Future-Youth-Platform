@@ -64,6 +64,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
       final courseSnapshot = await FirebaseFirestore.instance
           .collection(FirestorePaths.courses)
+          .where('status', isEqualTo: 'published')
+          .where('approvalStatus', isEqualTo: 'approved')
           .get();
 
       final courseList = courseSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
