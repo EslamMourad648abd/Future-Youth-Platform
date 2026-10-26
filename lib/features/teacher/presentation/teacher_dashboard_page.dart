@@ -126,7 +126,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         title: Text(fypTranslate(context, 'teacher_studio', 'Teacher Studio')),
         actions: [
           IconButton(
-            tooltip: 'Sign out',
+            tooltip: fypTranslate(context, 'sign_out', 'Sign out'),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
               if (!context.mounted) return;
@@ -222,7 +222,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                         subtitle: Text('${data['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${data['videoCount'] ?? 0} ${fypTranslate(context, 'videos_label', 'videos')} • ${data['price'] ?? '—'} EGP/month\n${AppLocalizations.of(context)?.translateStatus((data['status'] ?? 'draft').toString()) ?? (data['status'] ?? 'draft')} • ${AppLocalizations.of(context)?.translateStatus((data['approvalStatus'] ?? 'pending review').toString()) ?? (data['approvalStatus'] ?? 'pending review')}'),
                         isThreeLine: true,
                         trailing: IconButton(
-                          tooltip: 'Course analytics',
+                          tooltip: fypTranslate(context, 'course_analytics', 'Course analytics'),
                           onPressed: () => context.go(FypRoutes.teacherCourseAnalyticsFor(doc.id)),
                           icon: Icon(Icons.insights_outlined, color: Theme.of(context).colorScheme.primary),
                         ),
