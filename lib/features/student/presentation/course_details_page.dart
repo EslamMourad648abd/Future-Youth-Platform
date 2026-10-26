@@ -17,8 +17,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
         icon: Icon(Icons.lock_outline, color: Theme.of(context).colorScheme.primary, size: 36),
         title: Text(fypTranslate(dialogContext, 'subscription_required', 'Subscription required')),
         content: Text(
-          'The first approved lesson is a free preview. Access to later lessons requires a subscription. '
-          'Ask your parent to open Parent Workspace to review subscription options. Payment processing is not enabled in this build.',
+          fypTranslate(dialogContext, 'first_lesson_free', 'The first approved lesson is a free preview. Access to later lessons requires a subscription. Ask your parent to review subscription options.'),
         ),
         actions: [
           FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text(fypTranslate(dialogContext, 'got_it', 'Got it'))),
