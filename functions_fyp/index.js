@@ -286,6 +286,7 @@ export const registerVideoSource = onCall(async (request) => {
     videoUrl: `https://drive.google.com/file/d/${driveId}/preview`,
     updatedAt: FieldValue.serverTimestamp(),
   }, { merge: true });
+  await videoRef.update({ sourceLinked: true, updatedAt: FieldValue.serverTimestamp() });
 
   return { ok: true, courseId, videoId };
 });
