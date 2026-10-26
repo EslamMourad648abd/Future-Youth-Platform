@@ -30,7 +30,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   bool locked = false;
   String? loadError;
   String? videoUrl;
-  String title = 'Lesson Video';
+  String title = 'Lesson video';
   String description = '';
   int userRating = 0;
   int ratingCount = 0;
@@ -192,7 +192,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(title),
+        title: Text(title == 'Lesson video' ? fypTranslate(context, 'lesson_player', 'Lesson video') : title),
         
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
@@ -258,7 +258,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(ratingCount == 0 ? 'Be the first to rate this lesson' : '${ratingAverage.toStringAsFixed(1)} / 5 • $ratingCount ratings',
+                                Text(ratingCount == 0 ? fypTranslate(context, 'first_to_rate', 'Be the first to rate this lesson') : '${ratingAverage.toStringAsFixed(1)} / 5 • $ratingCount ratings',
                                   style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
                                 SizedBox(height: 6),
                                 Row(
@@ -282,7 +282,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     // COMMENTS SECTION
                     // ========================================================
                     Text(
-                      'Student Comments & Questions',
+                      fypTranslate(context, 'student_comments', 'Student comments & questions'),
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                     ),
                     SizedBox(height: 12),
