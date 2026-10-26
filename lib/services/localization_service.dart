@@ -417,6 +417,11 @@ class AppLocalizations {
       'account_manager': 'Account Manager',
       'sales': 'Sales',
       'voip': 'VoIP',
+      'sign_out': 'Sign out',
+      'create_admin': 'Create admin',
+      'rate_stars': 'Rate {count} stars',
+      'instapay_transfer': 'InstaPay (National Bank / App Transfer)',
+      'egp_per_month': '{price} EGP/month',
     },
     'ar': {
       'theme_dark': 'الوضع الداكن',
@@ -801,6 +806,11 @@ class AppLocalizations {
       'department': 'القسم',
       'elapsed': 'الوقت المنقضي',
       'finish': 'إنهاء',
+      'sign_out': 'تسجيل الخروج',
+      'create_admin': 'إنشاء مسؤول',
+      'rate_stars': 'قيّم الدرس بـ {count} نجوم',
+      'instapay_transfer': 'إنستاباي (البنك الأهلي / تحويل عبر التطبيق)',
+      'egp_per_month': '{price} جنيه مصري شهريًا',
     },
   };
 
