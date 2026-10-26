@@ -123,7 +123,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not add lesson: ${error.toString().replaceFirst('Bad state: ', '')}')),
+          SnackBar(content: Text('${fypTranslate(context, 'lesson_add_failed', 'Could not add lesson')}: ${error.toString().replaceFirst('Bad state: ', '')}')),
         );
       }
     } finally {
@@ -224,12 +224,12 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
         backgroundColor: BrandColors.green,
         foregroundColor: Colors.white,
         icon: Icon(Icons.add),
-        label: Text('Add lesson'),
+        label: Text(fypTranslate(context, 'add_lesson', 'Add lesson')),
       ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: courseRef.snapshots(),
         builder: (context, courseSnapshot) {
-          if (courseSnapshot.hasError) return Center(child: Text('Could not load course: ${courseSnapshot.error}'));
+          if (courseSnapshot.hasError) return Center(child: Text('${fypTranslate(context, 'course_load_failed', 'Could not load course')}: ${courseSnapshot.error}'));
           if (!courseSnapshot.hasData) return Center(child: CircularProgressIndicator());
           final course = courseSnapshot.data!.data();
           if (course == null) return Center(child: Text(fypTranslate(context, 'course_not_found', 'Course not found.')));
@@ -248,9 +248,9 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                   SizedBox(height: 12),
                   Text((course['title'] ?? 'Course').toString(), style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
                   SizedBox(height: 6),
-                  Text('${course['subject'] ?? 'Subject'} • ${course['price'] ?? '—'} EGP/month', style: TextStyle(color: Colors.white70)),
+                  Text('${course['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${course['price'] ?? '—'} EGP/month', style: TextStyle(color: Colors.white70)),
                   SizedBox(height: 12),
-                  Text('Status: ${course['status'] ?? 'draft'} • Review: ${course['approvalStatus'] ?? 'pending'}', style: TextStyle(color: Colors.white)),
+                  Text('${fypTranslate(context, 'status_label', 'Status')}: ${course['status'] ?? 'draft'} • ${fypTranslate(context, 'review_label', 'Review')}: ${course['approvalStatus'] ?? 'pending'}', style: TextStyle(color: Colors.white)),
                 ]),
               ),
               SizedBox(height: 20),
@@ -259,7 +259,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
               StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: courseRef.collection('videos').orderBy('order').snapshots(),
                 builder: (context, lessonSnapshot) {
-                  if (lessonSnapshot.hasError) return Text('Could not load lessons: ${lessonSnapshot.error}');
+                  if (lessonSnapshot.hasError) return Text('${fypTranslate(context, 'lessons_load_failed', 'Could not load lessons')}: ${lessonSnapshot.error}');
                   if (!lessonSnapshot.hasData) return LinearProgressIndicator();
                   final lessons = lessonSnapshot.data!.docs;
                   if (lessons.isEmpty) {
