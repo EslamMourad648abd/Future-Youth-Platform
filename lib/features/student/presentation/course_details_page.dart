@@ -41,7 +41,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
           if (!courseSnapshot.hasData) return Center(child: CircularProgressIndicator());
           final course = courseSnapshot.data!.data();
           if (course == null || course['status'] != 'published' || course['approvalStatus'] != 'approved') {
-            return Center(child: Padding(padding: EdgeInsets.all(24), child: Text('This course is not available yet.')));
+            return Center(child: Padding(padding: EdgeInsets.all(24), child: Text(fypTranslate(context, 'course_unavailable', 'This course is not available yet.'))));
           }
           return ListView(
             padding: const EdgeInsets.all(20),
@@ -161,7 +161,7 @@ class _EmptyLessons extends StatelessWidget {
     child: Column(children: [
       Icon(Icons.video_library_outlined, color: Theme.of(context).colorScheme.primary, size: 38),
       SizedBox(height: 10),
-      Text('No approved lessons yet.'),
+      Text(fypTranslate(context, 'no_approved_lessons', 'No approved lessons yet.')),
     ]),
   );
 }
