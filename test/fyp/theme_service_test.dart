@@ -42,3 +42,4 @@ void main() {
     expect(ThemeService.themeNotifier.value, ThemeMode.dark);
     expect(find.text('Light theme'), findsOneWidget);
   });
+}
