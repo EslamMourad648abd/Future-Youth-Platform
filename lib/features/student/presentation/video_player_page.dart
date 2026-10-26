@@ -242,7 +242,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Center(
-                          child: Text(loadError == null ? 'Video preview is not configured for this lesson yet.' : 'Could not load lesson: $loadError', textAlign: TextAlign.center),
+                          child: Text(loadError == null ? fypTranslate(context, 'video_not_configured', 'Video preview is not configured for this lesson yet.') : '${fypTranslate(context, 'video_load_failed', 'Could not load lesson')}: $loadError', textAlign: TextAlign.center),
                         ),
                       ),
                     SizedBox(height: 16),
