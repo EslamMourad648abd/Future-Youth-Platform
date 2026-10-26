@@ -25,6 +25,10 @@ jobs:
       - name: Test role guards and subscription policy
         working-directory: functions_fyp
         run: npm test
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
       - name: Test Firestore and Storage rules in emulators
         run: npx --yes firebase-tools emulators:exec --only firestore,storage --project demo-future-youth-rules "cd functions_fyp && npm run test:rules"
 
