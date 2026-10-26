@@ -45,15 +45,17 @@ class GlobalThemeSwitch extends StatelessWidget {
                       size: 18,
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      fypTranslate(context, isDark ? 'theme_light' : 'theme_dark', isDark ? 'Light theme' : 'Dark theme'),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
+                    if (MediaQuery.sizeOf(context).width >= 380) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        fypTranslate(context, isDark ? 'theme_light' : 'theme_dark', isDark ? 'Light theme' : 'Dark theme'),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
