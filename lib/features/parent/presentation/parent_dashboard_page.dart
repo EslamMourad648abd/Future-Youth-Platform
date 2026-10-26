@@ -146,7 +146,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                       SizedBox(width: 8),
                       FilledButton(
                         onPressed: () => context.go(FypRoutes.parentSubscriptions),
-                        child: Text('Open'),
+                        child: Text(fypTranslate(context, 'open_action', 'Open')),
                       ),
                     ],
                   ),
@@ -202,7 +202,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Click "Add Student" above to register an account for your child.',
+                  fypTranslate(context, 'click_add_student', 'Click Add Student above to register an account for your child.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
