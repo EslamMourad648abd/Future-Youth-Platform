@@ -85,7 +85,9 @@ void main() {
         supportedLocales: const [Locale('en'), Locale('ar')],
         localizationsDelegates: const [
           AppLocalizationsDelegate(),
-          ...GlobalMaterialLocalizations.delegates,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
         ],
         home: Builder(
           builder: (context) => Text(
