@@ -70,6 +70,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     });
   }
 
+  Future<void> _reviewVideo(String courseId, String videoId, String decision) async {
+    String? reason;
+    if (decision == 'reject') {
+      reason = await _rejectionReason('Reject lesson');
+      if (reason == null) return;
+    }
+    await _call('reviewCourseContent', {
+      'courseId': courseId,
+      'videoId': videoId,
+      'decision': decision,
+      if (reason != null) 'reason': reason,
+    });
+  }
+
   Future<void> _call(String name, Map<String, dynamic> data) async {
     setState(() => busy = true);
     try {
@@ -208,6 +222,33 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           subtitle: '${data['subject'] ?? 'Subject not set'} • Teacher: ${data['teacherId'] ?? 'Unknown'}',
                           onApprove: () => _reviewCourse(doc.id, 'approve'),
                           onReject: () => _reviewCourse(doc.id, 'reject'),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+                const _SectionHeading('Lesson submissions', 'Review each lesson before it becomes visible to students.'),
+                const SizedBox(height: 10),
+                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: FirebaseFirestore.instance.collectionGroup('videos')
+                      .where('approvalStatus', isEqualTo: 'pending')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) return _EmptyMessage('Could not load lesson submissions: ${snapshot.error}');
+                    if (!snapshot.hasData) return const LinearProgressIndicator();
+                    final lessons = snapshot.data!.docs.where((doc) => doc.reference.parent.parent != null).toList();
+                    if (lessons.isEmpty) return const _EmptyMessage('No pending lesson submissions.');
+                    return Column(
+                      children: lessons.map((doc) {
+                        final data = doc.data();
+                        final courseId = doc.reference.parent.parent!.id;
+                        return _ReviewCard(
+                          icon: Icons.video_file_outlined,
+                          title: (data['title'] ?? 'Untitled lesson').toString(),
+                          subtitle: 'Course: $courseId • ${data['durationMinutes'] ?? '—'} min',
+                          onApprove: () => _reviewVideo(courseId, doc.id, 'approve'),
+                          onReject: () => _reviewVideo(courseId, doc.id, 'reject'),
                         );
                       }).toList(),
                     );
