@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/fyp_routes.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
 
 class TeacherDashboardPage extends StatefulWidget {
   const TeacherDashboardPage({super.key});
@@ -182,7 +183,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
               },
             ),
             const SizedBox(height: 24),
-            const Text('Your courses', style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+            Text(fypTranslate(context, 'your_courses', 'Your courses'), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: BrandColors.navy)),
             const SizedBox(height: 12),
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance.collection('courses').where('teacherId', isEqualTo: user?.uid).snapshots(),
