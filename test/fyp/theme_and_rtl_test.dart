@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../lib/core/theme/fyp_theme.dart';
+import 'package:future_youth_platform/core/theme/fyp_theme.dart';
 
 void main() {
   test('light and dark themes expose readable foreground/background pairs', () {
