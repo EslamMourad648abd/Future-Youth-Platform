@@ -192,6 +192,24 @@ export const reviewCourseContent = onCall(async (request) => {
   const contentRef = videoId
     ? db.collection("courses").doc(courseId).collection("videos").doc(videoId)
     : db.collection("courses").doc(courseId);
+
+  if (decision === "approve" && videoId) {
+    const source = await db.collection("video_sources").doc(videoId).get();
+    if (!source.exists || source.data()?.courseId !== courseId || !source.data()?.videoUrl) {
+      throw new HttpsError("failed-precondition", "Link a valid video source before approving this lesson.");
+    }
+  }
+  if (decision === "approve" && !videoId) {
+    const videos = await contentRef.collection("videos").get();
+    if (videos.empty) {
+      throw new HttpsError("failed-precondition", "Add lessons and link their video sources before approving this course.");
+    }
+    const sources = await Promise.all(videos.docs.map((video) => db.collection("video_sources").doc(video.id).get()));
+    if (sources.some((source) => !source.exists || source.data()?.courseId !== courseId || !source.data()?.videoUrl)) {
+      throw new HttpsError("failed-precondition", "Every lesson needs a linked video source before the course can be approved.");
+    }
+  }
+
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(contentRef);
     if (!snap.exists) {
