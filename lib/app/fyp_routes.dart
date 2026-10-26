@@ -30,6 +30,8 @@ abstract final class FypRoutes {
 
   // Teacher.
   static const String teacher = '/teacher';
+  static const String teacherCourseEditor = '/teacher/courses/:courseId/edit';
+  static String teacherCourseEditorFor(String courseId) => '/teacher/courses/$courseId/edit';
   static const String teacherCourseAnalytics =
       '/teacher/courses/:courseId/analytics';
   static String teacherCourseAnalyticsFor(String courseId) =>
