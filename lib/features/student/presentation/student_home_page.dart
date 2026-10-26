@@ -95,11 +95,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
     final displayName = user?.displayName ?? user?.email ?? 'Student';
 
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Student Learning Portal'),
-        backgroundColor: BrandColors.navy,
-        foregroundColor: Colors.white,
+        
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
