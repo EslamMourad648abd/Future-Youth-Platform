@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/fyp_routes.dart';
 import '../../../services/localization_service.dart';
+import '../../../widgets/private_lesson_video_player.dart';
 
 class VideoPlayerPage extends StatefulWidget {
   final String courseId;
@@ -231,7 +232,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     if (videoUrl != null && videoUrl!.isNotEmpty)
                       SizedBox(
                         height: 340,
-                        child: GoogleDrivePlayer(videoUrl: videoUrl!),
+                        child: PrivateLessonVideoPlayer(key: ValueKey(videoUrl), url: videoUrl!),
                       )
                     else
                       Container(
