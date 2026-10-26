@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/fyp_routes.dart';
 import '../../../core/constants/firestore_paths.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
 
 class SubscriptionPage extends StatefulWidget {
   final String? invoiceId;
@@ -226,7 +227,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              const Text('Select Payment Method', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: BrandColors.navy)),
+                              Text(fypTranslate(context, 'select_payment_method', 'Select Payment Method'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: BrandColors.navy)),
                               const SizedBox(height: 12),
                               RadioListTile<String>(
                                 title: const Text('InstaPay (National Bank / App Transfer)'),
