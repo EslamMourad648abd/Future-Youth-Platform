@@ -35,6 +35,39 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _localizedValues = {
     'en': {
+      'theme_dark': 'Dark theme',
+      'theme_light': 'Light theme',
+      'course_editor': 'Course editor',
+      'course_analytics': 'Course analytics',
+      'lessons': 'Lessons',
+      'upload_video': 'Upload video',
+      'video_linked': 'Video linked',
+      'video_not_linked': 'Video not linked',
+      'add_lesson': 'Add lesson',
+      'lesson_title': 'Lesson title',
+      'lesson_description': 'Description',
+      'duration_minutes': 'Duration (minutes)',
+      'lesson_locked': 'This lesson is locked',
+      'only_first_preview': 'Only the first approved lesson is available as a free preview. Ask your parent about subscription options.',
+      'back_to_courses': 'Back to courses',
+      'course_lessons': 'Course lessons',
+      'no_lessons': 'No lessons yet. Use Add lesson to build the course outline.',
+      'private_video_notice': 'Video files are stored privately. Only an approved free preview can be accessed through a short-lived playback URL.',
+      'video_upload_success': 'Video uploaded to private storage. It becomes available after lesson and course approval.',
+      'your_courses': 'Your courses',
+      'platform_control_center': 'Platform control center',
+      'subscription_access': 'Subscriptions & access',
+      'payment_ui_only': 'Payment is a UI preview. No transfer is submitted or verified and no subscription is activated.',
+      'select_payment_method': 'Select Payment Method',
+      'views': 'Views',
+      'average_rating': 'Average rating',
+      'ratings': 'Ratings',
+      'comments': 'Comments',
+      'preview': 'Free preview',
+      'locked': 'Locked',
+      'course_not_found': 'Course not found.',
+      'upload_private_video': 'Upload a private video',
+      'theme_switch_hint': 'Switch between light and dark themes',
       'app_title': 'Future Youth Platform',
       'back_to_platforms': 'Back to Platforms',
       'dashboard': 'Dashboard',
@@ -269,6 +302,39 @@ class AppLocalizations {
       'voip': 'VoIP',
     },
     'ar': {
+      'theme_dark': 'الوضع الداكن',
+      'theme_light': 'الوضع الفاتح',
+      'course_editor': 'محرر الدورة',
+      'course_analytics': 'تحليلات الدورة',
+      'lessons': 'الدروس',
+      'upload_video': 'رفع فيديو',
+      'video_linked': 'تم ربط الفيديو',
+      'video_not_linked': 'لم يتم ربط الفيديو',
+      'add_lesson': 'إضافة درس',
+      'lesson_title': 'عنوان الدرس',
+      'lesson_description': 'الوصف',
+      'duration_minutes': 'المدة (بالدقائق)',
+      'lesson_locked': 'هذا الدرس مقفل',
+      'only_first_preview': 'الدرس الأول المعتمد فقط متاح للمعاينة المجانية. اسأل ولي أمرك عن خيارات الاشتراك.',
+      'back_to_courses': 'العودة إلى الدورات',
+      'course_lessons': 'دروس الدورة',
+      'no_lessons': 'لا توجد دروس بعد. استخدم إضافة درس لإنشاء مخطط الدورة.',
+      'private_video_notice': 'تُخزَّن ملفات الفيديو بشكل خاص. لا يمكن الوصول إلا إلى المعاينة المجانية المعتمدة عبر رابط تشغيل مؤقت.',
+      'video_upload_success': 'تم رفع الفيديو إلى التخزين الخاص. سيصبح متاحًا بعد اعتماد الدرس والدورة.',
+      'your_courses': 'دوراتك',
+      'platform_control_center': 'مركز التحكم بالمنصة',
+      'subscription_access': 'الاشتراكات وإمكانية الوصول',
+      'payment_ui_only': 'هذه معاينة لواجهة الدفع فقط. لا يتم إرسال التحويل أو التحقق منه ولا يتم تفعيل أي اشتراك.',
+      'select_payment_method': 'اختر طريقة الدفع',
+      'views': 'المشاهدات',
+      'average_rating': 'متوسط التقييم',
+      'ratings': 'التقييمات',
+      'comments': 'التعليقات',
+      'preview': 'معاينة مجانية',
+      'locked': 'مقفل',
+      'course_not_found': 'لم يتم العثور على الدورة.',
+      'upload_private_video': 'رفع فيديو خاص',
+      'theme_switch_hint': 'التبديل بين الوضع الفاتح والداكن',
       'app_title': 'منصة شباب المستقبل',
       'back_to_platforms': 'العودة إلى المنصات',
       'dashboard': 'لوحة التحكم',
@@ -527,6 +593,11 @@ class AppLocalizations {
   }
 
   bool get isRtl => locale.languageCode == 'ar';
+}
+
+
+String fypTranslate(BuildContext context, String key, String fallback) {
+  return AppLocalizations.of(context)?.translate(key) ?? fallback;
 }
 
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
