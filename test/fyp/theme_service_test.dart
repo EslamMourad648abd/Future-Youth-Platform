@@ -26,6 +26,30 @@ void main() {
     expect(ThemeService.themeNotifier.value, ThemeMode.dark);
   });
 
+  testWidgets('theme switch compacts on narrow screens without overflow', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await ThemeService.init();
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Stack(
+            children: [
+              Positioned(right: 18, bottom: 18, child: GlobalThemeSwitch()),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Dark theme'), findsNothing);
+    expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('global theme switch toggles the theme mode', (tester) async {
     await ThemeService.init();
     await tester.pumpWidget(
