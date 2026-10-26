@@ -222,7 +222,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
         onPressed: saving ? null : _addLesson,
         backgroundColor: BrandColors.green,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
+        icon: Icon(Icons.add),
         label: const Text('Add lesson'),
       ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -243,17 +243,17 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Icon(Icons.edit_note, color: Colors.white, size: 32),
+                  Icon(Icons.edit_note, color: Colors.white, size: 32),
                   const SizedBox(height: 12),
-                  Text((course['title'] ?? 'Course').toString(), style: const TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
+                  Text((course['title'] ?? 'Course').toString(), style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
-                  Text('${course['subject'] ?? 'Subject'} • ${course['price'] ?? '—'} EGP/month', style: const TextStyle(color: Colors.white70)),
+                  Text('${course['subject'] ?? 'Subject'} • ${course['price'] ?? '—'} EGP/month', style: TextStyle(color: Colors.white70)),
                   const SizedBox(height: 12),
-                  Text('Status: ${course['status'] ?? 'draft'} • Review: ${course['approvalStatus'] ?? 'pending'}', style: const TextStyle(color: Colors.white)),
+                  Text('Status: ${course['status'] ?? 'draft'} • Review: ${course['approvalStatus'] ?? 'pending'}', style: TextStyle(color: Colors.white)),
                 ]),
               ),
               const SizedBox(height: 20),
-              Text(fypTranslate(context, 'lessons', 'Lessons'), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+              Text(fypTranslate(context, 'lessons', 'Lessons'), style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
               const SizedBox(height: 8),
               StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: courseRef.collection('videos').orderBy('order').snapshots(),
@@ -272,7 +272,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                         margin: const EdgeInsets.only(bottom: 10),
                         child: ListTile(
                           leading: CircleAvatar(backgroundColor: const Color(0xFFEAF0FF), child: Text('${data['order'] ?? '•'}')),
-                          title: Text((data['title'] ?? 'Lesson').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                          title: Text((data['title'] ?? 'Lesson').toString(), style: TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['sourceLinked'] == true ? fypTranslate(context, 'video_linked', 'Video linked') : fypTranslate(context, 'video_not_linked', 'Video not linked')} • ${data['approvalStatus'] ?? 'pending review'}'),
                           trailing: IconButton(
                             tooltip: fypTranslate(context, 'upload_video', 'Upload video'),
