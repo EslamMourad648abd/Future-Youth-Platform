@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/fyp_routes.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -166,7 +167,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     children: [
                       Icon(Icons.admin_panel_settings_outlined, color: Colors.white, size: 34),
                       SizedBox(height: 12),
-                      Text('Platform control center', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+                      Text(fypTranslate(context, 'platform_control_center', 'Platform control center'), style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
                       SizedBox(height: 8),
                       Text(
                         'Review educator applications and course submissions before students can access them.',
