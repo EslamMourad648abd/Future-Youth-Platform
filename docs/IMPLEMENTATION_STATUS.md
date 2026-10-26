@@ -30,6 +30,6 @@ This document describes what is implemented on `fix/security-and-fyp-requirement
 1. Revoke the exposed Firebase Admin service-account key found in the repository's historical commits; follow `docs/KEY_ROTATION_CHECKLIST.md` (requires Google Cloud IAM access).
 2. Test Firestore rules with the Firebase Emulator Suite, especially collection-group lesson review and course-owner analytics reads.
 3. Add automated tests for teacher/video approval, source registration, and preview access.
-4. Replace public Google Drive links with private storage and controlled playback.
+4. Verify private Firebase Storage uploads, Storage rules, and five-minute signed playback URLs in emulator/staging before production.
 5. Finish bilingual translations, responsive QA, and real-device/browser testing.
 6. Only implement payment integration when explicitly approved; use trusted server-side verification and idempotent subscription/points transactions.
