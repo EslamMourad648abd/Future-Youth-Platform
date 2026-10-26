@@ -27,16 +27,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         content: TextField(
           controller: controller,
           maxLines: 3,
-          decoration: const InputDecoration(labelText: 'Reason (required)'),
+          decoration: InputDecoration(labelText: 'Reason (required)'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('Cancel')),
           FilledButton(
             onPressed: () {
               final value = controller.text.trim();
               if (value.isNotEmpty) Navigator.pop(dialogContext, value);
             },
-            child: const Text('Reject'),
+            child: Text('Reject'),
           ),
         ],
       ),
@@ -91,7 +91,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       await FirebaseFunctions.instance.httpsCallable(name).call(data);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Review saved successfully.')),
+          SnackBar(content: Text('Review saved successfully.')),
         );
       }
     } on FirebaseFunctionsException catch (error) {
@@ -116,13 +116,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: Icon(Icons.construction_outlined, color: Theme.of(context).colorScheme.primary, size: 36),
-        title: const Text('Payment controls are UI-only'),
-        content: const Text(
+        title: Text('Payment controls are UI-only'),
+        content: Text(
           'Payment verification is intentionally disabled for this development stage. '
           'No payment will be confirmed, no subscription will be activated, and no points will be granted.',
         ),
         actions: [
-          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Got it')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text('Got it')),
         ],
       ),
     );
@@ -134,7 +134,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         
-        title: const Text('Future Youth • Admin'),
+        title: Text('Future Youth • Admin'),
         actions: [
           IconButton(
             tooltip: 'Create admin',
@@ -152,17 +152,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         ],
       ),
       body: busy
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(20),
               children: [
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [BrandColors.navy, Color(0xFF3D56A6)]),
+                    gradient: LinearGradient(colors: [BrandColors.navy, Color(0xFF3D56A6)]),
                     borderRadius: BorderRadius.circular(24),
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(Icons.admin_panel_settings_outlined, color: Colors.white, size: 34),
@@ -176,9 +176,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 const _SectionHeading('Teacher applications', 'Approve educators before they publish courses.'),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance.collection('users')
                       .where('role', isEqualTo: 'teacher')
@@ -186,7 +186,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) return _EmptyMessage('Could not load teacher applications: ${snapshot.error}');
-                    if (!snapshot.hasData) return const LinearProgressIndicator();
+                    if (!snapshot.hasData) return LinearProgressIndicator();
                     if (snapshot.data!.docs.isEmpty) return const _EmptyMessage('No pending teacher applications.');
                     return Column(
                       children: snapshot.data!.docs.map((doc) {
@@ -202,16 +202,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     );
                   },
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 const _SectionHeading('Course submissions', 'Review submitted courses before publication.'),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance.collection('courses')
                       .where('approvalStatus', isEqualTo: 'pending')
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) return _EmptyMessage('Could not load course submissions: ${snapshot.error}');
-                    if (!snapshot.hasData) return const LinearProgressIndicator();
+                    if (!snapshot.hasData) return LinearProgressIndicator();
                     if (snapshot.data!.docs.isEmpty) return const _EmptyMessage('No pending course submissions.');
                     return Column(
                       children: snapshot.data!.docs.map((doc) {
@@ -227,16 +227,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     );
                   },
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 const _SectionHeading('Lesson submissions', 'Review each lesson before it becomes visible to students.'),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance.collectionGroup('videos')
                       .where('approvalStatus', isEqualTo: 'pending')
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) return _EmptyMessage('Could not load lesson submissions: ${snapshot.error}');
-                    if (!snapshot.hasData) return const LinearProgressIndicator();
+                    if (!snapshot.hasData) return LinearProgressIndicator();
                     final lessons = snapshot.data!.docs.where((doc) => doc.reference.parent.parent != null).toList();
                     if (lessons.isEmpty) return const _EmptyMessage('No pending lesson submissions.');
                     return Column(
@@ -254,9 +254,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     );
                   },
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 const _SectionHeading('Payments', 'Visual preview only — payment processing is disabled.'),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 Card(
                   elevation: 0,
                   color: Colors.white,
@@ -269,7 +269,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                        Row(
                           children: [
                             Icon(Icons.payments_outlined, color: Theme.of(context).colorScheme.primary, size: 30),
                             SizedBox(width: 12),
@@ -277,23 +277,23 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             Chip(label: Text('Preview')),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        const Text('The final verification workflow will be connected later. This control does not confirm transfers or grant access.'),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 8),
+                        Text('The final verification workflow will be connected later. This control does not confirm transfers or grant access.'),
+                        SizedBox(height: 12),
                         OutlinedButton.icon(
                           onPressed: _showPaymentUiOnly,
                           icon: Icon(Icons.visibility_outlined),
-                          label: const Text('View payment workflow notice'),
+                          label: Text('View payment workflow notice'),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 OutlinedButton.icon(
                   onPressed: () => context.push(FypRoutes.adminCreateAdmin),
                   icon: Icon(Icons.admin_panel_settings_outlined),
-                  label: const Text('Create administrator'),
+                  label: Text('Create administrator'),
                 ),
               ],
             ),
@@ -311,7 +311,7 @@ class _SectionHeading extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text(subtitle, style: TextStyle(color: Colors.blueGrey.shade600)),
         ],
       );
@@ -349,29 +349,29 @@ class _ReviewCard extends StatelessWidget {
                     backgroundColor: const Color(0xFFEAF0FF),
                     child: Icon(icon, color: Theme.of(context).colorScheme.primary),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(subtitle, style: TextStyle(color: Colors.blueGrey.shade600)),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               Row(
                 children: [
-                  Expanded(child: OutlinedButton(onPressed: onReject, child: const Text('Reject'))),
-                  const SizedBox(width: 10),
+                  Expanded(child: OutlinedButton(onPressed: onReject, child: Text('Reject'))),
+                  SizedBox(width: 10),
                   Expanded(
                     child: FilledButton(
                       style: FilledButton.styleFrom(backgroundColor: BrandColors.green),
                       onPressed: onApprove,
-                      child: const Text('Approve'),
+                      child: Text('Approve'),
                     ),
                   ),
                 ],
