@@ -349,9 +349,7 @@ export const getPaidLessonVideoUrl = onCall(async (request) => {
   const now = Date.now();
   const subscriptions = await db.collection("subscriptions")
     .where("studentId", "==", studentId)
-    .where("courseId", "==", courseId)
-    .where("status", "==", "active")
-    .limit(10)
+    .limit(100)
     .get();
   const entitled = subscriptions.docs.some((doc) => {
     const data = doc.data();
