@@ -67,13 +67,13 @@ class _StudentHomePageState extends State<StudentHomePage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: Icon(Icons.family_restroom, color: Theme.of(context).colorScheme.primary, size: 36),
-        title: Text('Ask your parent to enrol'),
+        title: Text(fypTranslate(dialogContext, 'ask_parent_enrol', 'Ask your parent to enrol')),
         content: Text(
           'Your parent can review subscription options for "${course['title'] ?? 'this course'}" from Parent Workspace. '
           'Checkout is currently a UI preview only; no invoice or payment request will be created.',
         ),
         actions: [
-          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text('Understood')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text(fypTranslate(dialogContext, 'got_it', 'Understood'))),
         ],
       ),
     );
@@ -98,7 +98,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Student Learning Portal'),
+        title: Text(fypTranslate(context, 'student_learning_portal', 'Student Learning Portal')),
         
         actions: [
           IconButton(
@@ -138,7 +138,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                             ),
                             SizedBox(height: 4),
                             Text(
-                              'Watch 1st free video preview, take quizzes, and learn from top teachers',
+                              fypTranslate(context, 'watch_free_preview_desc', 'Watch the first free video preview, take quizzes, and learn from top teachers.'),
                               style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ],
@@ -201,7 +201,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                 Icon(Icons.video_library_outlined, size: 60, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 SizedBox(height: 12),
                 Text(
-                  'No teacher playlists found for this subject.',
+                  fypTranslate(context, 'no_playlists_subject', 'No teacher playlists found for this subject.'),
                   style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -292,7 +292,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         icon: Icon(Icons.play_arrow, size: 20),
-                        label: Text('1st Free Video Preview'),
+                        label: Text(fypTranslate(context, 'first_free_video_preview', 'First free video preview')),
                       ),
                     ),
                     SizedBox(width: 10),
@@ -305,7 +305,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         icon: Icon(Icons.receipt, size: 18),
-                        label: Text('Subscription Info'),
+                        label: Text(fypTranslate(context, 'subscription_info', 'Subscription info')),
                       ),
                     ),
                   ],
