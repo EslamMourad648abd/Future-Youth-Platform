@@ -304,6 +304,87 @@ export const registerVideoSource = onCall(async (request) => {
   return { ok: true, courseId, videoId };
 });
 
+/** Paid playback is enabled only when a trusted active subscription exists. */
+export const getPaidLessonVideoUrl = onCall(async (request) => {
+  requireRole(request, [ROLES.STUDENT]);
+  const courseId = String(request.data?.courseId || "").trim();
+  const videoId = String(request.data?.videoId || "").trim();
+  if (!courseId || !videoId) {
+    throw new HttpsError("invalid-argument", "courseId and videoId are required.");
+  }
+
+  const courseRef = db.collection("courses").doc(courseId);
+  const videoRef = courseRef.collection("videos").doc(videoId);
+  const [courseSnap, videoSnap, sourceSnap] = await Promise.all([
+    courseRef.get(),
+    videoRef.get(),
+    db.collection("video_sources").doc(videoId).get(),
+  ]);
+  if (!courseSnap.exists || !videoSnap.exists ||
+      courseSnap.data()?.status !== "published" ||
+      courseSnap.data()?.approvalStatus !== "approved" ||
+      videoSnap.data()?.status !== "published" ||
+      videoSnap.data()?.approvalStatus !== "approved" ||
+      Number(videoSnap.data()?.order || 0) <= 1 ||
+      !sourceSnap.exists || sourceSnap.data()?.courseId !== courseId ||
+      sourceSnap.data()?.provider !== "firebase_storage" ||
+      typeof sourceSnap.data()?.storagePath !== "string") {
+    throw new HttpsError("permission-denied", "This paid lesson is not available for playback.");
+  }
+
+  const studentId = request.auth.uid;
+  const now = Date.now();
+  const subscriptions = await db.collection("subscriptions")
+    .where("studentId", "==", studentId)
+    .where("courseId", "==", courseId)
+    .where("status", "==", "active")
+    .limit(10)
+    .get();
+  const entitled = subscriptions.docs.some((doc) => {
+    const data = doc.data();
+    const expiresAt = data.expiresAt?.toMillis?.();
+    return data.studentId === studentId &&
+      data.courseId === courseId &&
+      data.status === "active" &&
+      typeof expiresAt === "number" &&
+      expiresAt > now;
+  });
+  if (!entitled) {
+    throw new HttpsError("permission-denied", "An active, unexpired subscription is required.");
+  }
+
+  const teacherSnap = await db.collection("users").doc(courseSnap.data()?.teacherId).get();
+  if (!teacherSnap.exists || teacherSnap.data()?.approvalStatus !== "approved") {
+    throw new HttpsError("permission-denied", "The teacher is not currently approved.");
+  }
+
+  const viewRef = db.collection("video_views").doc(`${courseId}_${videoId}_${studentId}`);
+  await db.runTransaction(async (tx) => {
+    const [viewSnap, currentVideoSnap] = await Promise.all([tx.get(viewRef), tx.get(videoRef)]);
+    if (!currentVideoSnap.exists) throw new HttpsError("not-found", "Lesson not found.");
+    if (!viewSnap.exists) {
+      tx.create(viewRef, {
+        studentId,
+        courseId,
+        videoId,
+        teacherId: courseSnap.data()?.teacherId,
+        viewedAt: FieldValue.serverTimestamp(),
+        viewType: "paid_lesson",
+      });
+      tx.update(videoRef, {
+        viewCount: FieldValue.increment(1),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+  });
+
+  const [videoUrl] = await getStorage().bucket().file(sourceSnap.data().storagePath).getSignedUrl({
+    action: "read",
+    expires: Date.now() + 5 * 60 * 1000,
+  });
+  return { ok: true, videoUrl, expiresInSeconds: 300 };
+});
+
 /** Issues a short-lived signed URL only for the approved free first lesson. */
 export const getPreviewVideoUrl = onCall(async (request) => {
   requireRole(request, [ROLES.STUDENT]);
