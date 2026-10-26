@@ -106,7 +106,7 @@ class CourseAnalyticsPage extends StatelessWidget {
                           );
                         }),
                       SizedBox(height: 18),
-                      Text('View counts will remain at zero until the secure playback tracking stage is connected.', style: TextStyle(color: Colors.blueGrey, height: 1.4)),
+                      Text('Views count unique students who received authorized playback access. Paid lesson views require an active subscription.', style: TextStyle(color: Colors.blueGrey, height: 1.4)),
                     ],
                   );
                 },
