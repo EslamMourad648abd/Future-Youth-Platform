@@ -258,7 +258,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 SizedBox(height: 10),
                 Card(
                   elevation: 0,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                     side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
