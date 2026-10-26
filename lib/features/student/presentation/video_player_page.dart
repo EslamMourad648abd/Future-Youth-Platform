@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/fyp_routes.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
 import '../../../modules/training/widgets/google_drive_player.dart';
 
 class VideoPlayerPage extends StatefulWidget {
@@ -213,11 +214,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                             children: [
                               const Icon(Icons.lock_outline, size: 52, color: BrandColors.navy),
                               const SizedBox(height: 14),
-                              const Text('This lesson is locked', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+                              Text(fypTranslate(context, 'lesson_locked', 'This lesson is locked'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: BrandColors.navy)),
                               const SizedBox(height: 8),
-                              const Text('Only the first approved lesson is available as a free preview. Ask your parent about subscription options.', textAlign: TextAlign.center),
+                              Text(fypTranslate(context, 'only_first_preview', 'Only the first approved lesson is available as a free preview. Ask your parent about subscription options.'), textAlign: TextAlign.center),
                               const SizedBox(height: 16),
-                              FilledButton(onPressed: () => context.go(FypRoutes.student), child: const Text('Back to courses')),
+                              FilledButton(onPressed: () => context.go(FypRoutes.student), child: Text(fypTranslate(context, 'back_to_courses', 'Back to courses'))),
                             ],
                           ),
                         ),
