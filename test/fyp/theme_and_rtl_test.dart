@@ -5,6 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:future_youth_platform/core/theme/fyp_theme.dart';
+import 'package:future_youth_platform/app/fyp_app.dart';
+import 'package:future_youth_platform/widgets/global_theme_switch.dart';
 import 'package:future_youth_platform/services/localization_service.dart';
 
 void main() {
@@ -15,6 +17,40 @@ void main() {
       expect(_contrast(scheme.onPrimary, scheme.primary), greaterThanOrEqualTo(4.5));
       expect(_contrast(scheme.onSecondary, scheme.secondary), greaterThanOrEqualTo(4.5));
     }
+  });
+
+  testWidgets('global language and theme switches fit narrow screens', (tester) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: FypTheme.light,
+        darkTheme: FypTheme.dark,
+        home: const Scaffold(
+          body: Align(
+            alignment: Alignment.bottomRight,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                GlobalLanguageSwitch(),
+                SizedBox(height: 8),
+                GlobalThemeSwitch(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GlobalLanguageSwitch), findsOneWidget);
+    expect(find.byType(GlobalThemeSwitch), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    expect(find.text('العربية'), findsNothing);
   });
 
   testWidgets('Arabic locale sets RTL text direction', (tester) async {
