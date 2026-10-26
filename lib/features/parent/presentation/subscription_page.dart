@@ -101,7 +101,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     if (!_formKey.currentState!.validate()) return;
     if (selectedStudentId == null || selectedCourseId == null || selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a student, course and payment method.')),
+        SnackBar(content: Text('Please select a student, course and payment method.')),
       );
       return;
     }
@@ -114,15 +114,15 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         icon: Icon(Icons.construction_outlined, color: Theme.of(context).colorScheme.primary, size: 38),
-        title: const Text('Checkout preview'),
-        content: const Text(
+        title: Text('Checkout preview'),
+        content: Text(
           'The checkout screen is ready for review, but payment processing is currently disabled. '
           'No transfer has been submitted, no subscription has been activated, and no points have been granted.',
         ),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Understood'),
+            child: Text('Understood'),
           ),
         ],
       ),
@@ -135,7 +135,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Course Subscription Checkout'),
+        title: Text('Course Subscription Checkout'),
         
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
@@ -144,7 +144,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       ),
       body: SafeArea(
         child: loading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
                 child: Center(
@@ -164,7 +164,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Row(
+                              Row(
                                 children: [
                                   Icon(Icons.payment, size: 32, color: Theme.of(context).colorScheme.primary),
                                   SizedBox(width: 12),
@@ -174,12 +174,12 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 16),
-                              const Divider(),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
+                              Divider(),
+                              SizedBox(height: 16),
                               DropdownButtonFormField<String>(
                                 value: selectedStudentId,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Select Student Child',
                                   prefixIcon: Icon(Icons.person_outline),
                                 ),
@@ -192,10 +192,10 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                 onChanged: (val) => setState(() => selectedStudentId = val),
                                 validator: (val) => val == null ? 'Please select a student' : null,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
                               DropdownButtonFormField<String>(
                                 value: selectedCourseId,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Select Course / Teacher Playlist',
                                   prefixIcon: Icon(Icons.school_outlined),
                                 ),
@@ -211,7 +211,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                 }),
                                 validator: (val) => val == null ? 'Please select a course' : null,
                               ),
-                              const SizedBox(height: 20),
+                              SizedBox(height: 20),
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
@@ -221,50 +221,50 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text('Total Amount:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    Text('Total Amount:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                     Text('$coursePrice EGP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.primary)),
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 24),
+                              SizedBox(height: 24),
                               Text(fypTranslate(context, 'select_payment_method', 'Select Payment Method'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Theme.of(context).colorScheme.primary)),
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12),
                               RadioListTile<String>(
-                                title: const Text('InstaPay (National Bank / App Transfer)'),
-                                subtitle: const Text('Illustrative account details — to be configured'),
+                                title: Text('InstaPay (National Bank / App Transfer)'),
+                                subtitle: Text('Illustrative account details — to be configured'),
                                 value: 'instapay',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
                                 activeColor: BrandColors.navy,
                               ),
                               RadioListTile<String>(
-                                title: const Text('Vodafone Cash'),
-                                subtitle: const Text('Illustrative wallet details — to be configured'),
+                                title: Text('Vodafone Cash'),
+                                subtitle: Text('Illustrative wallet details — to be configured'),
                                 value: 'vodafone_cash',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
                                 activeColor: BrandColors.navy,
                               ),
                               RadioListTile<String>(
-                                title: const Text('Orange Cash'),
-                                subtitle: const Text('Illustrative wallet details — to be configured'),
+                                title: Text('Orange Cash'),
+                                subtitle: Text('Illustrative wallet details — to be configured'),
                                 value: 'orange_cash',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
                                 activeColor: BrandColors.navy,
                               ),
                               RadioListTile<String>(
-                                title: const Text('Etisalat Cash'),
-                                subtitle: const Text('Illustrative wallet details — to be configured'),
+                                title: Text('Etisalat Cash'),
+                                subtitle: Text('Illustrative wallet details — to be configured'),
                                 value: 'etisalat_cash',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
                                 activeColor: BrandColors.navy,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
                               TextFormField(
                                 controller: _referenceCtrl,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Transaction Reference / Sender Mobile No.',
                                   hintText: 'e.g. TRX12345678 or 010xxxxxxxx',
                                   prefixIcon: Icon(Icons.confirmation_number_outlined),
@@ -274,7 +274,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                   return null;
                                 },
                               ),
-                              const SizedBox(height: 28),
+                              SizedBox(height: 28),
                               ElevatedButton(
                                 onPressed: submitting ? null : _processPayment,
                                 style: ElevatedButton.styleFrom(
@@ -284,8 +284,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 ),
                                 child: submitting
-                                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                    : const Text('Preview Checkout (Payments Disabled)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                    ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    : Text('Preview Checkout (Payments Disabled)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               ),
                             ],
                           ),
