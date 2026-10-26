@@ -65,7 +65,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.family_restroom, color: BrandColors.navy, size: 36),
+        icon: Icon(Icons.family_restroom, color: Theme.of(context).colorScheme.primary, size: 36),
         title: const Text('Ask your parent to enrol'),
         content: Text(
           'Your parent can review subscription options for "${course['title'] ?? 'this course'}" from Parent Workspace. '
@@ -101,7 +101,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
         
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout),
             tooltip: 'Sign Out',
             onPressed: _signOut,
           ),
@@ -124,7 +124,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                       const CircleAvatar(
                         radius: 28,
                         backgroundColor: BrandColors.greenTint,
-                        child: Icon(Icons.school, color: BrandColors.greenText, size: 30),
+                        child: Icon(Icons.school, color: Theme.of(context).brightness == Brightness.dark ? BrandColors.green : BrandColors.greenText, size: 30),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -133,7 +133,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                           children: [
                             Text(
                               'Welcome, $displayName',
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                             ),
                             const SizedBox(height: 4),
                             const Text(
@@ -150,7 +150,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
               const SizedBox(height: 20),
               const Text(
                 'Explore by Subject',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -235,12 +235,12 @@ class _StudentHomePageState extends State<StudentHomePage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: BrandColors.navyTint,
+                        color: Theme.of(context).colorScheme.primaryTint,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         subject.toUpperCase(),
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -252,15 +252,15 @@ class _StudentHomePageState extends State<StudentHomePage> {
                       ),
                       child: Text(
                         schoolYear,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: BrandColors.greenText),
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? BrandColors.green : BrandColors.greenText),
                       ),
                     ),
                     const Spacer(),
                     Row(
                       children: [
-                        const Icon(Icons.person, size: 16, color: Colors.grey),
+                        Icon(Icons.person, size: 16, color: Colors.grey),
                         const SizedBox(width: 4),
-                        Text(teacherName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        Text(teacherName, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
@@ -268,13 +268,13 @@ class _StudentHomePageState extends State<StudentHomePage> {
                 const SizedBox(height: 12),
                 Text(
                   course['title'] ?? 'Course Title',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                 ),
                 if ((course['description'] ?? '').toString().isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
                     course['description'],
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
                   ),
                 ],
                 const SizedBox(height: 16),
@@ -290,7 +290,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        icon: const Icon(Icons.play_arrow, size: 20),
+                        icon: Icon(Icons.play_arrow, size: 20),
                         label: const Text('1st Free Video Preview'),
                       ),
                     ),
@@ -300,10 +300,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
                         onPressed: () => _showEnrollmentInfo(course),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: BrandColors.navy,
-                          side: const BorderSide(color: BrandColors.navy),
+                          side: const BorderSide(color: Theme.of(context).colorScheme.primary),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        icon: const Icon(Icons.receipt, size: 18),
+                        icon: Icon(Icons.receipt, size: 18),
                         label: const Text('Subscription Info'),
                       ),
                     ),
