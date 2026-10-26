@@ -74,9 +74,9 @@ class CourseAnalyticsPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text((course['title'] ?? 'Course').toString(), style: const TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
+                            Text((course['title'] ?? 'Course').toString(), style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
-                            Text('${course['subject'] ?? 'Subject'} • ${course['status'] ?? 'draft'}', style: const TextStyle(color: Colors.white70)),
+                            Text('${course['subject'] ?? 'Subject'} • ${course['status'] ?? 'draft'}', style: TextStyle(color: Colors.white70)),
                             const SizedBox(height: 18),
                             Wrap(spacing: 10, runSpacing: 10, children: [
                               _Metric(label: 'Views', value: '$views', icon: Icons.visibility_outlined),
@@ -88,7 +88,7 @@ class CourseAnalyticsPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      Text(fypTranslate(context, 'lessons', 'Lessons'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+                      Text(fypTranslate(context, 'lessons', 'Lessons'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
                       const SizedBox(height: 10),
                       if (stats.isEmpty)
                         const _EmptyAnalytics()
@@ -99,8 +99,8 @@ class CourseAnalyticsPage extends StatelessWidget {
                             elevation: 0,
                             margin: const EdgeInsets.only(bottom: 10),
                             child: ListTile(
-                              leading: const CircleAvatar(backgroundColor: Color(0xFFEAF0FF), child: Icon(Icons.play_circle_outline, color: BrandColors.navy)),
-                              title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              leading: const CircleAvatar(backgroundColor: Color(0xFFEAF0FF), child: Icon(Icons.play_circle_outline, color: Theme.of(context).colorScheme.primary)),
+                              title: Text(item.title, style: TextStyle(fontWeight: FontWeight.bold)),
                               subtitle: Text('Views: ${item.views} • Rating: $avg • Comments: ${item.commentCount}'),
                             ),
                           );
@@ -143,8 +143,8 @@ class _Metric extends StatelessWidget {
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Icon(icon, color: Colors.white70),
       const SizedBox(height: 8),
-      Text(value, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-      Text(label, style: const TextStyle(color: Colors.white70)),
+      Text(value, style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+      Text(label, style: TextStyle(color: Colors.white70)),
     ]),
   );
 }
@@ -156,7 +156,7 @@ class _EmptyAnalytics extends StatelessWidget {
     padding: const EdgeInsets.all(24),
     decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16)),
     child: const Column(children: [
-      Icon(Icons.insights_outlined, size: 40, color: BrandColors.navy),
+      Icon(Icons.insights_outlined, size: 40, color: Theme.of(context).colorScheme.primary),
       SizedBox(height: 8),
       Text('No lesson analytics yet'),
     ]),
