@@ -13,8 +13,5 @@
   "scripts": {
     "test": "node --test",
     "lint": "node --check index.js && node --check src/config.js && node --check src/guards.js"
-  },
-  "devDependencies": {
-    "firebase-functions-test": "^3.4.1"
   }
 }
