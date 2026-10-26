@@ -142,6 +142,13 @@ service cloud.firestore {
 
     // Payment requests may be submitted by the parent but only an Admin/server
     // can verify them. A client cannot activate a subscription or grant points.
+    // Explicit collection-group read rule for the Admin lesson review queue.
+    // This grants read-only access to Admins; all writes remain governed by the
+    // narrower course/video rules above.
+    match /{path=**}/videos/{videoId} {
+      allow read: if isAdmin();
+    }
+
     match /payments/{paymentId} {
       allow read: if isAdmin() ||
         (request.auth != null && resource.data.parentId == request.auth.uid);
