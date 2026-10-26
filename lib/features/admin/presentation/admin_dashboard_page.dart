@@ -115,7 +115,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.construction_outlined, color: BrandColors.navy, size: 36),
+        icon: Icon(Icons.construction_outlined, color: Theme.of(context).colorScheme.primary, size: 36),
         title: const Text('Payment controls are UI-only'),
         content: const Text(
           'Payment verification is intentionally disabled for this development stage. '
@@ -139,7 +139,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           IconButton(
             tooltip: 'Create admin',
             onPressed: () => context.push(FypRoutes.adminCreateAdmin),
-            icon: const Icon(Icons.person_add_alt_1),
+            icon: Icon(Icons.person_add_alt_1),
           ),
           IconButton(
             tooltip: 'Sign out',
@@ -147,7 +147,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               await FirebaseAuth.instance.signOut();
               if (context.mounted) context.go(FypRoutes.entry);
             },
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout),
           ),
         ],
       ),
@@ -271,7 +271,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.payments_outlined, color: BrandColors.navy, size: 30),
+                            Icon(Icons.payments_outlined, color: Theme.of(context).colorScheme.primary, size: 30),
                             SizedBox(width: 12),
                             Expanded(child: Text('Payment verification workspace', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
                             Chip(label: Text('Preview')),
@@ -282,7 +282,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
                           onPressed: _showPaymentUiOnly,
-                          icon: const Icon(Icons.visibility_outlined),
+                          icon: Icon(Icons.visibility_outlined),
                           label: const Text('View payment workflow notice'),
                         ),
                       ],
@@ -292,7 +292,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 const SizedBox(height: 20),
                 OutlinedButton.icon(
                   onPressed: () => context.push(FypRoutes.adminCreateAdmin),
-                  icon: const Icon(Icons.admin_panel_settings_outlined),
+                  icon: Icon(Icons.admin_panel_settings_outlined),
                   label: const Text('Create administrator'),
                 ),
               ],
@@ -310,7 +310,7 @@ class _SectionHeading extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+          Text(title, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
           const SizedBox(height: 4),
           Text(subtitle, style: TextStyle(color: Colors.blueGrey.shade600)),
         ],
@@ -347,14 +347,14 @@ class _ReviewCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     backgroundColor: const Color(0xFFEAF0FF),
-                    child: Icon(icon, color: BrandColors.navy),
+                    child: Icon(icon, color: Theme.of(context).colorScheme.primary),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 4),
                         Text(subtitle, style: TextStyle(color: Colors.blueGrey.shade600)),
                       ],
