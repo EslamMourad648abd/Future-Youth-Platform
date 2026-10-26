@@ -18,7 +18,7 @@ in Android Studio are the real test of the existing skeleton.
 
 ## Run order
 
-`T00 → T01 → T02 → T03 → T06 → T04 → T05 → T07 → T08 → T09 → T10 → T11 → T12 → T13 → T14 → T16 → T15 → T17 → T18 → T19`
+`T00 → T01 → T02 → T03 → T06 → T04 → T05 → T07 → T08 → T09 → T10 → T11 → T12 → T13 → T14 → T16 → T15 → T17 → T18 → T20 → T21 → T19`
 
 | Task | What | Requirement |
 |------|------|-------------|
@@ -42,6 +42,8 @@ in Android Studio are the real test of the existing skeleton.
 | T17 | Security rules and emulator tests | all |
 | T18 | Brand pass, icon, dark mode | brand |
 | T19 | Deploy | — |
+| T20 | Teacher and content approval workflows | FR-12, FR-13 |
+| T21 | Arabic/English localization pass | FR-15 |
 
 ---
 
@@ -568,3 +570,52 @@ Task T19.
 
 **Done when:** the hosted site loads, a parent can sign up and a teacher can
 publish a course end to end, and the rules tests still pass.
+
+
+---
+
+## T20 — Teacher and content approval
+
+```text
+Task T20. Implement the approval lifecycle using the existing field name
+`approvalStatus` (do not introduce a second field named `approval`).
+
+1. In functions_fyp/completeSignup, a first-time teacher is created with
+   approvalStatus='pending'. A caller with any existing role claim or stored
+   users/{uid}.role cannot change role through completeSignup.
+2. Add Admin-only callables to approve/reject teacher profiles and submitted
+   course/video content. Validate all input server-side and store
+   reviewedBy, reviewedAt, and rejectionReason. Do not let the client write
+   approvalStatus or published status directly.
+3. Teacher sign-up UI clearly says that approval is required. Pending/rejected
+   teachers can edit their own draft profile but cannot publish content.
+4. Student discovery and video queries return only approved teachers and
+   approved content. Add Firestore rules and emulator tests for each case.
+5. Use existing AppLocalizations for every new string in English and Arabic.
+```
+
+**Done when:** a new teacher is pending; only an Admin can approve/reject;
+pending/rejected teachers are not visible to students and cannot publish;
+approval and rejection metadata are recorded; tests cover both allowed and
+denied paths.
+
+## T21 — Complete Arabic/English localization
+
+```text
+Task T21. Extend the existing AppLocalizations in lib/services/localization_service.dart.
+Do not add a second localization framework or replace the existing locale
+preference.
+
+1. Move all new Future Youth screen labels, validation messages, dialogs,
+   empty/error/loading states and payment/approval labels into the existing
+   English and Arabic maps.
+2. Make the Future Youth screens respect the active locale, including RTL
+   layout in Arabic and LTR in English.
+3. Add tests for representative English and Arabic strings and locale direction.
+4. Keep the old operations code intact except where a shared app-level string
+   is necessary; do not regress the existing application entry points.
+```
+
+**Done when:** the Future Youth authentication, teacher, parent, student and
+Admin workflows contain no newly hard-coded user-facing strings; English and
+Arabic both render without overflow; locale tests pass.
