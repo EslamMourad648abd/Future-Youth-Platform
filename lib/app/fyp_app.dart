@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import '../core/theme/brand_colors.dart';
 import '../widgets/global_language_switch.dart';
 import '../core/theme/fyp_theme.dart';
 import '../widgets/global_theme_switch.dart';
