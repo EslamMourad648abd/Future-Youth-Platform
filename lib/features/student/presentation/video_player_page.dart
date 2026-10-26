@@ -201,7 +201,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       ),
       body: SafeArea(
         child: loading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(child: CircularProgressIndicator())
             : locked
                 ? Center(
                     child: Padding(
@@ -213,11 +213,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.lock_outline, size: 52, color: Theme.of(context).colorScheme.primary),
-                              const SizedBox(height: 14),
+                              SizedBox(height: 14),
                               Text(fypTranslate(context, 'lesson_locked', 'This lesson is locked'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Text(fypTranslate(context, 'only_first_preview', 'Only the first approved lesson is available as a free preview. Ask your parent about subscription options.'), textAlign: TextAlign.center),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
                               FilledButton(onPressed: () => context.go(FypRoutes.student), child: Text(fypTranslate(context, 'back_to_courses', 'Back to courses'))),
                             ],
                           ),
@@ -246,21 +246,21 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                           child: Text(loadError == null ? 'Video preview is not configured for this lesson yet.' : 'Could not load lesson: $loadError', textAlign: TextAlign.center),
                         ),
                       ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(14)),
                       child: Row(
                         children: [
                           Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 28),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(ratingCount == 0 ? 'Be the first to rate this lesson' : '${ratingAverage.toStringAsFixed(1)} / 5 • $ratingCount ratings',
                                   style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-                                const SizedBox(height: 6),
+                                SizedBox(height: 6),
                                 Row(
                                   children: List.generate(5, (index) => IconButton(
                                     visualDensity: VisualDensity.compact,
@@ -276,28 +276,28 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                         ],
                       ),
                     ),
-                    const Divider(height: 32),
+                    Divider(height: 32),
 
                     // ========================================================
                     // COMMENTS SECTION
                     // ========================================================
-                    const Text(
+                    Text(
                       'Student Comments & Questions',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
                           child: TextField(
                             controller: _commentCtrl,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               hintText: 'Add a comment or ask a question...',
                               border: OutlineInputBorder(),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         ElevatedButton(
                           onPressed: _postComment,
                           style: ElevatedButton.styleFrom(
@@ -308,15 +308,15 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     if (comments.isEmpty)
-                      const Text('No comments yet. Be the first to ask a question!', style: TextStyle(color: Colors.grey))
+                      Text('No comments yet. Be the first to ask a question!', style: TextStyle(color: Colors.grey))
                     else
                       ListView.separated(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: comments.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        separatorBuilder: (_, __) => SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           final c = comments[index];
                           return Container(
@@ -333,7 +333,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                                   c['authorName'] ?? c['uid'] ?? 'Student',
                                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).colorScheme.primary),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: 4),
                                 Text(c['text'] ?? c['comment'] ?? '', style: TextStyle(fontSize: 14)),
                               ],
                             ),
