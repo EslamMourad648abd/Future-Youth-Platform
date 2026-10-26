@@ -33,6 +33,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
     expect(find.text('RTL'), findsOneWidget);
   });
 
@@ -52,6 +53,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
     expect(find.text('محرر الدورة'), findsOneWidget);
   });
 }
