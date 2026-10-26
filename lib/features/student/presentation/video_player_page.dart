@@ -30,10 +30,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   String? videoUrl;
   String title = 'Lesson Video';
   String description = '';
-  int likesCount = 0;
-  int dislikesCount = 0;
-  bool userLiked = false;
-  bool userDisliked = false;
+  int userRating = 0;
+  int ratingCount = 0;
+  double ratingAverage = 0;
 
   List<Map<String, dynamic>> comments = [];
 
@@ -64,8 +63,23 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         locked = ((data['order'] as num?)?.toInt() ?? 1) > 1 || data['status'] != 'published' || data['approvalStatus'] != 'approved';
         description = data['description'] ?? '';
         videoUrl = data['videoUrl']?.toString();
-        likesCount = data['likesCount'] ?? 0;
-        dislikesCount = data['dislikesCount'] ?? 0;
+
+      }
+
+      final currentUid = FirebaseAuth.instance.currentUser?.uid;
+      final ratingsSnapshot = await FirebaseFirestore.instance
+          .collection('courses')
+          .doc(widget.courseId)
+          .collection('videos')
+          .doc(widget.videoId)
+          .collection('ratings')
+          .get();
+      var ratingTotal = 0;
+      var myRating = 0;
+      for (final ratingDoc in ratingsSnapshot.docs) {
+        final value = (ratingDoc.data()['value'] as num?)?.toInt() ?? 0;
+        ratingTotal += value;
+        if (ratingDoc.id == currentUid) myRating = value;
       }
 
       final commentsSnapshot = await FirebaseFirestore.instance
@@ -82,6 +96,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       if (!mounted) return;
       setState(() {
         comments = commentList;
+        ratingCount = ratingsSnapshot.docs.length;
+        ratingAverage = ratingCount == 0 ? 0 : ratingTotal / ratingCount;
+        userRating = myRating;
         loading = false;
       });
     } catch (e) {
@@ -93,63 +110,39 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     }
   }
 
-  Future<void> _toggleLike() async {
-    setState(() {
-      if (userLiked) {
-        userLiked = false;
-        likesCount--;
-      } else {
-        userLiked = true;
-        likesCount++;
-        if (userDisliked) {
-          userDisliked = false;
-          dislikesCount--;
-        }
-      }
-    });
-
+  Future<void> _setRating(int value) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
     try {
       await FirebaseFirestore.instance
           .collection('courses')
           .doc(widget.courseId)
           .collection('videos')
           .doc(widget.videoId)
+          .collection('ratings')
+          .doc(user.uid)
           .set({
-        'likesCount': likesCount,
-        'dislikesCount': dislikesCount,
-      }, SetOptions(merge: true));
-    } catch (e) {
-      debugPrint('Error updating like: $e');
-    }
-  }
-
-  Future<void> _toggleDislike() async {
-    setState(() {
-      if (userDisliked) {
-        userDisliked = false;
-        dislikesCount--;
-      } else {
-        userDisliked = true;
-        dislikesCount++;
-        if (userLiked) {
-          userLiked = false;
-          likesCount--;
+        'uid': user.uid,
+        'value': value,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      if (!mounted) return;
+      setState(() {
+        final total = ratingAverage * ratingCount;
+        if (userRating == 0) {
+          ratingCount++;
+          ratingAverage = (total + value) / ratingCount;
+        } else {
+          ratingAverage = (total - userRating + value) / ratingCount;
         }
-      }
-    });
-
-    try {
-      await FirebaseFirestore.instance
-          .collection('courses')
-          .doc(widget.courseId)
-          .collection('videos')
-          .doc(widget.videoId)
-          .set({
-        'likesCount': likesCount,
-        'dislikesCount': dislikesCount,
-      }, SetOptions(merge: true));
+        userRating = value;
+      });
     } catch (e) {
-      debugPrint('Error updating dislike: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not save rating: $e')),
+        );
+      }
     }
   }
 
@@ -170,9 +163,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           .doc(widget.videoId)
           .collection('comments')
           .add({
-        'studentId': user?.uid,
-        'authorName': userName,
-        'comment': text,
+        'uid': user?.uid,
+        'text': text,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -243,44 +235,34 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                         ),
                       ),
                     const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.navy),
-                              ),
-                              if (description.isNotEmpty)
-                                Text(description, style: const TextStyle(fontSize: 13, color: Colors.grey)),
-                            ],
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.star_rounded, color: Color(0xFFFFB300), size: 28),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(ratingCount == 0 ? 'Be the first to rate this lesson' : '${ratingAverage.toStringAsFixed(1)} / 5 • $ratingCount ratings',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: BrandColors.navy)),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: List.generate(5, (index) => IconButton(
+                                    visualDensity: VisualDensity.compact,
+                                    tooltip: 'Rate ${index + 1} stars',
+                                    onPressed: () => _setRating(index + 1),
+                                    icon: Icon(index < userRating ? Icons.star_rounded : Icons.star_outline_rounded,
+                                      color: const Color(0xFFFFB300)),
+                                  )),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                userLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
-                                color: userLiked ? BrandColors.greenText : Colors.grey,
-                              ),
-                              onPressed: _toggleLike,
-                            ),
-                            Text('$likesCount', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 12),
-                            IconButton(
-                              icon: Icon(
-                                userDisliked ? Icons.thumb_down : Icons.thumb_down_outlined,
-                                color: userDisliked ? BrandColors.error : Colors.grey,
-                              ),
-                              onPressed: _toggleDislike,
-                            ),
-                            Text('$dislikesCount', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     const Divider(height: 32),
 
@@ -337,11 +319,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  c['authorName'] ?? 'Student',
+                                  c['authorName'] ?? c['uid'] ?? 'Student',
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: BrandColors.navy),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(c['comment'] ?? '', style: const TextStyle(fontSize: 14)),
+                                Text(c['text'] ?? c['comment'] ?? '', style: const TextStyle(fontSize: 14)),
                               ],
                             ),
                           );
