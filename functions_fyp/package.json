@@ -13,6 +13,11 @@
   "scripts": {
     "test": "node --test",
     "lint": "node --check index.js && node --check src/config.js && node --check src/guards.js && node --check src/entitlements.js",
-    "bootstrap:admin": "node scripts/bootstrap-admin.js"
+    "bootstrap:admin": "node scripts/bootstrap-admin.js",
+    "test:rules": "node --test test/rules-emulator.test.js"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "firebase": "^11.0.0"
   }
 }
