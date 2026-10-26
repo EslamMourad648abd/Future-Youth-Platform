@@ -27,10 +27,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         content: TextField(
           controller: controller,
           maxLines: 3,
-          decoration: InputDecoration(labelText: 'Reason (required)'),
+          decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'reason_required', 'Reason (required)')),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(fypTranslate(dialogContext, 'cancel_action', 'Cancel'))),
           FilledButton(
             onPressed: () {
               final value = controller.text.trim();
@@ -91,7 +91,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       await FirebaseFunctions.instance.httpsCallable(name).call(data);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Review saved successfully.')),
+          SnackBar(content: Text(fypTranslate(context, 'review_saved', 'Review saved successfully.'))),
         );
       }
     } on FirebaseFunctionsException catch (error) {
@@ -103,7 +103,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Action failed: $error')),
+          SnackBar(content: Text('${fypTranslate(context, 'action_failed_prefix', 'Action failed')}: $error')),
         );
       }
     } finally {
@@ -122,7 +122,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           'No payment will be confirmed, no subscription will be activated, and no points will be granted.',
         ),
         actions: [
-          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text('Got it')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text(fypTranslate(dialogContext, 'got_it', 'Got it'))),
         ],
       ),
     );
@@ -278,7 +278,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           ],
                         ),
                         SizedBox(height: 8),
-                        Text('The final verification workflow will be connected later. This control does not confirm transfers or grant access.'),
+                        Text(fypTranslate(context, 'verification_later_notice', 'The final verification workflow will be connected later. This control does not confirm transfers or grant access.')),
                         SizedBox(height: 12),
                         OutlinedButton.icon(
                           onPressed: _showPaymentUiOnly,
@@ -365,7 +365,7 @@ class _ReviewCard extends StatelessWidget {
               SizedBox(height: 14),
               Row(
                 children: [
-                  Expanded(child: OutlinedButton(onPressed: onReject, child: Text('Reject'))),
+                  Expanded(child: OutlinedButton(onPressed: onReject, child: Text(fypTranslate(context, 'reject_action', 'Reject')))),
                   SizedBox(width: 10),
                   Expanded(
                     child: FilledButton(
