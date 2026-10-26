@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -127,6 +128,56 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
     }
   }
 
+  Future<void> _addVideoSource(String videoId) async {
+    final controller = TextEditingController();
+    final url = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Link Google Drive video'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.url,
+              decoration: const InputDecoration(labelText: 'Google Drive share URL', hintText: 'https://drive.google.com/file/d/...'),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'For this prototype, set the Drive file to Anyone with the link can view. Only approved first lessons are shown as student previews.',
+              style: TextStyle(fontSize: 12, color: Colors.blueGrey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+          FilledButton(onPressed: () { if (controller.text.trim().isNotEmpty) Navigator.pop(dialogContext, controller.text.trim()); }, child: const Text('Save link')),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (url == null || !mounted) return;
+    setState(() => saving = true);
+    try {
+      await FirebaseFunctions.instance.httpsCallable('registerVideoSource').call({
+        'courseId': widget.courseId,
+        'videoId': videoId,
+        'videoUrl': url,
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Video source linked. It will be available after lesson and course approval.')),
+        );
+      }
+    } on FirebaseFunctionsException catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message ?? 'Could not link video.')));
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not link video: $error')));
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -194,7 +245,11 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                           leading: CircleAvatar(backgroundColor: const Color(0xFFEAF0FF), child: Text('${data['order'] ?? '•'}')),
                           title: Text((data['title'] ?? 'Lesson').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['status'] ?? 'draft'} • ${data['approvalStatus'] ?? 'pending review'}'),
-                          trailing: const Icon(Icons.video_file_outlined),
+                          trailing: IconButton(
+                            tooltip: 'Link video source',
+                            icon: const Icon(Icons.video_file_outlined, color: BrandColors.navy),
+                            onPressed: saving ? null : () => _addVideoSource(doc.id),
+                          ),
                         ),
                       );
                     }).toList(),
