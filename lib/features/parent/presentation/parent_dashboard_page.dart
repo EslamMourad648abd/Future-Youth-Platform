@@ -106,7 +106,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                             ),
                             const SizedBox(height: 4),
                             const Text(
-                              'Manage student accounts, course invoices, and learning analytics',
+                              'Manage student accounts, course options, and learning progress',
                               style: TextStyle(fontSize: 13, color: Colors.grey),
                             ),
                           ],
