@@ -244,7 +244,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                         child: ListTile(
                           leading: CircleAvatar(backgroundColor: const Color(0xFFEAF0FF), child: Text('${data['order'] ?? '•'}')),
                           title: Text((data['title'] ?? 'Lesson').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['status'] ?? 'draft'} • ${data['approvalStatus'] ?? 'pending review'}'),
+                          subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['sourceLinked'] == true ? 'Video linked' : 'Video not linked'} • ${data['approvalStatus'] ?? 'pending review'}'),
                           trailing: IconButton(
                             tooltip: 'Link video source',
                             icon: const Icon(Icons.video_file_outlined, color: BrandColors.navy),
