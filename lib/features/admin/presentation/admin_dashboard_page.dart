@@ -36,7 +36,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               final value = controller.text.trim();
               if (value.isNotEmpty) Navigator.pop(dialogContext, value);
             },
-            child: Text('Reject'),
+            child: Text(fypTranslate(context, 'reject_action', 'Reject')),
           ),
         ],
       ),
@@ -134,7 +134,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         
-        title: Text('Future Youth • Admin'),
+        title: Text(fypTranslate(context, 'future_youth_admin', 'Future Youth • Admin')),
         actions: [
           IconButton(
             tooltip: 'Create admin',
@@ -274,7 +274,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             Icon(Icons.payments_outlined, color: Theme.of(context).colorScheme.primary, size: 30),
                             SizedBox(width: 12),
                             Expanded(child: Text(fypTranslate(context, 'payment_verification_workspace', 'Payment verification workspace'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
-                            Chip(label: Text('Preview')),
+                            Chip(label: Text(fypTranslate(context, 'preview_action', 'Preview'))),
                           ],
                         ),
                         SizedBox(height: 8),
@@ -283,7 +283,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         OutlinedButton.icon(
                           onPressed: _showPaymentUiOnly,
                           icon: Icon(Icons.visibility_outlined),
-                          label: Text('View payment workflow notice'),
+                          label: Text(fypTranslate(context, 'payment_workflow_notice', 'View payment workflow notice')),
                         ),
                       ],
                     ),
@@ -293,7 +293,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 OutlinedButton.icon(
                   onPressed: () => context.push(FypRoutes.adminCreateAdmin),
                   icon: Icon(Icons.admin_panel_settings_outlined),
-                  label: Text('Create administrator'),
+                  label: Text(fypTranslate(context, 'create_administrator', 'Create administrator')),
                 ),
               ],
             ),
@@ -371,7 +371,7 @@ class _ReviewCard extends StatelessWidget {
                     child: FilledButton(
                       style: FilledButton.styleFrom(backgroundColor: BrandColors.green),
                       onPressed: onApprove,
-                      child: Text('Approve'),
+                      child: Text(fypTranslate(context, 'approve_action', 'Approve')),
                     ),
                   ),
                 ],
