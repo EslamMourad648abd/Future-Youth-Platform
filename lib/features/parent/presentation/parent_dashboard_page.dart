@@ -71,7 +71,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
         actions: [
           IconButton(
             icon: Icon(Icons.logout),
-            tooltip: 'Sign Out',
+            tooltip: fypTranslate(context, 'sign_out', 'Sign out'),
             onPressed: _signOut,
           ),
         ],
