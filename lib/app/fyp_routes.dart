@@ -21,6 +21,8 @@ abstract final class FypRoutes {
 
   // Student.
   static const String student = '/student';
+  static const String studentCourse = '/student/courses/:courseId';
+  static String studentCourseFor(String courseId) => '/student/courses/$courseId';
   static const String studentLocked = '/student/locked';
   static const String studentVideo = '/student/courses/:courseId/videos/:videoId';
   static String studentVideoFor(String courseId, String videoId) =>
