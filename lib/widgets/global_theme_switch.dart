@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/brand_colors.dart';
 import '../services/theme_service.dart';
+import '../services/localization_service.dart';
 
 /// Persistent global light/dark switch. Kept separate from the language control
 /// so both preferences remain available on every portal and route.
@@ -17,7 +18,7 @@ class GlobalThemeSwitch extends StatelessWidget {
         return Material(
           color: Colors.transparent,
           child: Tooltip(
-            message: isDark ? 'Switch to light theme' : 'Switch to dark theme',
+            message: fypTranslate(context, 'theme_switch_hint', 'Switch between light and dark themes'),
             child: InkWell(
               onTap: ThemeService.toggleTheme,
               borderRadius: BorderRadius.circular(30),
@@ -47,7 +48,7 @@ class GlobalThemeSwitch extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      isDark ? 'Light theme' : 'Dark theme',
+                      fypTranslate(context, isDark ? 'theme_light' : 'theme_dark', isDark ? 'Light theme' : 'Dark theme'),
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
