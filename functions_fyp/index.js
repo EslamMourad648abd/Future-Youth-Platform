@@ -299,8 +299,11 @@ export const registerVideoSource = onCall(async (request) => {
     throw new HttpsError("failed-precondition", "The uploaded video file could not be found.");
   }
   const [metadata] = await file.getMetadata();
-  if (!String(metadata.contentType || "").startsWith("video/")) {
-    throw new HttpsError("invalid-argument", "The uploaded file must have a video content type.");
+  const uploadedSize = Number(metadata.size || 0);
+  if (!String(metadata.contentType || "").startsWith("video/") ||
+      !Number.isFinite(uploadedSize) || uploadedSize <= 0 ||
+      uploadedSize > 524288000) {
+    throw new HttpsError("invalid-argument", "The uploaded file must be a non-empty video no larger than 500 MB.");
   }
 
   await db.collection("video_sources").doc(videoId).set({
@@ -310,7 +313,7 @@ export const registerVideoSource = onCall(async (request) => {
     provider: "firebase_storage",
     storagePath,
     contentType: metadata.contentType,
-    sizeBytes: Number(metadata.size || 0),
+    sizeBytes: uploadedSize,
     updatedAt: FieldValue.serverTimestamp(),
   }, { merge: true });
   await videoRef.update({ sourceLinked: true, updatedAt: FieldValue.serverTimestamp() });
@@ -353,6 +356,7 @@ export const getPaidLessonVideoUrl = onCall(async (request) => {
   const now = Date.now();
   const subscriptions = await db.collection("subscriptions")
     .where("studentId", "==", studentId)
+    .where("courseId", "==", courseId)
     .limit(100)
     .get();
   const entitled = hasActiveCourseSubscription(subscriptions.docs, studentId, courseId, now);
