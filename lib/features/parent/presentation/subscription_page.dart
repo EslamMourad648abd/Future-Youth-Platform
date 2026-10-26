@@ -247,7 +247,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               ),
                               RadioListTile<String>(
                                 title: Text('Orange Cash'),
-                                subtitle: Text('Illustrative wallet details — to be configured'),
+                                subtitle: Text(fypTranslate(context, 'illustrative_wallet_details', 'Illustrative wallet details — to be configured')),
                                 value: 'orange_cash',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
@@ -265,7 +265,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               TextFormField(
                                 controller: _referenceCtrl,
                                 decoration: InputDecoration(
-                                  labelText: 'Transaction Reference / Sender Mobile No.',
+                                  labelText: fypTranslate(context, 'transaction_reference_mobile', 'Transaction Reference / Sender Mobile No.'),
                                   hintText: 'e.g. TRX12345678 or 010xxxxxxxx',
                                   prefixIcon: Icon(Icons.confirmation_number_outlined),
                                 ),
