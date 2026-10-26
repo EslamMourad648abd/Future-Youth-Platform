@@ -132,7 +132,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Welcome, $displayName',
+                              fypTranslate(context, 'welcome_student', 'Welcome, {name}').replaceAll('{name}', displayName),
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                             ),
                             SizedBox(height: 4),
@@ -149,7 +149,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
               ),
               SizedBox(height: 20),
               Text(
-                'Explore by Subject',
+                fypTranslate(context, 'explore_subjects', 'Explore by subject'),
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
               ),
               SizedBox(height: 12),
