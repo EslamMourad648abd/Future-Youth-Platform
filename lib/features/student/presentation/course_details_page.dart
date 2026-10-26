@@ -37,7 +37,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('courses').doc(courseId).snapshots(),
         builder: (context, courseSnapshot) {
-          if (courseSnapshot.hasError) return Center(child: Text('Could not load course: ${courseSnapshot.error}'));
+          if (courseSnapshot.hasError) return Center(child: Text('${fypTranslate(context, 'course_load_failed', 'Could not load course')}: ${courseSnapshot.error}'));
           if (!courseSnapshot.hasData) return Center(child: CircularProgressIndicator());
           final course = courseSnapshot.data!.data();
           if (course == null || course['status'] != 'published' || course['approvalStatus'] != 'approved') {
@@ -59,7 +59,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
                     SizedBox(height: 14),
                     Text((course['title'] ?? 'Course').toString(), style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
                     SizedBox(height: 8),
-                    Text('${course['subject'] ?? 'General'} • ${course['teacherName'] ?? 'Teacher'}', style: TextStyle(color: Colors.white70)),
+                    Text('${course['subject'] ?? fypTranslate(context, 'subject_general', 'General')} • ${course['teacherName'] ?? fypTranslate(context, 'teacher_label', 'Teacher')}', style: TextStyle(color: Colors.white70)),
                     if ((course['description'] ?? '').toString().isNotEmpty) ...[
                       SizedBox(height: 12),
                       Text(course['description'].toString(), style: TextStyle(color: Colors.white, height: 1.4)),
@@ -84,7 +84,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
                     .where('approvalStatus', isEqualTo: 'approved')
                     .snapshots(),
                 builder: (context, videoSnapshot) {
-                  if (videoSnapshot.hasError) return Text('Could not load lessons: ${videoSnapshot.error}');
+                  if (videoSnapshot.hasError) return Text('${fypTranslate(context, 'lessons_load_failed', 'Could not load lessons')}: ${videoSnapshot.error}');
                   if (!videoSnapshot.hasData) return Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
                   final lessons = videoSnapshot.data!.docs.toList()
                     ..sort((a, b) => ((a.data()['order'] as num?)?.toInt() ?? 0)
