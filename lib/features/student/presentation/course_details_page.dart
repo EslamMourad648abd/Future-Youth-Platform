@@ -80,7 +80,11 @@ class StudentCourseDetailsPage extends StatelessWidget {
               const Text('Preview the first approved lesson. Other lessons display as locked until your parent arranges access.', style: TextStyle(color: Colors.blueGrey, height: 1.4)),
               const SizedBox(height: 12),
               StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance.collection('courses').doc(courseId).collection('videos').orderBy('order').snapshots(),
+                stream: FirebaseFirestore.instance.collection('courses').doc(courseId).collection('videos')
+                    .where('status', isEqualTo: 'published')
+                    .where('approvalStatus', isEqualTo: 'approved')
+                    .orderBy('order')
+                    .snapshots(),
                 builder: (context, videoSnapshot) {
                   if (videoSnapshot.hasError) return Text('Could not load lessons: ${videoSnapshot.error}');
                   if (!videoSnapshot.hasData) return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
