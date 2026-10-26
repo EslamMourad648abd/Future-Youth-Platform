@@ -321,9 +321,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                           return Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFFE2E8EF)),
+                              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
