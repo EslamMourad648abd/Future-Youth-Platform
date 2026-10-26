@@ -67,7 +67,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       if (!mounted) return;
       Navigator.of(sheetContext).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Course draft created. Add lessons before submitting for review.')),
+        SnackBar(content: Text(fypTranslate(context, 'course_draft_created', 'Course draft created. Add lessons before submitting for review.'))),
       );
     } catch (e) {
       if (mounted) {
@@ -92,7 +92,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Create a course', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              Text(fypTranslate(context, 'create_course_prompt', 'Create a course'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               SizedBox(height: 16),
               TextField(controller: _title, decoration: InputDecoration(labelText: 'Course title', prefixIcon: Icon(Icons.menu_book_outlined))),
               SizedBox(height: 12),
@@ -198,7 +198,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                     child: Column(children: [
                       Icon(Icons.video_library_outlined, size: 42, color: Theme.of(context).colorScheme.primary),
                       SizedBox(height: 10),
-                      Text('Your teaching library starts here', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                      Text(fypTranslate(context, 'teaching_library_empty', 'Your teaching library starts here'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
                       SizedBox(height: 6),
                       Text(fypTranslate(context, 'create_course', 'Create course'), textAlign: TextAlign.center),
                     ]),
