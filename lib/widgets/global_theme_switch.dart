@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../core/theme/brand_colors.dart';
 import '../services/theme_service.dart';
 import '../services/localization_service.dart';
 
