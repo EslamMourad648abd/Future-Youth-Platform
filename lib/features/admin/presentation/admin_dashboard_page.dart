@@ -22,6 +22,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   if(decision=='reject'){final c=TextEditingController();final ok=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:const Text('Reject course'),content:TextField(controller:c,maxLines:3,decoration:const InputDecoration(labelText:'Reason (required)')),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('Cancel')),FilledButton(onPressed:(){reason=c.text.trim();Navigator.pop(ctx,reason!.isNotEmpty);},child:const Text('Reject'))]));if(ok!=true)return;}
   await _call('reviewCourseContent',{'courseId':id,'decision':decision,if(reason!=null)'reason':reason});
  }
+ Future<void> _confirmPayment(String id) async {
+  final confirmed=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:const Text('Confirm payment receipt?'),content:const Text('Confirm only after verifying the money was received. This activates the subscription and grants points.'),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('Cancel')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('Confirm receipt'))]));
+  if(confirmed!=true)return;
+  await _call('confirmPayment',{'paymentId':id});
+ }
  Future<void> _call(String name,Map<String,dynamic> data) async {
   setState(()=>busy=true);
   try{await FirebaseFunctions.instance.httpsCallable(name).call(data);if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Review saved.')));}
@@ -45,6 +50,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
    StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('courses').where('approvalStatus',isEqualTo:'pending').snapshots(),builder:(context,snap){
     if(snap.hasError)return _Message('Could not load course submissions: ${snap.error}');if(!snap.hasData)return const LinearProgressIndicator();if(snap.data!.docs.isEmpty)return const _Message('No pending course submissions.');
     return Column(children:snap.data!.docs.map((doc){final d=doc.data();return _Card(icon:Icons.play_lesson_outlined,title:(d['title']??'Untitled course').toString(),subtitle:'${d['subject']??'Subject not set'} • Teacher: ${d['teacherId']??'Unknown'}',approve:()=>_reviewCourse(doc.id,'approve'),reject:()=>_reviewCourse(doc.id,'reject'));}).toList());
+   }),
+   const SizedBox(height:24),const _Heading('Payment verification','Confirm only after checking the transfer in the provider account.'),const SizedBox(height:10),
+   StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('payments').where('status',isEqualTo:'pending').snapshots(),builder:(context,snap){
+    if(snap.hasError)return _Message('Could not load payment requests: ${snap.error}');if(!snap.hasData)return const LinearProgressIndicator();if(snap.data!.docs.isEmpty)return const _Message('No pending payment requests.');
+    return Column(children:snap.data!.docs.map((doc){final d=doc.data();return Card(elevation:0,margin:const EdgeInsets.only(bottom:10),child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+      Text('${d['amount']??'—'} ${d['currency']??'EGP'} • ${d['provider']??d['paymentMethod']??'Payment'}',style:const TextStyle(fontWeight:FontWeight.bold,fontSize:16)),
+      const SizedBox(height:6),Text('Student: ${d['studentId']??'—'}\nCourse: ${d['courseId']??'—'}\nReference: ${d['providerRef']??d['referenceNumber']??'Not provided'}'),
+      const SizedBox(height:12),SizedBox(width:double.infinity,child:FilledButton.icon(onPressed:()=>_confirmPayment(doc.id),icon:const Icon(Icons.verified_outlined),label:const Text('Confirm transfer and grant points')))
+    ]));}).toList());
    }),
    const SizedBox(height:20),OutlinedButton.icon(onPressed:()=>context.push(FypRoutes.adminCreateAdmin),icon:const Icon(Icons.admin_panel_settings_outlined),label:const Text('Create administrator')),
   ]));
