@@ -7,6 +7,7 @@ import { getStorage } from "firebase-admin/storage";
 
 import { REGION, ROLES } from "./src/config.js";
 import { requireRole, validateSignupRole } from "./src/guards.js";
+import { hasActiveCourseSubscription } from "./src/entitlements.js";
 
 if (!getApps().length) {
   initializeApp();
@@ -351,15 +352,7 @@ export const getPaidLessonVideoUrl = onCall(async (request) => {
     .where("studentId", "==", studentId)
     .limit(100)
     .get();
-  const entitled = subscriptions.docs.some((doc) => {
-    const data = doc.data();
-    const expiresAt = data.expiresAt?.toMillis?.();
-    return data.studentId === studentId &&
-      data.courseId === courseId &&
-      data.status === "active" &&
-      typeof expiresAt === "number" &&
-      expiresAt > now;
-  });
+  const entitled = hasActiveCourseSubscription(subscriptions.docs, studentId, courseId, now);
   if (!entitled) {
     throw new HttpsError("permission-denied", "An active, unexpired subscription is required.");
   }
