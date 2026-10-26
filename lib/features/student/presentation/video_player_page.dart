@@ -153,7 +153,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not save rating: $e')),
+          SnackBar(content: Text('${fypTranslate(context, 'rating_save_failed', 'Could not save rating')}: $e')),
         );
       }
     }
@@ -309,7 +309,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     ),
                     SizedBox(height: 16),
                     if (comments.isEmpty)
-                      Text('No comments yet. Be the first to ask a question!', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
+                      Text(fypTranslate(context, 'no_comments_question', 'No comments yet. Be the first to ask a question!'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
                     else
                       ListView.separated(
                         shrinkWrap: true,
