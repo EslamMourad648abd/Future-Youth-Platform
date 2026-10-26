@@ -152,7 +152,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                     constraints: const BoxConstraints(maxWidth: 520),
                     child: Card(
                       elevation: 4,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                         side: const BorderSide(color: Color(0xFFE2E8EF)),
