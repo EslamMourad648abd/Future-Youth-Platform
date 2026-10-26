@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
 
 class CourseEditorPage extends StatefulWidget {
   const CourseEditorPage({super.key, required this.courseId});
@@ -25,7 +26,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
     final input = await showDialog<Map<String, String>>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Add lesson'),
+        title: Text(fypTranslate(dialogContext, 'add_lesson', 'Add lesson')),
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
@@ -173,7 +174,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Video uploaded to private storage. It becomes available after lesson and course approval.')),
+          SnackBar(content: Text(fypTranslate(context, 'video_upload_success', 'Video uploaded to private storage. It becomes available after lesson and course approval.'))),
         );
       }
     } on FirebaseFunctionsException catch (error) {
@@ -215,7 +216,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         
-        title: const Text('Course editor'),
+        title: Text(fypTranslate(context, 'course_editor', 'Course editor')),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: saving ? null : _addLesson,
@@ -252,7 +253,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                 ]),
               ),
               const SizedBox(height: 20),
-              const Text('Lessons', style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+              Text(fypTranslate(context, 'lessons', 'Lessons'), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: BrandColors.navy)),
               const SizedBox(height: 8),
               StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: courseRef.collection('videos').orderBy('order').snapshots(),
@@ -272,9 +273,9 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                         child: ListTile(
                           leading: CircleAvatar(backgroundColor: const Color(0xFFEAF0FF), child: Text('${data['order'] ?? '•'}')),
                           title: Text((data['title'] ?? 'Lesson').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['sourceLinked'] == true ? 'Video linked' : 'Video not linked'} • ${data['approvalStatus'] ?? 'pending review'}'),
+                          subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['sourceLinked'] == true ? fypTranslate(context, 'video_linked', 'Video linked') : fypTranslate(context, 'video_not_linked', 'Video not linked')} • ${data['approvalStatus'] ?? 'pending review'}'),
                           trailing: IconButton(
-                            tooltip: 'Upload video',
+                            tooltip: fypTranslate(context, 'upload_video', 'Upload video'),
                             icon: Icon(data['sourceLinked'] == true ? Icons.check_circle_outline : Icons.upload_file_outlined, color: Theme.of(context).colorScheme.primary),
                             onPressed: saving ? null : () => _addVideoSource(doc.id),
                           ),
