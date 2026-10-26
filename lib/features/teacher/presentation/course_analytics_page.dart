@@ -41,21 +41,21 @@ class CourseAnalyticsPage extends StatelessWidget {
         stream: FirebaseFirestore.instance.collection('courses').doc(courseId).snapshots(),
         builder: (context, courseSnap) {
           if (courseSnap.hasError) return Center(child: Text('Unable to load course: ${courseSnap.error}'));
-          if (!courseSnap.hasData) return const Center(child: CircularProgressIndicator());
+          if (!courseSnap.hasData) return Center(child: CircularProgressIndicator());
           final course = courseSnap.data!.data();
-          if (course == null) return const Center(child: Text('Course not found.'));
-          if (course['teacherId'] != uid) return const Center(child: Text('You can only view analytics for your own courses.'));
+          if (course == null) return Center(child: Text('Course not found.'));
+          if (course['teacherId'] != uid) return Center(child: Text('You can only view analytics for your own courses.'));
           return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
             stream: FirebaseFirestore.instance.collection('courses').doc(courseId).collection('videos').orderBy('order').snapshots(),
             builder: (context, videosSnap) {
               if (videosSnap.hasError) return Center(child: Text('Unable to load lessons: ${videosSnap.error}'));
-              if (!videosSnap.hasData) return const Center(child: CircularProgressIndicator());
+              if (!videosSnap.hasData) return Center(child: CircularProgressIndicator());
               final docs = videosSnap.data!.docs;
               return FutureBuilder<List<_LessonStats>>(
                 future: _loadStats(docs),
                 builder: (context, statsSnap) {
                   if (statsSnap.hasError) return Center(child: Text('Unable to load ratings and comments: ${statsSnap.error}'));
-                  if (!statsSnap.hasData) return const Center(child: CircularProgressIndicator());
+                  if (!statsSnap.hasData) return Center(child: CircularProgressIndicator());
                   final stats = statsSnap.data!;
                   final views = stats.fold<int>(0, (total, item) => total + item.views);
                   final ratingCount = stats.fold<int>(0, (total, item) => total + item.ratingCount);
@@ -68,16 +68,16 @@ class CourseAnalyticsPage extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(22),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: [BrandColors.navy, Color(0xFF3D56A6)]),
+                          gradient: LinearGradient(colors: [BrandColors.navy, Color(0xFF3D56A6)]),
                           borderRadius: BorderRadius.circular(22),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text((course['title'] ?? 'Course').toString(), style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text('${course['subject'] ?? 'Subject'} • ${course['status'] ?? 'draft'}', style: TextStyle(color: Colors.white70)),
-                            const SizedBox(height: 18),
+                            SizedBox(height: 18),
                             Wrap(spacing: 10, runSpacing: 10, children: [
                               _Metric(label: 'Views', value: '$views', icon: Icons.visibility_outlined),
                               _Metric(label: 'Avg. rating', value: ratingCount == 0 ? '—' : average.toStringAsFixed(1), icon: Icons.star_outline),
@@ -87,9 +87,9 @@ class CourseAnalyticsPage extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       Text(fypTranslate(context, 'lessons', 'Lessons'), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10),
                       if (stats.isEmpty)
                         const _EmptyAnalytics()
                       else
@@ -99,14 +99,14 @@ class CourseAnalyticsPage extends StatelessWidget {
                             elevation: 0,
                             margin: const EdgeInsets.only(bottom: 10),
                             child: ListTile(
-                              leading: const CircleAvatar(backgroundColor: Color(0xFFEAF0FF), child: Icon(Icons.play_circle_outline, color: Theme.of(context).colorScheme.primary)),
+                              leading: CircleAvatar(backgroundColor: Color(0xFFEAF0FF), child: Icon(Icons.play_circle_outline, color: Theme.of(context).colorScheme.primary)),
                               title: Text(item.title, style: TextStyle(fontWeight: FontWeight.bold)),
                               subtitle: Text('Views: ${item.views} • Rating: $avg • Comments: ${item.commentCount}'),
                             ),
                           );
                         }),
-                      const SizedBox(height: 18),
-                      const Text('View counts will remain at zero until the secure playback tracking stage is connected.', style: TextStyle(color: Colors.blueGrey, height: 1.4)),
+                      SizedBox(height: 18),
+                      Text('View counts will remain at zero until the secure playback tracking stage is connected.', style: TextStyle(color: Colors.blueGrey, height: 1.4)),
                     ],
                   );
                 },
@@ -142,7 +142,7 @@ class _Metric extends StatelessWidget {
     decoration: BoxDecoration(color: Colors.white.withValues(alpha: .13), borderRadius: BorderRadius.circular(14)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Icon(icon, color: Colors.white70),
-      const SizedBox(height: 8),
+      SizedBox(height: 8),
       Text(value, style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
       Text(label, style: TextStyle(color: Colors.white70)),
     ]),
@@ -155,7 +155,7 @@ class _EmptyAnalytics extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(24),
     decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16)),
-    child: const Column(children: [
+    child: Column(children: [
       Icon(Icons.insights_outlined, size: 40, color: Theme.of(context).colorScheme.primary),
       SizedBox(height: 8),
       Text('No lesson analytics yet'),
