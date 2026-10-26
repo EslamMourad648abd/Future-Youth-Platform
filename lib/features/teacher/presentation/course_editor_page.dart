@@ -57,7 +57,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                 SizedBox(height: 12),
                 Text(
                   'Upload a video file (up to 500 MB) after creating this lesson. It stays private until approval.',
-                  style: TextStyle(color: Colors.blueGrey, fontSize: 12),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                 ),
               ],
             ),
@@ -271,7 +271,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                         elevation: 0,
                         margin: const EdgeInsets.only(bottom: 10),
                         child: ListTile(
-                          leading: CircleAvatar(backgroundColor: const Color(0xFFEAF0FF), child: Text('${data['order'] ?? '•'}')),
+                          leading: CircleAvatar(backgroundColor: Theme.of(context).colorScheme.primaryContainer, child: Text('${data['order'] ?? '•'}')),
                           title: Text((data['title'] ?? 'Lesson').toString(), style: TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['sourceLinked'] == true ? fypTranslate(context, 'video_linked', 'Video linked') : fypTranslate(context, 'video_not_linked', 'Video not linked')} • ${data['approvalStatus'] ?? 'pending review'}'),
                           trailing: IconButton(
