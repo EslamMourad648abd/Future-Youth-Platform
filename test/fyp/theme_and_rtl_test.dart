@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:future_youth_platform/core/theme/fyp_theme.dart';
+import 'package:future_youth_platform/services/localization_service.dart';
 
 void main() {
   test('light and dark themes expose readable foreground/background pairs', () {
@@ -21,7 +22,10 @@ void main() {
       MaterialApp(
         locale: const Locale('ar'),
         supportedLocales: const [Locale('en'), Locale('ar')],
-        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        localizationsDelegates: const [
+          AppLocalizationsDelegate(),
+          ...GlobalMaterialLocalizations.delegates,
+        ],
         home: Builder(
           builder: (context) => Text(
             Directionality.of(context) == TextDirection.rtl ? 'RTL' : 'LTR',
@@ -30,6 +34,25 @@ void main() {
       ),
     );
     expect(find.text('RTL'), findsOneWidget);
+  });
+
+  testWidgets('Arabic locale translates learning interface labels', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ar'),
+        supportedLocales: const [Locale('en'), Locale('ar')],
+        localizationsDelegates: const [
+          AppLocalizationsDelegate(),
+          ...GlobalMaterialLocalizations.delegates,
+        ],
+        home: Builder(
+          builder: (context) => Text(
+            fypTranslate(context, 'course_editor', 'Course editor'),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('محرر الدورة'), findsOneWidget);
   });
 }
 
