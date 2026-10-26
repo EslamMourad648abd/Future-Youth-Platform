@@ -39,6 +39,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection(FirestorePaths.courses)
+          .where('status', isEqualTo: 'published')
+          .where('approvalStatus', isEqualTo: 'approved')
           .get();
 
       final list = snapshot.docs
