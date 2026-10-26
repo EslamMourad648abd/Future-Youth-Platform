@@ -198,7 +198,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.video_library_outlined, size: 60, color: Theme.of(context).colorScheme.onSurfaceVariant.shade400),
+                Icon(Icons.video_library_outlined, size: 60, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 SizedBox(height: 12),
                 Text(
                   'No teacher playlists found for this subject.',
