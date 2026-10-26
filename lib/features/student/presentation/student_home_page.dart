@@ -66,13 +66,13 @@ class _StudentHomePageState extends State<StudentHomePage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: Icon(Icons.family_restroom, color: Theme.of(context).colorScheme.primary, size: 36),
-        title: const Text('Ask your parent to enrol'),
+        title: Text('Ask your parent to enrol'),
         content: Text(
           'Your parent can review subscription options for "${course['title'] ?? 'this course'}" from Parent Workspace. '
           'Checkout is currently a UI preview only; no invoice or payment request will be created.',
         ),
         actions: [
-          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Understood')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text('Understood')),
         ],
       ),
     );
@@ -97,7 +97,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Student Learning Portal'),
+        title: Text('Student Learning Portal'),
         
         actions: [
           IconButton(
@@ -121,12 +121,12 @@ class _StudentHomePageState extends State<StudentHomePage> {
                   padding: const EdgeInsets.all(20),
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 28,
                         backgroundColor: BrandColors.greenTint,
                         child: Icon(Icons.school, color: Theme.of(context).brightness == Brightness.dark ? BrandColors.green : BrandColors.greenText, size: 30),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,8 +135,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
                               'Welcome, $displayName',
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                             ),
-                            const SizedBox(height: 4),
-                            const Text(
+                            SizedBox(height: 4),
+                            Text(
                               'Watch 1st free video preview, take quizzes, and learn from top teachers',
                               style: TextStyle(fontSize: 13, color: Colors.grey),
                             ),
@@ -147,18 +147,18 @@ class _StudentHomePageState extends State<StudentHomePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text(
+              SizedBox(height: 20),
+              Text(
                 'Explore by Subject',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               SizedBox(
                 height: 40,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: subjects.length,
-                  separatorBuilder: (context, index) => const SizedBox(width: 8),
+                  separatorBuilder: (context, index) => SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     final sub = subjects[index];
                     final selected = selectedSubject == sub;
@@ -175,7 +175,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                   },
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               _buildCourseList(context),
             ],
           ),
@@ -186,7 +186,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
   Widget _buildCourseList(BuildContext context) {
     if (loading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator());
     }
 
     if (_filteredCourses.isEmpty) {
@@ -198,8 +198,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
             child: Column(
               children: [
                 Icon(Icons.video_library_outlined, size: 60, color: Colors.grey.shade400),
-                const SizedBox(height: 12),
-                const Text(
+                SizedBox(height: 12),
+                Text(
                   'No teacher playlists found for this subject.',
                   style: TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.bold),
                 ),
@@ -214,7 +214,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _filteredCourses.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      separatorBuilder: (context, index) => SizedBox(height: 16),
       itemBuilder: (context, index) {
         final course = _filteredCourses[index];
         final subject = course['subject'] ?? 'General';
@@ -243,7 +243,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                         style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
@@ -259,25 +259,25 @@ class _StudentHomePageState extends State<StudentHomePage> {
                     Row(
                       children: [
                         Icon(Icons.person, size: 16, color: Colors.grey),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Text(teacherName, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   course['title'] ?? 'Course Title',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                 ),
                 if ((course['description'] ?? '').toString().isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     course['description'],
                     style: TextStyle(fontSize: 13, color: Colors.grey),
                   ),
                 ],
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -291,10 +291,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         icon: Icon(Icons.play_arrow, size: 20),
-                        label: const Text('1st Free Video Preview'),
+                        label: Text('1st Free Video Preview'),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _showEnrollmentInfo(course),
@@ -304,7 +304,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         icon: Icon(Icons.receipt, size: 18),
-                        label: const Text('Subscription Info'),
+                        label: Text('Subscription Info'),
                       ),
                     ),
                   ],
