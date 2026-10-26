@@ -116,7 +116,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: Icon(Icons.construction_outlined, color: Theme.of(context).colorScheme.primary, size: 36),
-        title: Text('Payment controls are UI-only'),
+        title: Text(fypTranslate(dialogContext, 'payment_controls_ui_only', 'Payment controls are UI-only')),
         content: Text(
           'Payment verification is intentionally disabled for this development stage. '
           'No payment will be confirmed, no subscription will be activated, and no points will be granted.',
@@ -273,7 +273,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           children: [
                             Icon(Icons.payments_outlined, color: Theme.of(context).colorScheme.primary, size: 30),
                             SizedBox(width: 12),
-                            Expanded(child: Text('Payment verification workspace', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+                            Expanded(child: Text(fypTranslate(context, 'payment_verification_workspace', 'Payment verification workspace'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
                             Chip(label: Text('Preview')),
                           ],
                         ),
