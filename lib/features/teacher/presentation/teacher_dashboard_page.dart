@@ -222,14 +222,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                         subtitle: Text('${data['subject'] ?? 'Subject'} • ${data['videoCount'] ?? 0} videos • ${data['price'] ?? '—'} EGP/month\n${data['status'] ?? 'draft'} • ${data['approvalStatus'] ?? 'pending review'}'),
                         isThreeLine: true,
                         trailing: const Icon(Icons.info_outline),
-                        onTap: () => showDialog<void>(
-                          context: context,
-                          builder: (dialogContext) => AlertDialog(
-                            title: Text((data['title'] ?? 'Course').toString()),
-                            content: Text('Course ID: ${doc.id}\n\nCourse editing, video upload, and analytics are not connected yet. This draft is saved in Firestore.'),
-                            actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Close'))],
-                          ),
-                        ),
+                        onTap: () => context.go(FypRoutes.teacherCourseEditorFor(doc.id),),
                       ),
                     );
                   }).toList(),
