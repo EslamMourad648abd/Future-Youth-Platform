@@ -3,7 +3,6 @@ import { setGlobalOptions } from "firebase-functions/v2/options";
 import { initializeApp, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { getStorage } from "firebase-admin/storage";
 
 import { REGION, ROLES } from "./src/config.js";
 import { requireRole, validateSignupRole } from "./src/guards.js";
