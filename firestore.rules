@@ -20,6 +20,153 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.role == "parent";
     }
 
+
+    function isTeacher() {
+      return request.auth != null && request.auth.token.role == "teacher";
+    }
+
+    function isStudent() {
+      return request.auth != null && request.auth.token.role == "student";
+    }
+
+    function ownsUser(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function teacherApproved(teacherId) {
+      return exists(/databases/$(database)/documents/users/$(teacherId)) &&
+        get(/databases/$(database)/documents/users/$(teacherId)).data.role == "teacher" &&
+        get(/databases/$(database)/documents/users/$(teacherId)).data.approvalStatus == "approved";
+    }
+
+    function approvedCourse(courseId) {
+      return exists(/databases/$(database)/documents/courses/$(courseId)) &&
+        get(/databases/$(database)/documents/courses/$(courseId)).data.status == "published" &&
+        get(/databases/$(database)/documents/courses/$(courseId)).data.approvalStatus == "approved" &&
+        teacherApproved(get(/databases/$(database)/documents/courses/$(courseId)).data.teacherId);
+    }
+
+    // Future Youth course catalog. Approval and publication are server-managed.
+    match /courses/{courseId} {
+      allow read: if isAdmin() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid) ||
+        (resource.data.status == "published" &&
+         resource.data.approvalStatus == "approved" &&
+         teacherApproved(resource.data.teacherId));
+      allow create: if isTeacher() &&
+        request.resource.data.teacherId == request.auth.uid &&
+        request.resource.data.status == "draft" &&
+        request.resource.data.approvalStatus == "pending" &&
+        !("reviewedBy" in request.resource.data) &&
+        !("reviewedAt" in request.resource.data);
+      allow update: if isAdmin() ||
+        (isTeacher() &&
+         resource.data.teacherId == request.auth.uid &&
+         resource.data.status == "draft" &&
+         request.resource.data.teacherId == resource.data.teacherId &&
+         request.resource.data.status == "draft" &&
+         request.resource.data.approvalStatus == "pending" &&
+         !request.resource.data.diff(resource.data).affectedKeys()
+           .hasAny(["teacherId", "status", "approvalStatus", "reviewedBy", "reviewedAt", "rejectionReason"]));
+      allow delete: if isAdmin();
+
+      match /videos/{videoId} {
+        allow read: if isAdmin() ||
+          (isTeacher() && get(/databases/$(database)/documents/courses/$(courseId)).data.teacherId == request.auth.uid) ||
+          (approvedCourse(courseId) &&
+           resource.data.status == "published" &&
+           resource.data.approvalStatus == "approved");
+        allow create: if isTeacher() &&
+          get(/databases/$(database)/documents/courses/$(courseId)).data.teacherId == request.auth.uid &&
+          request.resource.data.teacherId == request.auth.uid &&
+          request.resource.data.status == "draft" &&
+          request.resource.data.approvalStatus == "pending" &&
+          !("storagePath" in request.resource.data) &&
+          !("videoUrl" in request.resource.data);
+        allow update: if isAdmin() ||
+          (isTeacher() &&
+           get(/databases/$(database)/documents/courses/$(courseId)).data.teacherId == request.auth.uid &&
+           resource.data.teacherId == request.auth.uid &&
+           resource.data.status == "draft" &&
+           request.resource.data.status == "draft" &&
+           request.resource.data.approvalStatus == "pending" &&
+           !request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(["teacherId", "status", "approvalStatus", "reviewedBy", "reviewedAt", "rejectionReason", "storagePath", "videoUrl", "viewCount", "ratingSum", "ratingCount", "commentCount"]));
+        allow delete: if isAdmin() ||
+          (isTeacher() &&
+           get(/databases/$(database)/documents/courses/$(courseId)).data.teacherId == request.auth.uid &&
+           resource.data.teacherId == request.auth.uid &&
+           resource.data.status == "draft");
+
+        match /comments/{commentId} {
+          allow read: if isAdmin() ||
+            (approvedCourse(courseId) &&
+             get(/databases/$(database)/documents/courses/$(courseId)/videos/$(videoId)).data.status == "published");
+          allow create: if isStudent() && approvedCourse(courseId) &&
+            get(/databases/$(database)/documents/courses/$(courseId)/videos/$(videoId)).data.status == "published" &&
+            request.resource.data.uid == request.auth.uid &&
+            request.resource.data.text is string &&
+            request.resource.data.text.size() > 0 &&
+            request.resource.data.text.size() <= 2000 &&
+            request.resource.data.keys().hasOnly(["uid", "text", "createdAt"]);
+          allow update, delete: if isAdmin();
+        }
+
+        match /ratings/{studentId} {
+          allow read: if isAdmin() ||
+            (approvedCourse(courseId) &&
+             get(/databases/$(database)/documents/courses/$(courseId)/videos/$(videoId)).data.status == "published");
+          allow create, update: if isStudent() &&
+            request.auth.uid == studentId &&
+            approvedCourse(courseId) &&
+            get(/databases/$(database)/documents/courses/$(courseId)/videos/$(videoId)).data.status == "published" &&
+            request.resource.data.keys().hasOnly(["uid", "value", "updatedAt"]) &&
+            request.resource.data.uid == request.auth.uid &&
+            request.resource.data.value is int &&
+            request.resource.data.value >= 1 &&
+            request.resource.data.value <= 5;
+          allow delete: if isAdmin();
+        }
+      }
+    }
+
+    // Payment requests may be submitted by the parent but only an Admin/server
+    // can verify them. A client cannot activate a subscription or grant points.
+    match /payments/{paymentId} {
+      allow read: if isAdmin() ||
+        (request.auth != null && resource.data.parentId == request.auth.uid);
+      allow create: if isParent() &&
+        request.resource.data.parentId == request.auth.uid &&
+        request.resource.data.status == "pending" &&
+        request.resource.data.provider in ["instapay", "vodafone_cash", "orange_cash", "etisalat_cash"] &&
+        request.resource.data.keys().hasOnly(["parentId", "studentId", "courseId", "subscriptionId", "amount", "currency", "provider", "providerRef", "status", "createdAt"]);
+      allow update, delete: if isAdmin();
+    }
+
+    match /subscriptions/{subscriptionId} {
+      allow read: if isAdmin() ||
+        (request.auth != null &&
+         (resource.data.parentId == request.auth.uid || resource.data.studentId == request.auth.uid));
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /points_ledger/{entryId} {
+      allow read: if isAdmin() ||
+        (request.auth != null && resource.data.studentId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    match /video_views/{viewId} {
+      allow read: if isAdmin() ||
+        (request.auth != null && resource.data.studentId == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    // Raw storage paths and video source metadata are never client-readable.
+    match /video_sources/{videoId} {
+      allow read, write: if isAdmin();
+    }
+
     match /training_courses/{courseId} {
       allow read: if request.auth != null;
       allow write: if isSuperAdmin();
