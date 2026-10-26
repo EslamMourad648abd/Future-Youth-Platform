@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../lib/app/fyp_app.dart';
+import '../../lib/widgets/global_theme_switch.dart';
 import '../../lib/services/theme_service.dart';
 
 void main() {
