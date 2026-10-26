@@ -187,7 +187,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not upload video: $error')),
+          SnackBar(content: Text('${fypTranslate(context, 'upload_read_error', 'Could not upload video')}: $error')),
         );
       }
     } finally {
@@ -231,8 +231,8 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
           if (courseSnapshot.hasError) return Center(child: Text('Could not load course: ${courseSnapshot.error}'));
           if (!courseSnapshot.hasData) return Center(child: CircularProgressIndicator());
           final course = courseSnapshot.data!.data();
-          if (course == null) return Center(child: Text('Course not found.'));
-          if (course['teacherId'] != uid) return Center(child: Text('You can only edit your own courses.'));
+          if (course == null) return Center(child: Text(fypTranslate(context, 'course_not_found', 'Course not found.')));
+          if (course['teacherId'] != uid) return Center(child: Text(fypTranslate(context, 'course_owner_only', 'You can only edit your own courses.')));
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
@@ -262,7 +262,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                   if (!lessonSnapshot.hasData) return LinearProgressIndicator();
                   final lessons = lessonSnapshot.data!.docs;
                   if (lessons.isEmpty) {
-                    return Card(child: Padding(padding: EdgeInsets.all(24), child: Text('No lessons yet. Use Add lesson to build the course outline.')));
+                    return Card(child: Padding(padding: EdgeInsets.all(24), child: Text(fypTranslate(context, 'no_lessons', 'No lessons yet. Use Add lesson to build the course outline.'))));
                   }
                   return Column(
                     children: lessons.map((doc) {
