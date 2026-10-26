@@ -139,7 +139,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                             SizedBox(height: 4),
                             Text(
                               'Watch 1st free video preview, take quizzes, and learn from top teachers',
-                              style: TextStyle(fontSize: 13, color: Colors.grey),
+                              style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -198,11 +198,11 @@ class _StudentHomePageState extends State<StudentHomePage> {
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.video_library_outlined, size: 60, color: Colors.grey.shade400),
+                Icon(Icons.video_library_outlined, size: 60, color: Theme.of(context).colorScheme.onSurfaceVariant.shade400),
                 SizedBox(height: 12),
                 Text(
                   'No teacher playlists found for this subject.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -259,7 +259,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                     const Spacer(),
                     Row(
                       children: [
-                        Icon(Icons.person, size: 16, color: Colors.grey),
+                        Icon(Icons.person, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         SizedBox(width: 4),
                         Text(teacherName, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                       ],
@@ -275,7 +275,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                   SizedBox(height: 4),
                   Text(
                     course['description'],
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                    style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
                 SizedBox(height: 16),
