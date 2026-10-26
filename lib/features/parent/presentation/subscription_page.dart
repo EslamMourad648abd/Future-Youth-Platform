@@ -155,7 +155,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                       color: Theme.of(context).colorScheme.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
-                        side: const BorderSide(color: Color(0xFFE2E8EF)),
+                        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(28),
@@ -235,7 +235,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                 value: 'instapay',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
-                                activeColor: BrandColors.navy,
+                                activeColor: Theme.of(context).colorScheme.primary,
                               ),
                               RadioListTile<String>(
                                 title: Text('Vodafone Cash'),
@@ -278,8 +278,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               ElevatedButton(
                                 onPressed: submitting ? null : _processPayment,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: BrandColors.green,
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                                  foregroundColor: Theme.of(context).colorScheme.onSecondary,
                                   minimumSize: const Size.fromHeight(50),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 ),
