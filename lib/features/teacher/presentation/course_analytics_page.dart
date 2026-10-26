@@ -76,7 +76,7 @@ class CourseAnalyticsPage extends StatelessWidget {
                           children: [
                             Text((course['title'] ?? fypTranslate(context, 'course_label', 'Course')).toString(), style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
                             SizedBox(height: 8),
-                            Text('${course['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${course['status'] ?? 'draft'}', style: TextStyle(color: Colors.white70)),
+                            Text('${course['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${AppLocalizations.of(context)?.translateStatus((course['status'] ?? 'draft').toString()) ?? (course['status'] ?? 'draft')}', style: TextStyle(color: Colors.white70)),
                             SizedBox(height: 18),
                             Wrap(spacing: 10, runSpacing: 10, children: [
                               _Metric(label: fypTranslate(context, 'views', 'Views'), value: '$views', icon: Icons.visibility_outlined),
