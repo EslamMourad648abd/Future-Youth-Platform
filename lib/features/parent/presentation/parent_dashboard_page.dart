@@ -101,7 +101,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Welcome, $displayName',
+                              fypTranslate(context, 'welcome_parent', 'Welcome, {name}').replaceAll('{name}', displayName),
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                             ),
                             SizedBox(height: 4),
