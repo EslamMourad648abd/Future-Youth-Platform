@@ -230,3 +230,71 @@ export const reviewCourseContent = onCall(async (request) => {
     approvalStatus: decision === "approve" ? "approved" : "rejected",
   };
 });
+
+/**
+ * Stores a teacher-submitted Google Drive video source outside the public
+ * course document. The source is available to students only through the
+ * preview callable after the lesson and course have been approved.
+ */
+export const registerVideoSource = onCall(async (request) => {
+  const teacherUid = requireRole(request, [ROLES.TEACHER]);
+  const courseId = String(request.data?.courseId || "").trim();
+  const videoId = String(request.data?.videoId || "").trim();
+  const videoUrl = String(request.data?.videoUrl || "").trim();
+  const driveMatch = videoUrl.match(/^https:\/\/(?:drive\.google\.com)\/(?:file\/d\/([\w-]+)|open\?id=([\w-]+))/);
+  const driveId = driveMatch?.[1] || driveMatch?.[2];
+  if (!courseId || !videoId || !driveId) {
+    throw new HttpsError("invalid-argument", "Provide a valid Google Drive share URL.");
+  }
+
+  const courseRef = db.collection("courses").doc(courseId);
+  const videoRef = courseRef.collection("videos").doc(videoId);
+  const [courseSnap, videoSnap] = await Promise.all([courseRef.get(), videoRef.get()]);
+  if (!courseSnap.exists || courseSnap.data()?.teacherId !== teacherUid ||
+      courseSnap.data()?.status !== "draft") {
+    throw new HttpsError("permission-denied", "You can only add video sources to your own draft course.");
+  }
+  if (!videoSnap.exists || videoSnap.data()?.teacherId !== teacherUid ||
+      videoSnap.data()?.status !== "draft") {
+    throw new HttpsError("permission-denied", "The lesson must be your own draft lesson.");
+  }
+
+  await db.collection("video_sources").doc(videoId).set({
+    courseId,
+    videoId,
+    teacherId: teacherUid,
+    provider: "google_drive",
+    driveFileId: driveId,
+    videoUrl: `https://drive.google.com/file/d/${driveId}/preview`,
+    updatedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+
+  return { ok: true, courseId, videoId };
+});
+
+/** Returns only the first lesson's Google Drive preview URL after publication. */
+export const getPreviewVideoUrl = onCall(async (request) => {
+  requireRole(request, [ROLES.STUDENT]);
+  const courseId = String(request.data?.courseId || "").trim();
+  const videoId = String(request.data?.videoId || "").trim();
+  if (!courseId || !videoId) {
+    throw new HttpsError("invalid-argument", "courseId and videoId are required.");
+  }
+  const courseRef = db.collection("courses").doc(courseId);
+  const videoRef = courseRef.collection("videos").doc(videoId);
+  const [courseSnap, videoSnap, sourceSnap] = await Promise.all([
+    courseRef.get(),
+    videoRef.get(),
+    db.collection("video_sources").doc(videoId).get(),
+  ]);
+  if (!courseSnap.exists || !videoSnap.exists ||
+      courseSnap.data()?.status !== "published" ||
+      courseSnap.data()?.approvalStatus !== "approved" ||
+      videoSnap.data()?.status !== "published" ||
+      videoSnap.data()?.approvalStatus !== "approved" ||
+      Number(videoSnap.data()?.order || 0) !== 1 ||
+      !sourceSnap.exists || sourceSnap.data()?.courseId !== courseId) {
+    throw new HttpsError("permission-denied", "Only the first approved lesson can be previewed.");
+  }
+  return { ok: true, videoUrl: sourceSnap.data()?.videoUrl };
+});
