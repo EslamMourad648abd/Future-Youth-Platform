@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../lib/widgets/global_theme_switch.dart';
-import '../../lib/services/theme_service.dart';
+import 'package:future_youth_platform/widgets/global_theme_switch.dart';
+import 'package:future_youth_platform/services/theme_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
