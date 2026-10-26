@@ -63,11 +63,10 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
     final displayName = user?.displayName ?? user?.email ?? 'Parent';
 
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Parent Workspace'),
-        backgroundColor: BrandColors.navy,
-        foregroundColor: Colors.white,
+        
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
