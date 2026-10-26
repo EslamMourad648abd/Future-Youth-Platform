@@ -221,7 +221,11 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                         title: Text((data['title'] ?? 'Untitled course').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text('${data['subject'] ?? 'Subject'} • ${data['videoCount'] ?? 0} videos • ${data['price'] ?? '—'} EGP/month\n${data['status'] ?? 'draft'} • ${data['approvalStatus'] ?? 'pending review'}'),
                         isThreeLine: true,
-                        trailing: const Icon(Icons.info_outline),
+                        trailing: IconButton(
+                          tooltip: 'Course analytics',
+                          onPressed: () => context.go(FypRoutes.teacherCourseAnalyticsFor(doc.id)),
+                          icon: const Icon(Icons.insights_outlined, color: BrandColors.navy),
+                        ),
                         onTap: () => context.go(FypRoutes.teacherCourseEditorFor(doc.id),),
                       ),
                     );
