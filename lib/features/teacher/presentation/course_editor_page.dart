@@ -186,8 +186,9 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
       }
     } catch (error) {
       if (mounted) {
+        final messagePrefix = fypTranslate(context, 'upload_failed', 'Could not upload video');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${fypTranslate(context, \'upload_read_error\', \'Could not upload video\')}: $error')),
+          SnackBar(content: Text('$messagePrefix: $error')),
         );
       }
     } finally {
