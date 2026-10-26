@@ -362,6 +362,16 @@ export const getPaidLessonVideoUrl = onCall(async (request) => {
     throw new HttpsError("permission-denied", "The teacher is not currently approved.");
   }
 
+  const file = getStorage().bucket().file(sourceSnap.data().storagePath);
+  const [objectExists] = await file.exists();
+  if (!objectExists) {
+    throw new HttpsError("failed-precondition", "The private lesson video is missing.");
+  }
+  const [videoUrl] = await file.getSignedUrl({
+    action: "read",
+    expires: Date.now() + 5 * 60 * 1000,
+  });
+
   const viewRef = db.collection("video_views").doc(`${courseId}_${videoId}_${studentId}`);
   await db.runTransaction(async (tx) => {
     const [viewSnap, currentVideoSnap] = await Promise.all([tx.get(viewRef), tx.get(videoRef)]);
@@ -382,10 +392,6 @@ export const getPaidLessonVideoUrl = onCall(async (request) => {
     }
   });
 
-  const [videoUrl] = await getStorage().bucket().file(sourceSnap.data().storagePath).getSignedUrl({
-    action: "read",
-    expires: Date.now() + 5 * 60 * 1000,
-  });
   return { ok: true, videoUrl, expiresInSeconds: 300 };
 });
 
@@ -418,8 +424,24 @@ export const getPreviewVideoUrl = onCall(async (request) => {
     throw new HttpsError("permission-denied", "The teacher is not currently approved.");
   }
 
-  // Count unique student previews server-side. Clients cannot write video_views
-  // or alter viewCount directly. Reopening the same preview does not inflate it.
+  const storagePath = sourceSnap.data()?.storagePath;
+  if (sourceSnap.data()?.provider !== "firebase_storage" ||
+      typeof storagePath !== "string" ||
+      !storagePath.startsWith(`course-videos/${courseId}/${videoId}/`)) {
+    throw new HttpsError("failed-precondition", "Private video storage is not configured for this lesson.");
+  }
+  const file = getStorage().bucket().file(storagePath);
+  const [objectExists] = await file.exists();
+  if (!objectExists) {
+    throw new HttpsError("failed-precondition", "The private lesson video is missing.");
+  }
+  const [videoUrl] = await file.getSignedUrl({
+    action: "read",
+    expires: Date.now() + 5 * 60 * 1000,
+  });
+
+  // Count unique students only after private media is confirmed and a playback
+  // URL can be issued. Reopening the same preview does not inflate the count.
   const studentId = request.auth.uid;
   const viewRef = db.collection("video_views").doc(
     `${courseId}_${videoId}_${studentId}`
@@ -446,17 +468,6 @@ export const getPreviewVideoUrl = onCall(async (request) => {
         updatedAt: FieldValue.serverTimestamp(),
       });
     }
-  });
-
-  const storagePath = sourceSnap.data()?.storagePath;
-  if (sourceSnap.data()?.provider !== "firebase_storage" ||
-      typeof storagePath !== "string" ||
-      !storagePath.startsWith(`course-videos/${courseId}/${videoId}/`)) {
-    throw new HttpsError("failed-precondition", "Private video storage is not configured for this lesson.");
-  }
-  const [videoUrl] = await getStorage().bucket().file(storagePath).getSignedUrl({
-    action: "read",
-    expires: Date.now() + 5 * 60 * 1000,
   });
 
   return { ok: true, videoUrl, expiresInSeconds: 300 };
