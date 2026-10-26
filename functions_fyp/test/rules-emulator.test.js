@@ -18,8 +18,16 @@ let env;
 before(async () => {
   env = await initializeTestEnvironment({
     projectId,
-    firestore: { rules: fs.readFileSync(path.join(here, "../../firestore.rules"), "utf8") },
-    storage: { rules: fs.readFileSync(path.join(here, "../../storage.rules"), "utf8") },
+    firestore: {
+      host: "127.0.0.1",
+      port: 8080,
+      rules: fs.readFileSync(path.join(here, "../../firestore.rules"), "utf8"),
+    },
+    storage: {
+      host: "127.0.0.1",
+      port: 9199,
+      rules: fs.readFileSync(path.join(here, "../../storage.rules"), "utf8"),
+    },
   });
 });
 
