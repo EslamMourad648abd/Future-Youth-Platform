@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/fyp_routes.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
 
 class StudentCourseDetailsPage extends StatelessWidget {
   const StudentCourseDetailsPage({super.key, required this.courseId});
@@ -74,7 +75,7 @@ class StudentCourseDetailsPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text('Course lessons', style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+              Text(fypTranslate(context, 'course_lessons', 'Course lessons'), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: BrandColors.navy)),
               const SizedBox(height: 8),
               const Text('Preview the first approved lesson. Other lessons display as locked until your parent arranges access.', style: TextStyle(color: Colors.blueGrey, height: 1.4)),
               const SizedBox(height: 12),
