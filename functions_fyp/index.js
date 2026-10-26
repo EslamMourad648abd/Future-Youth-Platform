@@ -223,3 +223,75 @@ export const reviewCourseContent = onCall(async (request) => {
     approvalStatus: decision === "approve" ? "approved" : "rejected",
   };
 });
+
+
+const PAYMENT_PROVIDERS = new Set([
+  "instapay",
+  "vodafone_cash",
+  "orange_cash",
+  "etisalat_cash",
+]);
+
+/**
+ * Creates a pending subscription payment request after verifying the parent,
+ * child, course and server-stored price. This does not grant access or points.
+ */
+export const createPaymentRequest = onCall(async (request) => {
+  const parentUid = requireRole(request, [ROLES.PARENT]);
+  const studentId = String(request.data?.studentId || "").trim();
+  const courseId = String(request.data?.courseId || "").trim();
+  const provider = String(request.data?.provider || "").trim().toLowerCase();
+  const months = Number(request.data?.months);
+  const providerRef = String(request.data?.providerRef || "").trim();
+
+  if (!studentId || !courseId || !PAYMENT_PROVIDERS.has(provider) ||
+      !Number.isInteger(months) || months < 1 || months > 12) {
+    throw new HttpsError("invalid-argument", "Valid student, course, provider and 1-12 subscription months are required.");
+  }
+
+  const [studentSnap, courseSnap] = await Promise.all([
+    db.collection("users").doc(studentId).get(),
+    db.collection("courses").doc(courseId).get(),
+  ]);
+
+  if (!studentSnap.exists ||
+      studentSnap.data()?.role !== ROLES.STUDENT ||
+      studentSnap.data()?.parentId !== parentUid) {
+    throw new HttpsError("permission-denied", "The selected student is not linked to this parent.");
+  }
+
+  if (!courseSnap.exists ||
+      courseSnap.data()?.status !== "published" ||
+      courseSnap.data()?.approvalStatus !== "approved") {
+    throw new HttpsError("failed-precondition", "This course is not approved for subscription.");
+  }
+
+  const teacherSnap = await db.collection("users").doc(courseSnap.data()?.teacherId).get();
+  if (!teacherSnap.exists || teacherSnap.data()?.approvalStatus !== "approved") {
+    throw new HttpsError("failed-precondition", "This teacher is not approved.");
+  }
+
+  const unitPrice = Number(courseSnap.data()?.price);
+  if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+    throw new HttpsError("failed-precondition", "The course does not have a valid subscription price.");
+  }
+
+  const amount = Math.round(unitPrice * months * 100) / 100;
+  const paymentRef = db.collection("payments").doc();
+  await paymentRef.set({
+    parentId: parentUid,
+    studentId,
+    courseId,
+    subscriptionId: `${studentId}_${courseId}`,
+    amount,
+    currency: "EGP",
+    months,
+    provider,
+    ...(providerRef ? { providerRef } : {}),
+    status: "pending",
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  return { ok: true, paymentId: paymentRef.id, amount, currency: "EGP", status: "pending" };
+});
