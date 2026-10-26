@@ -43,8 +43,8 @@ class CourseAnalyticsPage extends StatelessWidget {
           if (courseSnap.hasError) return Center(child: Text('Unable to load course: ${courseSnap.error}'));
           if (!courseSnap.hasData) return Center(child: CircularProgressIndicator());
           final course = courseSnap.data!.data();
-          if (course == null) return Center(child: Text('Course not found.'));
-          if (course['teacherId'] != uid) return Center(child: Text('You can only view analytics for your own courses.'));
+          if (course == null) return Center(child: Text(fypTranslate(context, 'course_not_found', 'Course not found.')));
+          if (course['teacherId'] != uid) return Center(child: Text(fypTranslate(context, 'course_analytics_owner_only', 'You can only view analytics for your own courses.')));
           return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
             stream: FirebaseFirestore.instance.collection('courses').doc(courseId).collection('videos').orderBy('order').snapshots(),
             builder: (context, videosSnap) {
