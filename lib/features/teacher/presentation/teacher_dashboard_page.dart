@@ -210,12 +210,12 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                     return Card(
                       elevation: 0,
                       margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.blueGrey.shade100)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Theme.of(context).colorScheme.onSurfaceVariant.shade100)),
                       child: ListTile(
                         contentPadding: const EdgeInsets.all(14),
                         leading: Container(
                           width: 48, height: 48,
-                          decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(12)),
+                          decoration: BoxDecoration(color: Theme.of(context).colorScheme.primaryContainer, borderRadius: BorderRadius.circular(12)),
                           child: Icon(Icons.play_lesson, color: Theme.of(context).colorScheme.primary),
                         ),
                         title: Text((data['title'] ?? 'Untitled course').toString(), style: TextStyle(fontWeight: FontWeight.bold)),
