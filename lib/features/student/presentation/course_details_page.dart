@@ -29,10 +29,9 @@ class StudentCourseDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: BrandColors.navy,
-        foregroundColor: Colors.white,
+        
         title: const Text('Course details'),
       ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -158,7 +157,7 @@ class _EmptyLessons extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+    decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16)),
     child: const Column(children: [
       Icon(Icons.video_library_outlined, color: BrandColors.navy, size: 38),
       SizedBox(height: 10),
