@@ -319,5 +319,36 @@ export const getPreviewVideoUrl = onCall(async (request) => {
   if (!teacherSnap.exists || teacherSnap.data()?.approvalStatus !== "approved") {
     throw new HttpsError("permission-denied", "The teacher is not currently approved.");
   }
+
+  // Count unique student previews server-side. Clients cannot write video_views
+  // or alter viewCount directly. Reopening the same preview does not inflate it.
+  const studentId = request.auth.uid;
+  const viewRef = db.collection("video_views").doc(
+    `${courseId}_${videoId}_${studentId}`
+  );
+  await db.runTransaction(async (tx) => {
+    const [viewSnap, currentVideoSnap] = await Promise.all([
+      tx.get(viewRef),
+      tx.get(videoRef),
+    ]);
+    if (!currentVideoSnap.exists) {
+      throw new HttpsError("not-found", "Lesson not found.");
+    }
+    if (!viewSnap.exists) {
+      tx.create(viewRef, {
+        studentId,
+        courseId,
+        videoId,
+        teacherId: courseSnap.data()?.teacherId,
+        viewedAt: FieldValue.serverTimestamp(),
+        viewType: "free_preview",
+      });
+      tx.update(videoRef, {
+        viewCount: FieldValue.increment(1),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+  });
+
   return { ok: true, videoUrl: sourceSnap.data()?.videoUrl };
 });
