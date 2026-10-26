@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/brand_colors.dart';
@@ -53,7 +55,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Video upload is not connected yet. This creates lesson metadata only; it does not publish a playable video.',
+                  'Upload a video file (up to 500 MB) after creating this lesson. It stays private until approval.',
                   style: TextStyle(color: Colors.blueGrey, fontSize: 12),
                 ),
               ],
@@ -114,7 +116,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lesson details saved. Add the video file in the next upload stage.')),
+          const SnackBar(content: Text('Lesson details saved. Upload its video using the video button.')),
         );
       }
     } catch (error) {
@@ -129,52 +131,79 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
   }
 
   Future<void> _addVideoSource(String videoId) async {
-    final controller = TextEditingController();
-    final url = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Link Google Drive video'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.url,
-              decoration: const InputDecoration(labelText: 'Google Drive share URL', hintText: 'https://drive.google.com/file/d/...'),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'For this prototype, set the Drive file to Anyone with the link can view. Only approved first lessons are shown as student previews.',
-              style: TextStyle(fontSize: 12, color: Colors.blueGrey),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-          FilledButton(onPressed: () { if (controller.text.trim().isNotEmpty) Navigator.pop(dialogContext, controller.text.trim()); }, child: const Text('Save link')),
-        ],
-      ),
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.video,
+      allowMultiple: false,
+      withData: true,
     );
-    controller.dispose();
-    if (url == null || !mounted) return;
+    if (picked == null || picked.files.isEmpty || !mounted) return;
+    final file = picked.files.single;
+    final bytes = file.bytes;
+    if (bytes == null || bytes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not read the selected video file. Please try again.')),
+      );
+      return;
+    }
+    if (bytes.length > 500 * 1024 * 1024) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Videos must be 500 MB or smaller.')),
+      );
+      return;
+    }
+
+    final safeName = file.name.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    final storagePath = 'course-videos/${widget.courseId}/$videoId/${DateTime.now().millisecondsSinceEpoch}_$safeName';
     setState(() => saving = true);
     try {
+      final task = await FirebaseStorage.instance.ref(storagePath).putData(
+        bytes,
+        SettableMetadata(contentType: _videoContentType(file.extension)),
+      );
+      if (task.state != TaskState.success) {
+        throw StateError('Video upload did not complete.');
+      }
       await FirebaseFunctions.instance.httpsCallable('registerVideoSource').call({
         'courseId': widget.courseId,
         'videoId': videoId,
-        'videoUrl': url,
+        'storagePath': storagePath,
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Video source linked. It will be available after lesson and course approval.')),
+          const SnackBar(content: Text('Video uploaded to private storage. It becomes available after lesson and course approval.')),
         );
       }
     } on FirebaseFunctionsException catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message ?? 'Could not link video.')));
+      try { await FirebaseStorage.instance.ref(storagePath).delete(); } catch (_) {}
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? 'Could not register the uploaded video.')),
+        );
+      }
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not link video: $error')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not upload video: $error')),
+        );
+      }
     } finally {
       if (mounted) setState(() => saving = false);
+    }
+  }
+
+  String _videoContentType(String? extension) {
+    switch ((extension ?? '').toLowerCase()) {
+      case 'mp4': return 'video/mp4';
+      case 'webm': return 'video/webm';
+      case 'mov': return 'video/quicktime';
+      case 'm4v': return 'video/x-m4v';
+      case 'avi': return 'video/x-msvideo';
+      case 'mpeg':
+      case 'mpg': return 'video/mpeg';
+      default: return 'video/mp4';
     }
   }
 
@@ -246,8 +275,8 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                           title: Text((data['title'] ?? 'Lesson').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['sourceLinked'] == true ? 'Video linked' : 'Video not linked'} • ${data['approvalStatus'] ?? 'pending review'}'),
                           trailing: IconButton(
-                            tooltip: 'Link video source',
-                            icon: const Icon(Icons.video_file_outlined, color: BrandColors.navy),
+                            tooltip: 'Upload video',
+                            icon: Icon(data['sourceLinked'] == true ? Icons.check_circle_outline : Icons.upload_file_outlined, color: Theme.of(context).colorScheme.primary),
                             onPressed: saving ? null : () => _addVideoSource(doc.id),
                           ),
                         ),
