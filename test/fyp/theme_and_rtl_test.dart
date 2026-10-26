@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,7 +46,7 @@ double _luminance(Color color) {
     final normalized = value / 255.0;
     return normalized <= 0.04045
         ? normalized / 12.92
-        : _pow((normalized + 0.055) / 1.055, 2.4);
+        : math.pow((normalized + 0.055) / 1.055, 2.4).toDouble();
   }
 
   return 0.2126 * channel(color.red) +
@@ -52,10 +54,3 @@ double _luminance(Color color) {
       0.0722 * channel(color.blue);
 }
 
-double _pow(double value, double exponent) {
-  var result = 1.0;
-  for (var i = 0; i < exponent.round(); i++) {
-    result *= value;
-  }
-  return result;
-}
