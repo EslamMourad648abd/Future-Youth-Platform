@@ -222,7 +222,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(fypTranslate(context, 'total_amount', 'Total amount'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                    Text('$coursePrice EGP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.primary)),
+                                    Text(AppLocalizations.of(context)?.translate('egp_per_month', params: {'price': '$coursePrice'}) ?? '$coursePrice EGP/month', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.primary)),
                                   ],
                                 ),
                               ),
@@ -230,7 +230,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               Text(fypTranslate(context, 'select_payment_method', 'Select Payment Method'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Theme.of(context).colorScheme.primary)),
                               SizedBox(height: 12),
                               RadioListTile<String>(
-                                title: Text('InstaPay (National Bank / App Transfer)'),
+                                title: Text(fypTranslate(context, 'instapay_transfer', 'InstaPay (National Bank / App Transfer)')),
                                 subtitle: Text(fypTranslate(context, 'illustrative_account_details', 'Illustrative account details — to be configured')),
                                 value: 'instapay',
                                 groupValue: selectedPaymentMethod,
