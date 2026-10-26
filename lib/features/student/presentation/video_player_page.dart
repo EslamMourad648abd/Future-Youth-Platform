@@ -238,11 +238,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                       Container(
                         height: 220,
                         decoration: BoxDecoration(
-                          color: Colors.black12,
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Center(
-                          child: Text(loadError == null ? fypTranslate(context, 'video_not_configured', 'Video preview is not configured for this lesson yet.') : '${fypTranslate(context, 'video_load_failed', 'Could not load lesson')}: $loadError', textAlign: TextAlign.center),
+                          child: Text(loadError == null ? fypTranslate(context, 'video_not_configured', 'Video preview is not configured for this lesson yet.') : '${fypTranslate(context, 'video_load_failed', 'Could not load lesson')}: $loadError', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ),
                       ),
                     SizedBox(height: 16),
