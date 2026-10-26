@@ -11,6 +11,7 @@ import '../features/parent/presentation/create_student_page.dart';
 import '../features/parent/presentation/parent_dashboard_page.dart';
 import '../features/parent/presentation/subscription_page.dart';
 import '../features/student/presentation/student_home_page.dart';
+import '../features/student/presentation/course_details_page.dart';
 import '../features/student/presentation/video_player_page.dart';
 import '../features/teacher/presentation/teacher_dashboard_page.dart';
 import '../features/teacher/presentation/course_analytics_page.dart';
@@ -74,6 +75,12 @@ GoRouter createFypRouter(AuthController authController) {
       GoRoute(
         path: FypRoutes.student,
         builder: (context, state) => const StudentHomePage(),
+      ),
+      GoRoute(
+        path: FypRoutes.studentCourse,
+        builder: (context, state) => StudentCourseDetailsPage(
+          courseId: state.pathParameters['courseId'] ?? '',
+        ),
       ),
       GoRoute(
         path: FypRoutes.studentVideo,
