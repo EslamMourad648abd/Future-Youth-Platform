@@ -107,7 +107,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                             SizedBox(height: 4),
                             Text(
                               'Manage student accounts, course options, and learning progress',
-                              style: TextStyle(fontSize: 13, color: Colors.grey),
+                              style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -122,7 +122,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Colors.blueGrey.shade100),
+                  side: BorderSide(color: Theme.of(context).colorScheme.onSurfaceVariant.shade100),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
@@ -139,7 +139,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                           children: [
                             Text(fypTranslate(context, 'subscription_access', 'Subscriptions & access'), style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary, fontSize: 16)),
                             SizedBox(height: 4),
-                            Text('Review course options and see the checkout interface. Payment processing is disabled for now.', style: TextStyle(color: Colors.blueGrey, fontSize: 12)),
+                            Text('Review course options and see the checkout interface. Payment processing is disabled for now.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
                           ],
                         ),
                       ),
@@ -194,17 +194,17 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.face, size: 60, color: Colors.grey.shade400),
+                Icon(Icons.face, size: 60, color: Theme.of(context).colorScheme.onSurfaceVariant.shade400),
                 SizedBox(height: 12),
                 Text(
                   'No student accounts created yet.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 8),
                 Text(
                   'Click "Add Student" above to register an account for your child.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -247,7 +247,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                             student['displayName'] ?? student['email'] ?? 'Student',
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
-                          Text(student['email'] ?? '', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          Text(student['email'] ?? '', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ],
                       ),
                     ),
@@ -265,7 +265,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                 SizedBox(height: 8),
                 Text(
                   'Progress, completed lessons, and learning time will appear here as activity tracking is connected.',
-                  style: TextStyle(fontSize: 12, color: Colors.blueGrey, height: 1.4),
+                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.4),
                 ),
               ],
             ),
