@@ -66,7 +66,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Parent Workspace'),
+        title: Text('Parent Workspace'),
         
         actions: [
           IconButton(
@@ -90,12 +90,12 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                   padding: const EdgeInsets.all(20),
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 28,
                         backgroundColor: BrandColors.navyTint,
                         child: Icon(Icons.family_restroom, color: Theme.of(context).colorScheme.primary, size: 30),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,8 +104,8 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                               'Welcome, $displayName',
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                             ),
-                            const SizedBox(height: 4),
-                            const Text(
+                            SizedBox(height: 4),
+                            Text(
                               'Manage student accounts, course options, and learning progress',
                               style: TextStyle(fontSize: 13, color: Colors.grey),
                             ),
@@ -116,7 +116,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               Card(
                 color: Colors.white,
                 elevation: 0,
@@ -128,11 +128,11 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                   padding: const EdgeInsets.all(18),
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         backgroundColor: BrandColors.navyTint,
                         child: Icon(Icons.subscriptions_outlined, color: Theme.of(context).colorScheme.primary),
                       ),
-                      const SizedBox(width: 14),
+                      SizedBox(width: 14),
                       const Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,27 +143,27 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       FilledButton(
                         onPressed: () => context.go(FypRoutes.parentSubscriptions),
-                        child: const Text('Open'),
+                        child: Text('Open'),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Enrolled Students / Children',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                   ),
                   ElevatedButton.icon(
                     onPressed: () => context.go(FypRoutes.parentCreateStudent),
                     icon: Icon(Icons.person_add, size: 18),
-                    label: const Text('Add Student'),
+                    label: Text('Add Student'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: BrandColors.green,
                       foregroundColor: Colors.white,
@@ -172,7 +172,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               _buildStudentList(context),
             ],
           ),
@@ -183,7 +183,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
 
   Widget _buildStudentList(BuildContext context) {
     if (loading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator());
     }
 
     if (students.isEmpty) {
@@ -195,13 +195,13 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
             child: Column(
               children: [
                 Icon(Icons.face, size: 60, color: Colors.grey.shade400),
-                const SizedBox(height: 12),
-                const Text(
+                SizedBox(height: 12),
+                Text(
                   'No student accounts created yet.',
                   style: TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                SizedBox(height: 8),
+                Text(
                   'Click "Add Student" above to register an account for your child.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 13, color: Colors.grey),
@@ -217,7 +217,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: students.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      separatorBuilder: (context, index) => SizedBox(height: 12),
       itemBuilder: (context, index) {
         final student = students[index];
         return Card(
@@ -234,11 +234,11 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
               children: [
                 Row(
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       backgroundColor: BrandColors.navyTint,
                       child: Icon(Icons.school, color: Theme.of(context).colorScheme.primary),
                     ),
-                    const SizedBox(width: 14),
+                    SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,17 +253,17 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                     ),
                     OutlinedButton(
                       onPressed: () => context.go(FypRoutes.parentSubscriptions),
-                      child: const Text('Manage Subscriptions'),
+                      child: Text('Manage Subscriptions'),
                     ),
                   ],
                 ),
-                const Divider(height: 24),
-                const Text(
+                Divider(height: 24),
+                Text(
                   'Learning analytics',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).colorScheme.primary),
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                SizedBox(height: 8),
+                Text(
                   'Progress, completed lessons, and learning time will appear here as activity tracking is connected.',
                   style: TextStyle(fontSize: 12, color: Colors.blueGrey, height: 1.4),
                 ),
