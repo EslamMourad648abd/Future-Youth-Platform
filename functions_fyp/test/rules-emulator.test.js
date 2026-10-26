@@ -77,13 +77,13 @@ test("only the owning teacher can upload a video to their own draft lesson", asy
   const otherTeacher = env.authenticatedContext("teacher-2", { role: "teacher" }).storage();
   const ownPath = "course-videos/course-1/video-1/lesson.mp4";
 
-  await assertSucceeds(uploadString(ref(owner, ownPath), "video-fixture", {
+  await assertSucceeds(uploadString(ref(owner, ownPath), "video-fixture", "raw", {
     contentType: "video/mp4",
   }));
-  await assertFails(uploadString(ref(otherTeacher, ownPath), "video-fixture", {
+  await assertFails(uploadString(ref(otherTeacher, ownPath), "video-fixture", "raw", {
     contentType: "video/mp4",
   }));
-  await assertFails(uploadString(ref(owner, "course-videos/course-1/video-1/not-video.txt"), "text", {
+  await assertFails(uploadString(ref(owner, "course-videos/course-1/video-1/not-video.txt"), "text", "raw", {
     contentType: "text/plain",
   }));
 });
