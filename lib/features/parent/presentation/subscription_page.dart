@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -86,72 +87,35 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   Future<void> _processPayment() async {
     if (!_formKey.currentState!.validate()) return;
-    if (selectedStudentId == null || selectedCourseId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select both a student and a course.'),
-          backgroundColor: BrandColors.error,
-        ),
-      );
+    if (selectedStudentId == null || selectedCourseId == null || selectedPaymentMethod == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a student, course and payment method.')));
       return;
     }
-
-    setState(() {
-      submitting = true;
-    });
-
-    final parentUser = FirebaseAuth.instance.currentUser;
-
+    setState(() => submitting = true);
     try {
-      final paymentRef = await FirebaseFirestore.instance.collection(FirestorePaths.payments).add({
-        'parentId': parentUser?.uid,
+      final callable = FirebaseFunctions.instance.httpsCallable('createPaymentRequest');
+      final result = await callable.call(<String, dynamic>{
         'studentId': selectedStudentId,
         'courseId': selectedCourseId,
-        'amount': coursePrice,
-        'currency': 'EGP',
-        'paymentMethod': selectedPaymentMethod,
-        'referenceNumber': _referenceCtrl.text.trim(),
-        'status': 'completed',
-        'createdAt': FieldValue.serverTimestamp(),
+        'provider': selectedPaymentMethod,
+        'months': 1,
+        'providerRef': _referenceCtrl.text.trim(),
       });
-
-      await FirebaseFirestore.instance.collection(FirestorePaths.subscriptions).add({
-        'parentId': parentUser?.uid,
-        'studentId': selectedStudentId,
-        'courseId': selectedCourseId,
-        'paymentId': paymentRef.id,
-        'status': 'active',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      if (widget.invoiceId != null && widget.invoiceId!.isNotEmpty) {
-        await FirebaseFirestore.instance.collection('invoices').doc(widget.invoiceId).update({
-          'status': 'paid',
-          'paymentMethod': selectedPaymentMethod,
-          'paidAt': FieldValue.serverTimestamp(),
-        });
-      }
-
+      final data = Map<String, dynamic>.from(result.data as Map);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Payment processed successfully! Subscription is active.'),
-          backgroundColor: BrandColors.greenText,
-        ),
-      );
-
-      context.go(FypRoutes.parent);
+      await showDialog<void>(context: context, barrierDismissible: false, builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.hourglass_top_rounded, color: Color(0xFF00A651), size: 38),
+        title: const Text('Payment request submitted'),
+        content: Text('Request ID: ${data['paymentId']}\nAmount: ${data['amount']} EGP\n\nYour subscription will unlock after an administrator verifies receipt of your transfer.'),
+        actions: [FilledButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Done'))],
+      ));
+      if (mounted) context.go(FypRoutes.parent);
+    } on FirebaseFunctionsException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message ?? 'Could not submit payment request.'), backgroundColor: BrandColors.error));
     } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        submitting = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Payment failed: $e'),
-          backgroundColor: BrandColors.error,
-        ),
-      );
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not submit payment request: $e'), backgroundColor: BrandColors.error));
+    } finally {
+      if (mounted) setState(() => submitting = false);
     }
   }
 
