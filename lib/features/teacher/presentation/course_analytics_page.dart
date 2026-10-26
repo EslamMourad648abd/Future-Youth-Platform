@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
 
 class CourseAnalyticsPage extends StatelessWidget {
   const CourseAnalyticsPage({super.key, required this.courseId});
@@ -35,7 +36,7 @@ class CourseAnalyticsPage extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(title: const Text('Course analytics')),
+      appBar: AppBar(title: Text(fypTranslate(context, 'course_analytics', 'Course analytics'))),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('courses').doc(courseId).snapshots(),
         builder: (context, courseSnap) {
@@ -87,7 +88,7 @@ class CourseAnalyticsPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      const Text('Lesson performance', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+                      Text(fypTranslate(context, 'lessons', 'Lessons'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.navy)),
                       const SizedBox(height: 10),
                       if (stats.isEmpty)
                         const _EmptyAnalytics()
