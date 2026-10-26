@@ -5,9 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/fyp_routes.dart';
-import '../../../core/theme/brand_colors.dart';
 import '../../../services/localization_service.dart';
-import '../../../modules/training/widgets/google_drive_player.dart';
 
 class VideoPlayerPage extends StatefulWidget {
   final String courseId;
