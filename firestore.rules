@@ -135,11 +135,7 @@ service cloud.firestore {
     match /payments/{paymentId} {
       allow read: if isAdmin() ||
         (request.auth != null && resource.data.parentId == request.auth.uid);
-      allow create: if isParent() &&
-        request.resource.data.parentId == request.auth.uid &&
-        request.resource.data.status == "pending" &&
-        request.resource.data.provider in ["instapay", "vodafone_cash", "orange_cash", "etisalat_cash"] &&
-        request.resource.data.keys().hasOnly(["parentId", "studentId", "courseId", "subscriptionId", "amount", "currency", "provider", "providerRef", "status", "createdAt"]);
+      allow create: if false; // Use createPaymentRequest Cloud Function.
       allow update, delete: if isAdmin();
     }
 
