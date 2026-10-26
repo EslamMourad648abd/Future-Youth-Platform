@@ -94,13 +94,13 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             children: [
               Text(fypTranslate(context, 'create_course_prompt', 'Create a course'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               SizedBox(height: 16),
-              TextField(controller: _title, decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'course_title', 'Course title'), prefixIcon: Icon(Icons.menu_book_outlined))),
+              TextField(controller: _title, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'course_title', 'Course title'), prefixIcon: Icon(Icons.menu_book_outlined))),
               SizedBox(height: 12),
-              TextField(controller: _subject, decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'subject_label', 'Subject'), prefixIcon: Icon(Icons.category_outlined))),
+              TextField(controller: _subject, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'subject_label', 'Subject'), prefixIcon: Icon(Icons.category_outlined))),
               SizedBox(height: 12),
-              TextField(controller: _description, maxLines: 3, decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'description_label', 'Description'))),
+              TextField(controller: _description, maxLines: 3, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'description_label', 'Description'))),
               SizedBox(height: 12),
-              TextField(controller: _price, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'monthly_price_egp', 'Monthly price (EGP)'), prefixIcon: Icon(Icons.payments_outlined))),
+              TextField(controller: _price, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'monthly_price_egp', 'Monthly price (EGP)'), prefixIcon: Icon(Icons.payments_outlined))),
               SizedBox(height: 18),
               SizedBox(
                 width: double.infinity,
