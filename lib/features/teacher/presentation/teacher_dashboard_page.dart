@@ -132,7 +132,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
               if (!context.mounted) return;
               context.go(FypRoutes.entry);
             },
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout),
           ),
         ],
       ),
@@ -140,7 +140,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         onPressed: _showCreateCourse,
         backgroundColor: const Color(0xFF00A651),
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
+        icon: Icon(Icons.add),
         label: const Text('New course'),
       ),
       body: SafeArea(
@@ -161,21 +161,21 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.auto_stories, color: Colors.white, size: 32),
+                      Icon(Icons.auto_stories, color: Colors.white, size: 32),
                       const SizedBox(height: 12),
                       Text('Welcome, ${profile['displayName'] ?? user?.displayName ?? 'Teacher'}',
-                        style: const TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
+                        style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       Text(
                         approved ? 'Your educator profile is approved. Build your learning library.' : 'Your profile is awaiting admin approval. Publishing remains locked until approved.',
-                        style: const TextStyle(color: Colors.white70, height: 1.4),
+                        style: TextStyle(color: Colors.white70, height: 1.4),
                       ),
                       const SizedBox(height: 14),
                       Chip(
                         avatar: Icon(approved ? Icons.verified : Icons.hourglass_top, color: Colors.white, size: 18),
                         label: Text(approved ? 'Approved educator' : 'Approval pending'),
                         backgroundColor: Colors.white.withValues(alpha: .15),
-                        labelStyle: const TextStyle(color: Colors.white),
+                        labelStyle: TextStyle(color: Colors.white),
                       ),
                     ],
                   ),
@@ -183,7 +183,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
               },
             ),
             const SizedBox(height: 24),
-            Text(fypTranslate(context, 'your_courses', 'Your courses'), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: BrandColors.navy)),
+            Text(fypTranslate(context, 'your_courses', 'Your courses'), style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
             const SizedBox(height: 12),
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance.collection('courses').where('teacherId', isEqualTo: user?.uid).snapshots(),
@@ -196,7 +196,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                     padding: const EdgeInsets.all(26),
                     decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(18)),
                     child: const Column(children: [
-                      Icon(Icons.video_library_outlined, size: 42, color: BrandColors.navy),
+                      Icon(Icons.video_library_outlined, size: 42, color: Theme.of(context).colorScheme.primary),
                       SizedBox(height: 10),
                       Text('Your teaching library starts here', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
                       SizedBox(height: 6),
@@ -216,15 +216,15 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                         leading: Container(
                           width: 48, height: 48,
                           decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(12)),
-                          child: const Icon(Icons.play_lesson, color: BrandColors.navy),
+                          child: Icon(Icons.play_lesson, color: Theme.of(context).colorScheme.primary),
                         ),
-                        title: Text((data['title'] ?? 'Untitled course').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text((data['title'] ?? 'Untitled course').toString(), style: TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text('${data['subject'] ?? 'Subject'} • ${data['videoCount'] ?? 0} videos • ${data['price'] ?? '—'} EGP/month\n${data['status'] ?? 'draft'} • ${data['approvalStatus'] ?? 'pending review'}'),
                         isThreeLine: true,
                         trailing: IconButton(
                           tooltip: 'Course analytics',
                           onPressed: () => context.go(FypRoutes.teacherCourseAnalyticsFor(doc.id)),
-                          icon: const Icon(Icons.insights_outlined, color: BrandColors.navy),
+                          icon: Icon(Icons.insights_outlined, color: Theme.of(context).colorScheme.primary),
                         ),
                         onTap: () => context.go(FypRoutes.teacherCourseEditorFor(doc.id),),
                       ),
