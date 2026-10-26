@@ -69,9 +69,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       }
 
       final commentsSnapshot = await FirebaseFirestore.instance
-          .collection('training_courses')
+          .collection('courses')
           .doc(widget.courseId)
-          .collection('lessons')
+          .collection('videos')
           .doc(widget.videoId)
           .collection('comments')
           .orderBy('createdAt', descending: true)
@@ -110,9 +110,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
     try {
       await FirebaseFirestore.instance
-          .collection('training_courses')
+          .collection('courses')
           .doc(widget.courseId)
-          .collection('lessons')
+          .collection('videos')
           .doc(widget.videoId)
           .set({
         'likesCount': likesCount,
@@ -140,9 +140,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
     try {
       await FirebaseFirestore.instance
-          .collection('training_courses')
+          .collection('courses')
           .doc(widget.courseId)
-          .collection('lessons')
+          .collection('videos')
           .doc(widget.videoId)
           .set({
         'likesCount': likesCount,
@@ -164,9 +164,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
     try {
       await FirebaseFirestore.instance
-          .collection('training_courses')
+          .collection('courses')
           .doc(widget.courseId)
-          .collection('lessons')
+          .collection('videos')
           .doc(widget.videoId)
           .collection('comments')
           .add({
