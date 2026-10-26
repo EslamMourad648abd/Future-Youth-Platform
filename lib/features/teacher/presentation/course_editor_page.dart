@@ -35,27 +35,27 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
               children: [
                 TextFormField(
                   controller: titleController,
-                  decoration: const InputDecoration(labelText: 'Lesson title'),
+                  decoration: InputDecoration(labelText: 'Lesson title'),
                   validator: (value) => value == null || value.trim().isEmpty ? 'Enter a lesson title' : null,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 TextFormField(
                   controller: descriptionController,
                   maxLines: 3,
-                  decoration: const InputDecoration(labelText: 'Description'),
+                  decoration: InputDecoration(labelText: 'Description'),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 TextFormField(
                   controller: durationController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Duration (minutes)'),
+                  decoration: InputDecoration(labelText: 'Duration (minutes)'),
                   validator: (value) {
                     final duration = int.tryParse(value ?? '');
                     return duration == null || duration < 1 ? 'Enter a valid duration' : null;
                   },
                 ),
-                const SizedBox(height: 12),
-                const Text(
+                SizedBox(height: 12),
+                Text(
                   'Upload a video file (up to 500 MB) after creating this lesson. It stays private until approval.',
                   style: TextStyle(color: Colors.blueGrey, fontSize: 12),
                 ),
@@ -64,7 +64,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('Cancel')),
           FilledButton(
             onPressed: () {
               if (!formKey.currentState!.validate()) return;
@@ -74,7 +74,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                 'duration': durationController.text.trim(),
               });
             },
-            child: const Text('Add lesson'),
+            child: Text('Add lesson'),
           ),
         ],
       ),
@@ -117,7 +117,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lesson details saved. Upload its video using the video button.')),
+          SnackBar(content: Text('Lesson details saved. Upload its video using the video button.')),
         );
       }
     } catch (error) {
@@ -145,13 +145,13 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
     final bytes = file.bytes;
     if (bytes == null || bytes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not read the selected video file. Please try again.')),
+        SnackBar(content: Text('Could not read the selected video file. Please try again.')),
       );
       return;
     }
     if (bytes.length > 500 * 1024 * 1024) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Videos must be 500 MB or smaller.')),
+        SnackBar(content: Text('Videos must be 500 MB or smaller.')),
       );
       return;
     }
@@ -223,46 +223,46 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
         backgroundColor: BrandColors.green,
         foregroundColor: Colors.white,
         icon: Icon(Icons.add),
-        label: const Text('Add lesson'),
+        label: Text('Add lesson'),
       ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: courseRef.snapshots(),
         builder: (context, courseSnapshot) {
           if (courseSnapshot.hasError) return Center(child: Text('Could not load course: ${courseSnapshot.error}'));
-          if (!courseSnapshot.hasData) return const Center(child: CircularProgressIndicator());
+          if (!courseSnapshot.hasData) return Center(child: CircularProgressIndicator());
           final course = courseSnapshot.data!.data();
-          if (course == null) return const Center(child: Text('Course not found.'));
-          if (course['teacherId'] != uid) return const Center(child: Text('You can only edit your own courses.'));
+          if (course == null) return Center(child: Text('Course not found.'));
+          if (course['teacherId'] != uid) return Center(child: Text('You can only edit your own courses.'));
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
               Container(
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [BrandColors.navy, Color(0xFF3D56A6)]),
+                  gradient: LinearGradient(colors: [BrandColors.navy, Color(0xFF3D56A6)]),
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Icon(Icons.edit_note, color: Colors.white, size: 32),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Text((course['title'] ?? 'Course').toString(), style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
                   Text('${course['subject'] ?? 'Subject'} • ${course['price'] ?? '—'} EGP/month', style: TextStyle(color: Colors.white70)),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Text('Status: ${course['status'] ?? 'draft'} • Review: ${course['approvalStatus'] ?? 'pending'}', style: TextStyle(color: Colors.white)),
                 ]),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               Text(fypTranslate(context, 'lessons', 'Lessons'), style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: courseRef.collection('videos').orderBy('order').snapshots(),
                 builder: (context, lessonSnapshot) {
                   if (lessonSnapshot.hasError) return Text('Could not load lessons: ${lessonSnapshot.error}');
-                  if (!lessonSnapshot.hasData) return const LinearProgressIndicator();
+                  if (!lessonSnapshot.hasData) return LinearProgressIndicator();
                   final lessons = lessonSnapshot.data!.docs;
                   if (lessons.isEmpty) {
-                    return const Card(child: Padding(padding: EdgeInsets.all(24), child: Text('No lessons yet. Use Add lesson to build the course outline.')));
+                    return Card(child: Padding(padding: EdgeInsets.all(24), child: Text('No lessons yet. Use Add lesson to build the course outline.')));
                   }
                   return Column(
                     children: lessons.map((doc) {
@@ -285,7 +285,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                   );
                 },
               ),
-              const SizedBox(height: 70),
+              SizedBox(height: 70),
             ],
           );
         },
