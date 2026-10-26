@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -62,7 +63,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         title = data['title'] ?? 'Lesson Video';
         locked = ((data['order'] as num?)?.toInt() ?? 1) > 1 || data['status'] != 'published' || data['approvalStatus'] != 'approved';
         description = data['description'] ?? '';
-        videoUrl = data['videoUrl']?.toString();
+        if (!locked) {
+          final result = await FirebaseFunctions.instance.httpsCallable('getPreviewVideoUrl').call({
+            'courseId': widget.courseId,
+            'videoId': widget.videoId,
+          });
+          videoUrl = (result.data as Map)['videoUrl']?.toString();
+        }
 
       }
 
@@ -105,6 +112,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       if (!mounted) return;
       setState(() {
         loading = false;
+        locked = true;
         loadError = e.toString();
       });
     }
