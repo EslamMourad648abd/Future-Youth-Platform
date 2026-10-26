@@ -66,7 +66,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Parent Workspace'),
+        title: Text(fypTranslate(context, 'parent_workspace', 'Parent Workspace')),
         
         actions: [
           IconButton(
@@ -106,7 +106,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                             ),
                             SizedBox(height: 4),
                             Text(
-                              'Manage student accounts, course options, and learning progress',
+                              fypTranslate(context, 'manage_student_accounts', 'Manage student accounts, course options, and learning progress.'),
                               style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ],
@@ -157,13 +157,13 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Enrolled Students / Children',
+                    fypTranslate(context, 'enrolled_students_children', 'Enrolled students / children'),
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                   ),
                   ElevatedButton.icon(
                     onPressed: () => context.go(FypRoutes.parentCreateStudent),
                     icon: Icon(Icons.person_add, size: 18),
-                    label: Text('Add Student'),
+                    label: Text(fypTranslate(context, 'add_student', 'Add student')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: BrandColors.green,
                       foregroundColor: Colors.white,
@@ -197,7 +197,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                 Icon(Icons.face, size: 60, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 SizedBox(height: 12),
                 Text(
-                  'No student accounts created yet.',
+                  fypTranslate(context, 'no_student_accounts', 'No student accounts created yet.'),
                   style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 8),
@@ -253,18 +253,18 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                     ),
                     OutlinedButton(
                       onPressed: () => context.go(FypRoutes.parentSubscriptions),
-                      child: Text('Manage Subscriptions'),
+                      child: Text(fypTranslate(context, 'manage_subscriptions', 'Manage subscriptions')),
                     ),
                   ],
                 ),
                 Divider(height: 24),
                 Text(
-                  'Learning analytics',
+                  fypTranslate(context, 'learning_analytics', 'Learning analytics'),
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).colorScheme.primary),
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Progress, completed lessons, and learning time will appear here as activity tracking is connected.',
+                  fypTranslate(context, 'learning_progress_placeholder', 'Progress, completed lessons, and learning time will appear here as activity tracking is connected.'),
                   style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.4),
                 ),
               ],
