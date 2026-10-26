@@ -134,3 +134,92 @@ export const createStudent = onCall(async (request) => {
 
   return { ok: true, uid: userRecord.uid, username: rawUsername };
 });
+
+
+/**
+ * Admin-only teacher review. Approval state is written by the server, never
+ * directly by a client SDK.
+ */
+export const reviewTeacher = onCall(async (request) => {
+  const reviewerUid = requireRole(request, [ROLES.ADMIN]);
+  const teacherId = String(request.data?.teacherId || "").trim();
+  const decision = request.data?.decision;
+  const reason = String(request.data?.reason || "").trim();
+
+  if (!teacherId || !["approve", "reject"].includes(decision)) {
+    throw new HttpsError("invalid-argument", "teacherId and approve/reject decision are required.");
+  }
+  if (decision === "reject" && !reason) {
+    throw new HttpsError("invalid-argument", "A rejection reason is required.");
+  }
+
+  const teacherRef = db.collection("users").doc(teacherId);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(teacherRef);
+    if (!snap.exists || snap.data()?.role !== ROLES.TEACHER) {
+      throw new HttpsError("not-found", "Teacher profile was not found.");
+    }
+    tx.update(teacherRef, {
+      approvalStatus: decision === "approve" ? "approved" : "rejected",
+      reviewedBy: reviewerUid,
+      reviewedAt: FieldValue.serverTimestamp(),
+      rejectionReason: decision === "reject" ? reason : FieldValue.delete(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+
+  return { ok: true, teacherId, approvalStatus: decision === "approve" ? "approved" : "rejected" };
+});
+
+/**
+ * Admin-only course/video content review.
+ * Content documents use courses/{courseId} or courses/{courseId}/videos/{videoId}.
+ */
+export const reviewCourseContent = onCall(async (request) => {
+  const reviewerUid = requireRole(request, [ROLES.ADMIN]);
+  const courseId = String(request.data?.courseId || "").trim();
+  const videoId = request.data?.videoId == null ? null : String(request.data.videoId).trim();
+  const decision = request.data?.decision;
+  const reason = String(request.data?.reason || "").trim();
+
+  if (!courseId || (videoId !== null && !videoId) || !["approve", "reject"].includes(decision)) {
+    throw new HttpsError("invalid-argument", "courseId, optional videoId, and approve/reject decision are required.");
+  }
+  if (decision === "reject" && !reason) {
+    throw new HttpsError("invalid-argument", "A rejection reason is required.");
+  }
+
+  const contentRef = videoId
+    ? db.collection("courses").doc(courseId).collection("videos").doc(videoId)
+    : db.collection("courses").doc(courseId);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(contentRef);
+    if (!snap.exists) {
+      throw new HttpsError("not-found", "Submitted content was not found.");
+    }
+    const data = snap.data();
+    if (!data?.teacherId) {
+      throw new HttpsError("failed-precondition", "Content must include teacherId before review.");
+    }
+    const teacherSnap = await tx.get(db.collection("users").doc(data.teacherId));
+    if (!teacherSnap.exists || teacherSnap.data()?.role !== ROLES.TEACHER ||
+        teacherSnap.data()?.approvalStatus !== "approved") {
+      throw new HttpsError("failed-precondition", "The teacher must be approved before content can be approved.");
+    }
+    tx.update(contentRef, {
+      approvalStatus: decision === "approve" ? "approved" : "rejected",
+      status: decision === "approve" ? "published" : "rejected",
+      reviewedBy: reviewerUid,
+      reviewedAt: FieldValue.serverTimestamp(),
+      rejectionReason: decision === "reject" ? reason : FieldValue.delete(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+
+  return {
+    ok: true,
+    courseId,
+    ...(videoId ? { videoId } : {}),
+    approvalStatus: decision === "approve" ? "approved" : "rejected",
+  };
+});
