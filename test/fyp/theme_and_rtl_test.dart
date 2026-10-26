@@ -16,6 +16,9 @@ void main() {
       expect(_contrast(scheme.onSurface, scheme.surface), greaterThanOrEqualTo(4.5));
       expect(_contrast(scheme.onPrimary, scheme.primary), greaterThanOrEqualTo(4.5));
       expect(_contrast(scheme.onSecondary, scheme.secondary), greaterThanOrEqualTo(4.5));
+      expect(_contrast(scheme.onPrimaryContainer, scheme.primaryContainer), greaterThanOrEqualTo(4.5));
+      expect(_contrast(scheme.onSecondaryContainer, scheme.secondaryContainer), greaterThanOrEqualTo(4.5));
+      expect(_contrast(scheme.onError, scheme.error), greaterThanOrEqualTo(4.5));
     }
   });
 
