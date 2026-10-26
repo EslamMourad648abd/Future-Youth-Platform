@@ -5,7 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:future_youth_platform/core/theme/fyp_theme.dart';
-import 'package:future_youth_platform/app/fyp_app.dart';
+import 'package:future_youth_platform/widgets/global_language_switch.dart';
 import 'package:future_youth_platform/widgets/global_theme_switch.dart';
 import 'package:future_youth_platform/services/localization_service.dart';
 
