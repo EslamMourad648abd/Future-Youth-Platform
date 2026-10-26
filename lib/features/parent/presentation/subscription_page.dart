@@ -101,7 +101,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     if (!_formKey.currentState!.validate()) return;
     if (selectedStudentId == null || selectedCourseId == null || selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a student, course and payment method.')),
+        SnackBar(content: Text(fypTranslate(context, 'please_select_student_course_payment', 'Please select a student, course and payment method.'))),
       );
       return;
     }
@@ -231,7 +231,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               SizedBox(height: 12),
                               RadioListTile<String>(
                                 title: Text('InstaPay (National Bank / App Transfer)'),
-                                subtitle: Text('Illustrative account details — to be configured'),
+                                subtitle: Text(fypTranslate(context, 'illustrative_account_details', 'Illustrative account details — to be configured')),
                                 value: 'instapay',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
@@ -239,7 +239,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                               ),
                               RadioListTile<String>(
                                 title: Text('Vodafone Cash'),
-                                subtitle: Text('Illustrative wallet details — to be configured'),
+                                subtitle: Text(fypTranslate(context, 'illustrative_wallet_details', 'Illustrative wallet details — to be configured')),
                                 value: 'vodafone_cash',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
