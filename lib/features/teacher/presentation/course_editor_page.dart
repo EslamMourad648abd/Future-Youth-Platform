@@ -243,9 +243,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                   Row(
                     children: [
                       const Icon(Icons.edit_note, color: Colors.white, size: 32),
-                        icon: const Icon(Icons.folder_shared, size: 18),
-                        label: const Text('Sync Drive Playlist'),
-                      ),
+                      const Spacer(),
                     ],
                   ),
                   const SizedBox(height: 12),
