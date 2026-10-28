@@ -10,7 +10,7 @@ import '../services/localization_service.dart';
 class PrivateLessonVideoPlayer extends StatefulWidget {
   final String url;
   final Future<void> Function(double positionSeconds, bool isPlaying)? onCompleted;
-  final Future<void> Function(int positionSeconds, bool isPlaying)? onProgress;
+  final Future<void> Function(double positionSeconds, bool isPlaying)? onProgress;
 
   const PrivateLessonVideoPlayer({
     super.key,
