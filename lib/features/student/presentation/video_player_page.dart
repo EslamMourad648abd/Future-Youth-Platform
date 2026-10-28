@@ -138,7 +138,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     });
   }
 
-  Future<void> _completeView() async {
+  Future<void> _completeView(int positionSeconds, bool isPlaying) async {
     final sessionId = playbackSessionId;
     if (sessionId == null || sessionId.isEmpty) return;
 
@@ -149,10 +149,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     for (var attempt = 0; attempt < 4; attempt++) {
       try {
         try {
-          await _reportPlaybackProgress(
-            0, // Replaced below with the player's latest position by periodic checkpoints.
-            true,
-          );
+          await _reportPlaybackProgress(positionSeconds, isPlaying);
         } on FirebaseFunctionsException catch (_) {
           // A checkpoint may be rate-limited when completion lands between
           // scheduled reports. The server completion check remains authoritative.
