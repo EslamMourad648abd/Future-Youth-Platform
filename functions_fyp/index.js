@@ -2,7 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { setGlobalOptions } from "firebase-functions/v2/options";
 import { initializeApp, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 
 import { REGION, ROLES } from "./src/config.js";
@@ -381,9 +381,17 @@ export const getPaidLessonVideoUrl = onCall(async (request) => {
     .where("courseId", "==", courseId)
     .limit(100)
     .get();
-  const entitled = hasActiveCourseSubscription(subscriptions.docs, studentId, courseId, now);
-  if (!entitled) {
-    throw new HttpsError("permission-denied", "An active, unexpired subscription is required.");
+  const existingView = await db.collection("video_views")
+    .doc(`${courseId}_${videoId}_${studentId}`).get();
+  const eligibleSubscription = subscriptions.docs.find((doc) =>
+    hasActiveCourseSubscription([doc], studentId, courseId, now) &&
+    (existingView.exists || Number(doc.data()?.pointsRemaining || 0) >= 1)
+  );
+  if (!eligibleSubscription) {
+    throw new HttpsError(
+      "permission-denied",
+      "An active subscription with a remaining point is required."
+    );
   }
 
   const teacherSnap = await db.collection("users").doc(courseSnap.data()?.teacherId).get();
@@ -398,32 +406,30 @@ export const getPaidLessonVideoUrl = onCall(async (request) => {
   if (!objectExists) {
     throw new HttpsError("failed-precondition", "The private lesson video is missing.");
   }
+  const durationSeconds = Math.max(1, Number(videoSnap.data()?.durationSeconds ||
+    (Number(videoSnap.data()?.durationMinutes || 1) * 60)));
+  const expiresInSeconds = Math.max(900, Math.ceil(durationSeconds + 300));
   const [videoUrl] = await file.getSignedUrl({
     action: "read",
-    expires: Date.now() + 5 * 60 * 1000,
+    expires: Date.now() + expiresInSeconds * 1000,
+  });
+  const sessionRef = db.collection("playback_sessions").doc();
+  await sessionRef.create({
+    sessionId: sessionRef.id,
+    studentId,
+    courseId,
+    videoId,
+    teacherId: courseSnap.data()?.teacherId,
+    subscriptionId: eligibleSubscription.id,
+    viewType: "paid_lesson",
+    durationSeconds,
+    startedAt: Timestamp.fromMillis(now),
+    expiresAt: Timestamp.fromMillis(now + Math.max(30 * 60 * 1000, durationSeconds * 1000 + 10 * 60 * 1000)),
+    completed: false,
+    createdAt: FieldValue.serverTimestamp(),
   });
 
-  const viewRef = db.collection("video_views").doc(`${courseId}_${videoId}_${studentId}`);
-  await db.runTransaction(async (tx) => {
-    const [viewSnap, currentVideoSnap] = await Promise.all([tx.get(viewRef), tx.get(videoRef)]);
-    if (!currentVideoSnap.exists) throw new HttpsError("not-found", "Lesson not found.");
-    if (!viewSnap.exists) {
-      tx.create(viewRef, {
-        studentId,
-        courseId,
-        videoId,
-        teacherId: courseSnap.data()?.teacherId,
-        viewedAt: FieldValue.serverTimestamp(),
-        viewType: "paid_lesson",
-      });
-      tx.update(videoRef, {
-        viewCount: FieldValue.increment(1),
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-    }
-  });
-
-  return { ok: true, videoUrl, expiresInSeconds: 300 };
+  return { ok: true, videoUrl, sessionId: sessionRef.id, expiresInSeconds };
 });
 
 /** Issues a short-lived signed URL only for the approved free first lesson. */
@@ -468,40 +474,118 @@ export const getPreviewVideoUrl = onCall(async (request) => {
   if (!objectExists) {
     throw new HttpsError("failed-precondition", "The private lesson video is missing.");
   }
+  const studentId = request.auth.uid;
+  const durationSeconds = Math.max(1, Number(videoSnap.data()?.durationSeconds ||
+    (Number(videoSnap.data()?.durationMinutes || 1) * 60)));
+  const expiresInSeconds = Math.max(900, Math.ceil(durationSeconds + 300));
   const [videoUrl] = await file.getSignedUrl({
     action: "read",
-    expires: Date.now() + 5 * 60 * 1000,
+    expires: Date.now() + expiresInSeconds * 1000,
+  });
+  const sessionRef = db.collection("playback_sessions").doc();
+  await sessionRef.create({
+    sessionId: sessionRef.id,
+    studentId,
+    courseId,
+    videoId,
+    teacherId: courseSnap.data()?.teacherId,
+    subscriptionId: null,
+    viewType: "free_preview",
+    durationSeconds,
+    startedAt: Timestamp.fromMillis(Date.now()),
+    expiresAt: Timestamp.fromMillis(Date.now() + Math.max(30 * 60 * 1000, durationSeconds * 1000 + 10 * 60 * 1000)),
+    completed: false,
+    createdAt: FieldValue.serverTimestamp(),
   });
 
-  // Count unique students only after private media is confirmed and a playback
-  // URL can be issued. Reopening the same preview does not inflate the count.
-  const studentId = request.auth.uid;
-  const viewRef = db.collection("video_views").doc(
-    `${courseId}_${videoId}_${studentId}`
-  );
-  await db.runTransaction(async (tx) => {
-    const [viewSnap, currentVideoSnap] = await Promise.all([
-      tx.get(viewRef),
-      tx.get(videoRef),
+  return { ok: true, videoUrl, sessionId: sessionRef.id, expiresInSeconds };
+});
+
+
+export const completeVideoView = onCall(async (request) => {
+  const studentId = requireRole(request, [ROLES.STUDENT]);
+  const sessionId = String(request.data?.sessionId || "").trim();
+  if (!sessionId) throw new HttpsError("invalid-argument", "sessionId is required.");
+
+  const sessionRef = db.collection("playback_sessions").doc(sessionId);
+  const sessionSnap = await sessionRef.get();
+  if (!sessionSnap.exists || sessionSnap.data()?.studentId !== studentId) {
+    throw new HttpsError("permission-denied", "Playback session not found for this student.");
+  }
+  const session = sessionSnap.data();
+  const courseId = String(session.courseId || "");
+  const videoId = String(session.videoId || "");
+  const durationSeconds = Number(session.durationSeconds || 0);
+  if (!courseId || !videoId || !Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+    throw new HttpsError("failed-precondition", "Playback session metadata is invalid.");
+  }
+
+  const courseRef = db.collection("courses").doc(courseId);
+  const videoRef = courseRef.collection("videos").doc(videoId);
+  const viewRef = db.collection("video_views").doc(`${courseId}_${videoId}_${studentId}`);
+  const ledgerRef = db.collection("points_ledger").doc(`view_${courseId}_${videoId}_${studentId}`);
+  const now = Date.now();
+
+  const result = await db.runTransaction(async (tx) => {
+    const [currentSessionSnap, courseSnap, videoSnap, viewSnap] = await Promise.all([
+      tx.get(sessionRef), tx.get(courseRef), tx.get(videoRef), tx.get(viewRef),
     ]);
-    if (!currentVideoSnap.exists) {
-      throw new HttpsError("not-found", "Lesson not found.");
+    if (!currentSessionSnap.exists || !courseSnap.exists || !videoSnap.exists) {
+      throw new HttpsError("not-found", "Playback session or lesson no longer exists.");
     }
-    if (!viewSnap.exists) {
-      tx.create(viewRef, {
-        studentId,
-        courseId,
-        videoId,
-        teacherId: courseSnap.data()?.teacherId,
-        viewedAt: FieldValue.serverTimestamp(),
-        viewType: "free_preview",
-      });
-      tx.update(videoRef, {
-        viewCount: FieldValue.increment(1),
-        updatedAt: FieldValue.serverTimestamp(),
-      });
+    const currentSession = currentSessionSnap.data();
+    const startedAtMs = currentSession.startedAt?.toMillis?.();
+    const expiresAtMs = currentSession.expiresAt?.toMillis?.();
+    if (currentSession.studentId !== studentId || currentSession.courseId !== courseId ||
+        currentSession.videoId !== videoId || !Number.isFinite(startedAtMs) ||
+        !Number.isFinite(expiresAtMs) || now > expiresAtMs) {
+      throw new HttpsError("permission-denied", "Playback session is invalid or expired.");
     }
+    if (now < startedAtMs + durationSeconds * 0.9 * 1000) {
+      throw new HttpsError("failed-precondition", "At least 90% of the lesson duration must elapse before completion.");
+    }
+    if (courseSnap.data()?.status !== "published" || courseSnap.data()?.approvalStatus !== "approved" ||
+        videoSnap.data()?.status !== "published" || videoSnap.data()?.approvalStatus !== "approved") {
+      throw new HttpsError("permission-denied", "Only approved published lessons can be completed.");
+    }
+    if (viewSnap.exists) {
+      tx.update(sessionRef, { completed: true, completedAt: FieldValue.serverTimestamp() });
+      return { alreadyCompleted: true, charged: false };
+    }
+
+    if (currentSession.viewType === "paid_lesson") {
+      const subscriptionId = String(currentSession.subscriptionId || "");
+      if (!subscriptionId) throw new HttpsError("failed-precondition", "Subscription is missing from the playback session.");
+      const subscriptionRef = db.collection("subscriptions").doc(subscriptionId);
+      const subscriptionSnap = await tx.get(subscriptionRef);
+      const subscription = subscriptionSnap.data();
+      const expiryMs = subscription?.expiresAt?.toMillis?.();
+      if (!subscriptionSnap.exists || subscription.studentId !== studentId ||
+          subscription.courseId !== courseId || subscription.status !== "active" ||
+          !Number.isFinite(expiryMs) || expiryMs <= now ||
+          !Number.isInteger(Number(subscription.pointsRemaining)) || Number(subscription.pointsRemaining) < 1) {
+        throw new HttpsError("permission-denied", "An active subscription with a remaining point is required.");
+      }
+      tx.update(subscriptionRef, { pointsRemaining: FieldValue.increment(-1), updatedAt: FieldValue.serverTimestamp() });
+      tx.create(ledgerRef, {
+        studentId, courseId, videoId, teacherId: currentSession.teacherId, subscriptionId,
+        pointsDelta: -1, entryType: "paid_lesson_completion", createdAt: FieldValue.serverTimestamp(),
+      });
+    } else if (currentSession.viewType !== "free_preview" || Number(videoSnap.data()?.order || 0) !== 1) {
+      throw new HttpsError("permission-denied", "This playback session is not eligible for free preview completion.");
+    }
+
+    tx.create(viewRef, {
+      studentId, courseId, videoId, teacherId: currentSession.teacherId,
+      subscriptionId: currentSession.subscriptionId || null,
+      viewType: currentSession.viewType,
+      pointsCharged: currentSession.viewType === "paid_lesson",
+      viewedAt: FieldValue.serverTimestamp(),
+    });
+    tx.update(videoRef, { viewCount: FieldValue.increment(1), updatedAt: FieldValue.serverTimestamp() });
+    tx.update(sessionRef, { completed: true, completedAt: FieldValue.serverTimestamp() });
+    return { alreadyCompleted: false, charged: currentSession.viewType === "paid_lesson" };
   });
 
-  return { ok: true, videoUrl, expiresInSeconds: 300 };
+  return { ok: true, ...result };
 });
