@@ -9,7 +9,7 @@ import '../services/localization_service.dart';
 /// in Firestore and is expected to expire after a few minutes.
 class PrivateLessonVideoPlayer extends StatefulWidget {
   final String url;
-  final Future<void> Function(int positionSeconds, bool isPlaying)? onCompleted;
+  final Future<void> Function(double positionSeconds, bool isPlaying)? onCompleted;
   final Future<void> Function(int positionSeconds, bool isPlaying)? onProgress;
 
   const PrivateLessonVideoPlayer({
@@ -58,7 +58,7 @@ class _PrivateLessonVideoPlayerState extends State<PrivateLessonVideoPlayer> {
     if (!mounted || !_ready || callback == null || _progressReportInFlight) return;
     _progressReportInFlight = true;
     try {
-      await callback(_controller.value.position.inSeconds, _controller.value.isPlaying);
+      await callback(_controller.value.position.inMilliseconds / 1000.0, _controller.value.isPlaying);
     } catch (error) {
       debugPrint('Playback progress report failed: $error');
     } finally {
@@ -83,7 +83,7 @@ class _PrivateLessonVideoPlayerState extends State<PrivateLessonVideoPlayer> {
         _watchedMilliseconds >= durationMs * 0.9 &&
         widget.onCompleted != null) {
       _completionNotified = true;
-      unawaited(widget.onCompleted!.call(position.inSeconds, value.isPlaying));
+      unawaited(widget.onCompleted!.call(position.inMilliseconds / 1000.0, value.isPlaying));
     }
     setState(() {});
   }
