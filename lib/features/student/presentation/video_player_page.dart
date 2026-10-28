@@ -126,7 +126,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     }
   }
 
-  Future<void> _reportPlaybackProgress(int positionSeconds, bool isPlaying) async {
+  Future<void> _reportPlaybackProgress(double positionSeconds, bool isPlaying) async {
     final sessionId = playbackSessionId;
     if (sessionId == null || sessionId.isEmpty) return;
     await FirebaseFunctions.instanceFor(region: 'us-central1')
@@ -138,7 +138,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     });
   }
 
-  Future<void> _completeView(int positionSeconds, bool isPlaying) async {
+  Future<void> _completeView(double positionSeconds, bool isPlaying) async {
     final sessionId = playbackSessionId;
     if (sessionId == null || sessionId.isEmpty) return;
 
