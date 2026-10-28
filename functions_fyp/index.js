@@ -502,6 +502,82 @@ export const getPreviewVideoUrl = onCall(async (request) => {
 });
 
 
+/**
+ * Records server-timestamped playback checkpoints. This raises the cost of
+ * bypassing the player: completion requires repeated, time-consistent progress
+ * reports, not merely waiting and calling completeVideoView.
+ *
+ * This is anti-abuse telemetry, not cryptographic proof that a human watched
+ * the frames; the client still supplies its playback position.
+ */
+export const reportVideoPlaybackProgress = onCall(async (request) => {
+  const studentId = requireRole(request, [ROLES.STUDENT]);
+  const sessionId = String(request.data?.sessionId || "").trim();
+  const positionSeconds = Number(request.data?.positionSeconds);
+  const isPlaying = request.data?.isPlaying === true;
+  if (!sessionId || !Number.isFinite(positionSeconds) || positionSeconds < 0) {
+    throw new HttpsError("invalid-argument", "sessionId and a valid playback position are required.");
+  }
+
+  const sessionRef = db.collection("playback_sessions").doc(sessionId);
+  const now = Date.now();
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(sessionRef);
+    if (!snap.exists) throw new HttpsError("not-found", "Playback session not found.");
+    const session = snap.data();
+    const startedAtMs = session.startedAt?.toMillis?.();
+    const expiresAtMs = session.expiresAt?.toMillis?.();
+    const durationSeconds = Number(session.durationSeconds || 0);
+    if (session.studentId !== studentId || !Number.isFinite(startedAtMs) ||
+        !Number.isFinite(expiresAtMs) || now > expiresAtMs ||
+        !Number.isFinite(durationSeconds) || durationSeconds <= 0 ||
+        positionSeconds > durationSeconds + 2) {
+      throw new HttpsError("permission-denied", "Playback session is invalid or expired.");
+    }
+    if (session.completed === true) return;
+
+    const lastAtMs = session.lastProgressAt?.toMillis?.();
+    const previousPosition = Number(session.lastPositionSeconds);
+    const previousPlaying = session.lastProgressPlaying === true;
+    const priorWatchSeconds = Math.max(0, Number(session.verifiedWatchSeconds || 0));
+    let addedWatchSeconds = 0;
+
+    if (Number.isFinite(lastAtMs)) {
+      const elapsedSeconds = (now - lastAtMs) / 1000;
+      if (elapsedSeconds < 4) {
+        throw new HttpsError("resource-exhausted", "Playback progress reports are arriving too quickly.");
+      }
+      // Position may advance no faster than wall time plus a small tolerance.
+      const positionDelta = positionSeconds - previousPosition;
+      if (positionDelta > elapsedSeconds + 3) {
+        throw new HttpsError("failed-precondition", "Playback position advanced too quickly.");
+      }
+      if (previousPlaying && isPlaying && positionDelta > 0) {
+        addedWatchSeconds = Math.min(elapsedSeconds, positionDelta, 15);
+      }
+    } else if (isPlaying) {
+      // The first checkpoint can count only the portion consistent with elapsed
+      // time since the server created the playback session.
+      addedWatchSeconds = Math.min(positionSeconds, Math.max(0, (now - startedAtMs) / 1000), 15);
+    }
+
+    tx.update(sessionRef, {
+      lastProgressAt: Timestamp.fromMillis(now),
+      lastPositionSeconds: Math.min(durationSeconds, positionSeconds),
+      lastProgressPlaying: isPlaying,
+      maxReportedPositionSeconds: Math.max(
+        Number(session.maxReportedPositionSeconds || 0),
+        Math.min(durationSeconds, positionSeconds),
+      ),
+      verifiedWatchSeconds: Math.min(durationSeconds, priorWatchSeconds + addedWatchSeconds),
+      progressEventCount: FieldValue.increment(1),
+      lastProgressReceivedAt: FieldValue.serverTimestamp(),
+    });
+  });
+
+  return { ok: true };
+});
+
 export const completeVideoView = onCall(async (request) => {
   const studentId = requireRole(request, [ROLES.STUDENT]);
   const sessionId = String(request.data?.sessionId || "").trim();
@@ -541,8 +617,16 @@ export const completeVideoView = onCall(async (request) => {
         !Number.isFinite(expiresAtMs) || now > expiresAtMs) {
       throw new HttpsError("permission-denied", "Playback session is invalid or expired.");
     }
+    const verifiedWatchSeconds = Math.max(0, Number(currentSession.verifiedWatchSeconds || 0));
+    const maxReportedPositionSeconds = Math.max(0, Number(currentSession.maxReportedPositionSeconds || 0));
+    const progressEventCount = Math.max(0, Number(currentSession.progressEventCount || 0));
     if (now < startedAtMs + durationSeconds * 0.9 * 1000) {
       throw new HttpsError("failed-precondition", "At least 90% of the lesson duration must elapse before completion.");
+    }
+    if (verifiedWatchSeconds < durationSeconds * 0.9 ||
+        maxReportedPositionSeconds < durationSeconds * 0.9 ||
+        progressEventCount < 2) {
+      throw new HttpsError("failed-precondition", "More verified playback progress is required before completion.");
     }
     if (courseSnap.data()?.status !== "published" || courseSnap.data()?.approvalStatus !== "approved" ||
         videoSnap.data()?.status !== "published" || videoSnap.data()?.approvalStatus !== "approved") {
