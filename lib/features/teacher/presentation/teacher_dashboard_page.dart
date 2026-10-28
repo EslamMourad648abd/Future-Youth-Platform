@@ -19,6 +19,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
   final _subject = TextEditingController();
   final _description = TextEditingController();
   final _price = TextEditingController(text: '250');
+  final _lessonCount = TextEditingController(text: '1');
   bool _saving = false;
 
   @override
@@ -27,6 +28,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     _subject.dispose();
     _description.dispose();
     _price.dispose();
+    _lessonCount.dispose();
     super.dispose();
   }
 
@@ -35,7 +37,8 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     final title = _title.text.trim();
     final subject = _subject.text.trim();
     final price = double.tryParse(_price.text.trim());
-    if (user == null || title.isEmpty || subject.isEmpty || price == null || price <= 0) {
+    final lessonCount = int.tryParse(_lessonCount.text.trim());
+    if (user == null || title.isEmpty || subject.isEmpty || price == null || price <= 0 || lessonCount == null || lessonCount < 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(fypTranslate(context, 'enter_course_fields', 'Enter a title, subject and valid monthly price.'))),
       );
@@ -55,7 +58,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         'subject': subject,
         'description': _description.text.trim(),
         'price': price,
-        'lessonCount': 1,
+        'lessonCount': lessonCount,
         'videoCount': 0,
         'status': 'draft',
         'approvalStatus': 'pending',
@@ -66,6 +69,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       _subject.clear();
       _description.clear();
       _price.text = '250';
+      _lessonCount.text = '1';
       nav.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(fypTranslate(context, 'course_draft_created', 'Course draft created. Add lessons before submitting for review.'))),
@@ -102,6 +106,8 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
               TextField(controller: _description, maxLines: 3, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'description_label', 'Description'))),
               const SizedBox(height: 12),
               TextField(controller: _price, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'monthly_price_egp', 'Monthly price (EGP)'), prefixIcon: const Icon(Icons.payments_outlined))),
+              const SizedBox(height: 12),
+              TextField(controller: _lessonCount, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'required_lesson_count', 'Required lesson count (school book)'), prefixIcon: const Icon(Icons.format_list_numbered))),
               const SizedBox(height: 18),
               SizedBox(
                 width: double.infinity,

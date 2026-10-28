@@ -59,25 +59,30 @@ class FloatingAppControlBar extends StatelessWidget {
                       margin: const EdgeInsets.symmetric(horizontal: 6),
                       color: Colors.white.withValues(alpha: 0.3),
                     ),
-                    InkWell(
-                      onTap: AppLocalizations.toggleLocale,
-                      borderRadius: BorderRadius.circular(20),
-                      child: Padding(
+                    Tooltip(
+                      message: label,
+                      child: InkWell(
+                        onTap: AppLocalizations.toggleLocale,
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(Icons.language, color: Colors.white, size: 16),
-                            const SizedBox(width: 6),
-                            Text(
-                              label,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
+                            if (MediaQuery.sizeOf(context).width >= 380) ...[
+                              const SizedBox(width: 6),
+                              Text(
+                                label,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
+                            ],
                           ],
+                        ),
                         ),
                       ),
                     ),

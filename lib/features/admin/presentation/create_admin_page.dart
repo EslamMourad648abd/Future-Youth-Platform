@@ -1,11 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/fyp_routes.dart';
-import '../../../core/constants/firestore_paths.dart';
-import '../../../core/constants/user_role.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../widgets/app_header_actions.dart';
 
@@ -65,32 +62,11 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
       });
     } catch (e) {
       debugPrint("createAdmin callable error: $e");
-      try {
-        final newAdminDoc = FirebaseFirestore.instance.collection(FirestorePaths.users).doc();
-        await newAdminDoc.set({
-          'uid': newAdminDoc.id,
-          'email': email,
-          'displayName': name,
-          'role': UserRole.admin.name,
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-
-        if (!mounted) return;
-        setState(() {
-          _isLoading = false;
-          _successMessage = 'Admin account created successfully in Firestore!';
-          _nameController.clear();
-          _emailController.clear();
-          _passwordController.clear();
-        });
-      } catch (firestoreErr) {
-        if (!mounted) return;
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'Failed to create admin: $e';
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Failed to create admin: ${e.toString().replaceFirst('Exception: ', '')}';
+      });
     }
   }
 

@@ -1,12 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/fyp_routes.dart';
-import '../../../core/constants/firestore_paths.dart';
-import '../../../core/constants/user_role.dart';
 import '../../../core/theme/brand_colors.dart';
 
 class CreateStudentPage extends StatefulWidget {
@@ -60,30 +57,11 @@ class _CreateStudentPageState extends State<CreateStudentPage> {
       context.go(FypRoutes.parent);
     } catch (e) {
       debugPrint("createStudent callable error: $e");
-      try {
-        final studentEmail = '$rawUsername@students.fyp.invalid';
-        final newStudentDoc = FirebaseFirestore.instance.collection(FirestorePaths.users).doc();
-
-        await newStudentDoc.set({
-          'uid': newStudentDoc.id,
-          'username': rawUsername,
-          'email': studentEmail,
-          'displayName': name,
-          'role': UserRole.student.name,
-          'parentId': parentUser.uid,
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-
-        if (!mounted) return;
-        context.go(FypRoutes.parent);
-      } catch (firestoreErr) {
-        if (!mounted) return;
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'Failed to create student account: $e';
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Failed to create student account: ${e.toString().replaceFirst('Exception: ', '')}';
+      });
     }
   }
 

@@ -19,82 +19,6 @@ class CourseEditorPage extends StatefulWidget {
 class _CourseEditorPageState extends State<CourseEditorPage> {
   bool saving = false;
 
-  Future<void> _syncDrivePlaylist() async {
-    final folderController = TextEditingController();
-    final url = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Sync Google Drive Playlist / Folder'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Enter Google Drive Folder URL or Folder ID containing video lessons:'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: folderController,
-              decoration: const InputDecoration(
-                labelText: 'Google Drive Folder URL / ID',
-                hintText: 'e.g. https://drive.google.com/drive/folders/...',
-                prefixIcon: Icon(Icons.folder_shared),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () {
-              final value = folderController.text.trim();
-              if (value.isNotEmpty) Navigator.pop(dialogContext, value);
-            },
-            child: const Text('Sync Playlist'),
-          ),
-        ],
-      ),
-    );
-    folderController.dispose();
-    if (url == null || url.isEmpty || !mounted) return;
-
-    setState(() => saving = true);
-    try {
-      String folderId = url;
-      if (url.contains('/folders/')) {
-        folderId = url.split('/folders/').last.split('?').first;
-      }
-
-      final callable = FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable('syncCourseLessons');
-      await callable({'courseId': widget.courseId, 'driveFolderId': folderId});
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Google Drive playlist synced successfully!')),
-      );
-    } catch (e) {
-      debugPrint("Drive sync error: $e");
-      if (!mounted) return;
-      try {
-        String folderId = url;
-        if (url.contains('/folders/')) {
-          folderId = url.split('/folders/').last.split('?').first;
-        }
-        await FirebaseFirestore.instance.collection('courses').doc(widget.courseId).update({
-          'driveFolderId': folderId,
-          'driveFolderUrl': url,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Google Drive Folder URL linked to course!')),
-        );
-      } catch (fsErr) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sync failed: $e')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => saving = false);
-    }
-  }
-
   Future<void> _addLesson() async {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
@@ -133,7 +57,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Upload a video file (up to 500 MB) or link Google Drive video. It stays private until approval.',
+                  'Upload a video file (up to 500 MB). The video stays private until approval.',
                   style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                 ),
               ],
@@ -185,11 +109,6 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
         'ratingSum': 0,
         'commentCount': 0,
         'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-      await courseRef.update({
-        'lessonCount': order,
-        'videoCount': order,
         'updatedAt': FieldValue.serverTimestamp(),
       });
       if (mounted) {
@@ -294,14 +213,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(fypTranslate(context, 'course_editor', 'Course editor')),
-        actions: [
-          const AppHeaderActions(),
-          IconButton(
-            tooltip: 'Sync Google Drive Playlist',
-            icon: const Icon(Icons.folder_copy_outlined),
-            onPressed: saving ? null : _syncDrivePlaylist,
-          ),
-        ],
+        actions: const [AppHeaderActions()],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: saving ? null : _addLesson,
@@ -331,14 +243,6 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                   Row(
                     children: [
                       const Icon(Icons.edit_note, color: Colors.white, size: 32),
-                      const Spacer(),
-                      ElevatedButton.icon(
-                        onPressed: saving ? null : _syncDrivePlaylist,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withValues(alpha: 0.2),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                        ),
                         icon: const Icon(Icons.folder_shared, size: 18),
                         label: const Text('Sync Drive Playlist'),
                       ),
@@ -362,7 +266,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                   if (!lessonSnapshot.hasData) return const LinearProgressIndicator();
                   final lessons = lessonSnapshot.data!.docs;
                   if (lessons.isEmpty) {
-                    return Card(child: Padding(padding: const EdgeInsets.all(24), child: Text(fypTranslate(context, 'no_lessons', 'No lessons yet. Use Add lesson or Sync Drive Playlist to build course lessons.'))));
+                    return Card(child: Padding(padding: const EdgeInsets.all(24), child: Text(fypTranslate(context, 'no_lessons', 'No lessons yet. Use Add lesson to build the course lessons.'))));
                   }
                   return Column(
                     children: lessons.map((doc) {

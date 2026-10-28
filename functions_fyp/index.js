@@ -237,9 +237,10 @@ export const reviewCourseContent = onCall(async (request) => {
     }
     if (!videoId && decision === "approve") {
       const lessonCount = Number(data.lessonCount || 0);
-      const videoCount = Number(data.videoCount || 0);
-      if (!Number.isInteger(lessonCount) || lessonCount < 1 || videoCount < lessonCount) {
-        throw new HttpsError("failed-precondition", "A course needs at least as many published videos as its lesson count before approval.");
+      const registeredVideoCount = videos.docs.filter((video) => video.data()?.sourceLinked === true).length;
+      if (!Number.isInteger(lessonCount) || lessonCount < 1 ||
+          videos.docs.length < lessonCount || registeredVideoCount < lessonCount) {
+        throw new HttpsError("failed-precondition", "A course needs at least as many registered private lesson videos as its school-book lesson count before approval.");
       }
     }
     const teacherSnap = await tx.get(db.collection("users").doc(data.teacherId));
@@ -306,17 +307,37 @@ export const registerVideoSource = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "The uploaded file must be a non-empty video no larger than 500 MB.");
   }
 
-  await db.collection("video_sources").doc(videoId).set({
-    courseId,
-    videoId,
-    teacherId: teacherUid,
-    provider: "firebase_storage",
-    storagePath,
-    contentType: metadata.contentType,
-    sizeBytes: uploadedSize,
-    updatedAt: FieldValue.serverTimestamp(),
-  }, { merge: true });
-  await videoRef.update({ sourceLinked: true, updatedAt: FieldValue.serverTimestamp() });
+  const sourceRef = db.collection("video_sources").doc(videoId);
+  await db.runTransaction(async (tx) => {
+    const [currentCourse, currentVideo, currentSource] = await Promise.all([
+      tx.get(courseRef),
+      tx.get(videoRef),
+      tx.get(sourceRef),
+    ]);
+    if (!currentCourse.exists || currentCourse.data()?.teacherId !== teacherUid ||
+        currentCourse.data()?.status !== "draft" ||
+        !currentVideo.exists || currentVideo.data()?.teacherId !== teacherUid ||
+        currentVideo.data()?.status !== "draft") {
+      throw new HttpsError("failed-precondition", "The course and lesson must remain owned drafts during upload registration.");
+    }
+    tx.set(sourceRef, {
+      courseId,
+      videoId,
+      teacherId: teacherUid,
+      provider: "firebase_storage",
+      storagePath,
+      contentType: metadata.contentType,
+      sizeBytes: uploadedSize,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    tx.update(videoRef, { sourceLinked: true, updatedAt: FieldValue.serverTimestamp() });
+    if (!currentSource.exists) {
+      tx.update(courseRef, {
+        videoCount: FieldValue.increment(1),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+  });
 
   return { ok: true, courseId, videoId };
 });
