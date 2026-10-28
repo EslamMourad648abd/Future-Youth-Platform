@@ -7,6 +7,7 @@ import '../../../app/fyp_routes.dart';
 import '../../../core/constants/firestore_paths.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../services/localization_service.dart';
+import '../../../widgets/appbar_actions.dart';
 
 class ParentDashboardPage extends StatefulWidget {
   const ParentDashboardPage({super.key});
@@ -67,13 +68,17 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(fypTranslate(context, 'parent_workspace', 'Parent Workspace')),
-        
+        backgroundColor: BrandColors.navy,
+        foregroundColor: Colors.white,
         actions: [
+          const GlobalAppBarActions(iconColor: Colors.white),
+          const SizedBox(width: 4),
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             tooltip: fypTranslate(context, 'sign_out', 'Sign out'),
             onPressed: _signOut,
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
@@ -258,6 +263,10 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                     ),
                     OutlinedButton(
                       onPressed: () => context.go(FypRoutes.parentSubscriptions),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
                       child: Text(fypTranslate(context, 'manage_subscriptions', 'Manage subscriptions')),
                     ),
                   ],

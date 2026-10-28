@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/fyp_routes.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../services/localization_service.dart';
+import '../../../widgets/appbar_actions.dart';
 
 class TeacherDashboardPage extends StatefulWidget {
   const TeacherDashboardPage({super.key});
@@ -40,6 +41,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       );
       return;
     }
+    final nav = Navigator.of(sheetContext);
     setState(() => _saving = true);
     try {
       final profile = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
@@ -64,8 +66,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       _subject.clear();
       _description.clear();
       _price.text = '250';
-      if (!mounted) return;
-      Navigator.of(sheetContext).pop();
+      nav.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(fypTranslate(context, 'course_draft_created', 'Course draft created. Add lessons before submitting for review.'))),
       );
@@ -92,16 +93,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(fypTranslate(context, 'create_course_prompt', 'Create a course'), style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
-              TextField(controller: _title, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'course_title', 'Course title'), prefixIcon: Icon(Icons.menu_book_outlined))),
-              SizedBox(height: 12),
-              TextField(controller: _subject, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'subject_label', 'Subject'), prefixIcon: Icon(Icons.category_outlined))),
-              SizedBox(height: 12),
+              Text(fypTranslate(context, 'create_course_prompt', 'Create a course'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              TextField(controller: _title, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'course_title', 'Course title'), prefixIcon: const Icon(Icons.menu_book_outlined))),
+              const SizedBox(height: 12),
+              TextField(controller: _subject, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'subject_label', 'Subject'), prefixIcon: const Icon(Icons.category_outlined))),
+              const SizedBox(height: 12),
               TextField(controller: _description, maxLines: 3, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'description_label', 'Description'))),
-              SizedBox(height: 12),
-              TextField(controller: _price, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'monthly_price_egp', 'Monthly price (EGP)'), prefixIcon: Icon(Icons.payments_outlined))),
-              SizedBox(height: 18),
+              const SizedBox(height: 12),
+              TextField(controller: _price, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: fypTranslate(sheetContext, 'monthly_price_egp', 'Monthly price (EGP)'), prefixIcon: const Icon(Icons.payments_outlined))),
+              const SizedBox(height: 18),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -122,9 +123,12 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        
         title: Text(fypTranslate(context, 'teacher_studio', 'Teacher Studio')),
+        backgroundColor: BrandColors.navy,
+        foregroundColor: Colors.white,
         actions: [
+          const GlobalAppBarActions(iconColor: Colors.white),
+          const SizedBox(width: 4),
           IconButton(
             tooltip: fypTranslate(context, 'sign_out', 'Sign out'),
             onPressed: () async {
@@ -132,15 +136,16 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
               if (!context.mounted) return;
               context.go(FypRoutes.entry);
             },
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
           ),
+          const SizedBox(width: 8),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreateCourse,
         backgroundColor: const Color(0xFF00A651),
         foregroundColor: Colors.white,
-        icon: Icon(Icons.add),
+        icon: const Icon(Icons.add),
         label: Text(fypTranslate(context, 'new_course', 'New course')),
       ),
       body: SafeArea(
@@ -155,41 +160,54 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                 return Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [BrandColors.navy, Color(0xFF3E58AA)]),
+                    gradient: const LinearGradient(colors: [BrandColors.navy, Color(0xFF3E58AA)]),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.auto_stories, color: Colors.white, size: 32),
-                      SizedBox(height: 12),
+                      const Icon(Icons.auto_stories, color: Colors.white, size: 32),
+                      const SizedBox(height: 12),
                       Text('${fypTranslate(context, 'welcome_teacher', 'Welcome')}, ${profile['displayName'] ?? user?.displayName ?? fypTranslate(context, 'teacher_label', 'Teacher')}',
-                        style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 8),
+                        style: const TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
                       Text(
                         approved ? 'Your educator profile is approved. Build your learning library.' : 'Your profile is awaiting admin approval. Publishing remains locked until approved.',
-                        style: TextStyle(color: Colors.white70, height: 1.4),
+                        style: const TextStyle(color: Colors.white70, height: 1.4),
                       ),
-                      SizedBox(height: 14),
-                      Chip(
-                        avatar: Icon(approved ? Icons.verified : Icons.hourglass_top, color: Colors.white, size: 18),
-                        label: Text(approved ? 'Approved educator' : 'Approval pending'),
-                        backgroundColor: Colors.white.withValues(alpha: .15),
-                        labelStyle: TextStyle(color: Colors.white),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white30),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(approved ? Icons.verified : Icons.hourglass_top, color: Colors.white, size: 16),
+                            const SizedBox(width: 6),
+                            Text(
+                              approved ? 'Approved educator' : 'Approval pending',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 );
               },
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             Text(fypTranslate(context, 'your_courses', 'Your courses'), style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: FirebaseFirestore.instance.collection('courses').where('teacherId', isEqualTo: user?.uid).snapshots(),
               builder: (context, snap) {
                 if (snap.hasError) return Text('${fypTranslate(context, 'courses_load_failed', 'Could not load courses')}: ${snap.error}');
-                if (!snap.hasData) return Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
+                if (!snap.hasData) return const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
                 final docs = snap.data!.docs;
                 if (docs.isEmpty) {
                   return Container(
@@ -197,9 +215,9 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                     decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(18)),
                     child: Column(children: [
                       Icon(Icons.video_library_outlined, size: 42, color: Theme.of(context).colorScheme.primary),
-                      SizedBox(height: 10),
-                      Text(fypTranslate(context, 'teaching_library_empty', 'Your teaching library starts here'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-                      SizedBox(height: 6),
+                      const SizedBox(height: 10),
+                      Text(fypTranslate(context, 'teaching_library_empty', 'Your teaching library starts here'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                      const SizedBox(height: 6),
                       Text(fypTranslate(context, 'course_create_prompt', 'Create a course draft to start organising your lessons.'), textAlign: TextAlign.center),
                     ]),
                   );
@@ -218,7 +236,7 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                           decoration: BoxDecoration(color: Theme.of(context).colorScheme.primaryContainer, borderRadius: BorderRadius.circular(12)),
                           child: Icon(Icons.play_lesson, color: Theme.of(context).colorScheme.primary),
                         ),
-                        title: Text((data['title'] ?? 'Untitled course').toString(), style: TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text((data['title'] ?? 'Untitled course').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text('${data['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${data['videoCount'] ?? 0} ${fypTranslate(context, 'videos_label', 'videos')} • ${data['price'] ?? '—'} EGP/month\n${AppLocalizations.of(context)?.translateStatus((data['status'] ?? 'draft').toString()) ?? (data['status'] ?? 'draft')} • ${AppLocalizations.of(context)?.translateStatus((data['approvalStatus'] ?? 'pending review').toString()) ?? (data['approvalStatus'] ?? 'pending review')}'),
                         isThreeLine: true,
                         trailing: IconButton(
@@ -226,14 +244,14 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
                           onPressed: () => context.go(FypRoutes.teacherCourseAnalyticsFor(doc.id)),
                           icon: Icon(Icons.insights_outlined, color: Theme.of(context).colorScheme.primary),
                         ),
-                        onTap: () => context.go(FypRoutes.teacherCourseEditorFor(doc.id),),
+                        onTap: () => context.go(FypRoutes.teacherCourseEditorFor(doc.id)),
                       ),
                     );
                   }).toList(),
                 );
               },
             ),
-            SizedBox(height: 80),
+            const SizedBox(height: 80),
           ],
         ),
       ),

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/brand_colors.dart';
 import '../../../services/localization_service.dart';
+import '../../../widgets/app_header_actions.dart';
 
 class CourseEditorPage extends StatefulWidget {
   const CourseEditorPage({super.key, required this.courseId});
@@ -17,6 +18,82 @@ class CourseEditorPage extends StatefulWidget {
 
 class _CourseEditorPageState extends State<CourseEditorPage> {
   bool saving = false;
+
+  Future<void> _syncDrivePlaylist() async {
+    final folderController = TextEditingController();
+    final url = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sync Google Drive Playlist / Folder'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Enter Google Drive Folder URL or Folder ID containing video lessons:'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: folderController,
+              decoration: const InputDecoration(
+                labelText: 'Google Drive Folder URL / ID',
+                hintText: 'e.g. https://drive.google.com/drive/folders/...',
+                prefixIcon: Icon(Icons.folder_shared),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () {
+              final value = folderController.text.trim();
+              if (value.isNotEmpty) Navigator.pop(dialogContext, value);
+            },
+            child: const Text('Sync Playlist'),
+          ),
+        ],
+      ),
+    );
+    folderController.dispose();
+    if (url == null || url.isEmpty || !mounted) return;
+
+    setState(() => saving = true);
+    try {
+      String folderId = url;
+      if (url.contains('/folders/')) {
+        folderId = url.split('/folders/').last.split('?').first;
+      }
+
+      final callable = FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable('syncCourseLessons');
+      await callable({'courseId': widget.courseId, 'driveFolderId': folderId});
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Google Drive playlist synced successfully!')),
+      );
+    } catch (e) {
+      debugPrint("Drive sync error: $e");
+      if (!mounted) return;
+      try {
+        String folderId = url;
+        if (url.contains('/folders/')) {
+          folderId = url.split('/folders/').last.split('?').first;
+        }
+        await FirebaseFirestore.instance.collection('courses').doc(widget.courseId).update({
+          'driveFolderId': folderId,
+          'driveFolderUrl': url,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google Drive Folder URL linked to course!')),
+        );
+      } catch (fsErr) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sync failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
+  }
 
   Future<void> _addLesson() async {
     final titleController = TextEditingController();
@@ -38,13 +115,13 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                   decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'lesson_title', 'Lesson title')),
                   validator: (value) => value == null || value.trim().isEmpty ? fypTranslate(dialogContext, 'lesson_title_required', 'Enter a lesson title') : null,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: descriptionController,
                   maxLines: 3,
                   decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'lesson_description', 'Description')),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 TextFormField(
                   controller: durationController,
                   keyboardType: TextInputType.number,
@@ -54,9 +131,9 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                     return duration == null || duration < 1 ? fypTranslate(dialogContext, 'enter_valid_duration', 'Enter a valid duration') : null;
                   },
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
-                  'Upload a video file (up to 500 MB) after creating this lesson. It stays private until approval.',
+                  'Upload a video file (up to 500 MB) or link Google Drive video. It stays private until approval.',
                   style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                 ),
               ],
@@ -216,21 +293,28 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        
         title: Text(fypTranslate(context, 'course_editor', 'Course editor')),
+        actions: [
+          const AppHeaderActions(),
+          IconButton(
+            tooltip: 'Sync Google Drive Playlist',
+            icon: const Icon(Icons.folder_copy_outlined),
+            onPressed: saving ? null : _syncDrivePlaylist,
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: saving ? null : _addLesson,
         backgroundColor: BrandColors.green,
         foregroundColor: Colors.white,
-        icon: Icon(Icons.add),
+        icon: const Icon(Icons.add),
         label: Text(fypTranslate(context, 'add_lesson', 'Add lesson')),
       ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: courseRef.snapshots(),
         builder: (context, courseSnapshot) {
           if (courseSnapshot.hasError) return Center(child: Text('${fypTranslate(context, 'course_load_failed', 'Could not load course')}: ${courseSnapshot.error}'));
-          if (!courseSnapshot.hasData) return Center(child: CircularProgressIndicator());
+          if (!courseSnapshot.hasData) return const Center(child: CircularProgressIndicator());
           final course = courseSnapshot.data!.data();
           if (course == null) return Center(child: Text(fypTranslate(context, 'course_not_found', 'Course not found.')));
           if (course['teacherId'] != uid) return Center(child: Text(fypTranslate(context, 'course_owner_only', 'You can only edit your own courses.')));
@@ -240,30 +324,45 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
               Container(
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [BrandColors.navy, Color(0xFF3D56A6)]),
+                  gradient: const LinearGradient(colors: [BrandColors.navy, Color(0xFF3D56A6)]),
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Icon(Icons.edit_note, color: Colors.white, size: 32),
-                  SizedBox(height: 12),
-                  Text((course['title'] ?? fypTranslate(context, 'course_label', 'Course')).toString(), style: TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 6),
-                  Text('${course['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${AppLocalizations.of(context)?.translate('egp_per_month', params: {'price': '${course['price'] ?? '—'}'}) ?? '${course['price'] ?? '—'} EGP/month'}', style: TextStyle(color: Colors.white70)),
-                  SizedBox(height: 12),
-                  Text('${fypTranslate(context, 'status_label', 'Status')}: ${AppLocalizations.of(context)?.translateStatus((course['status'] ?? 'draft').toString()) ?? (course['status'] ?? 'draft')} • ${fypTranslate(context, 'review_label', 'Review')}: ${AppLocalizations.of(context)?.translateStatus((course['approvalStatus'] ?? 'pending').toString()) ?? (course['approvalStatus'] ?? 'pending')}', style: TextStyle(color: Colors.white)),
+                  Row(
+                    children: [
+                      const Icon(Icons.edit_note, color: Colors.white, size: 32),
+                      const Spacer(),
+                      ElevatedButton.icon(
+                        onPressed: saving ? null : _syncDrivePlaylist,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.folder_shared, size: 18),
+                        label: const Text('Sync Drive Playlist'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text((course['title'] ?? fypTranslate(context, 'course_label', 'Course')).toString(), style: const TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Text('${course['subject'] ?? fypTranslate(context, 'subject_label', 'Subject')} • ${AppLocalizations.of(context)?.translate('egp_per_month', params: {'price': '${course['price'] ?? '—'}'}) ?? '${course['price'] ?? '—'} EGP/month'}', style: const TextStyle(color: Colors.white70)),
+                  const SizedBox(height: 12),
+                  Text('${fypTranslate(context, 'status_label', 'Status')}: ${AppLocalizations.of(context)?.translateStatus((course['status'] ?? 'draft').toString()) ?? (course['status'] ?? 'draft')} • ${fypTranslate(context, 'review_label', 'Review')}: ${AppLocalizations.of(context)?.translateStatus((course['approvalStatus'] ?? 'pending').toString()) ?? (course['approvalStatus'] ?? 'pending')}', style: const TextStyle(color: Colors.white)),
                 ]),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(fypTranslate(context, 'lessons', 'Lessons'), style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: courseRef.collection('videos').orderBy('order').snapshots(),
                 builder: (context, lessonSnapshot) {
                   if (lessonSnapshot.hasError) return Text('${fypTranslate(context, 'lessons_load_failed', 'Could not load lessons')}: ${lessonSnapshot.error}');
-                  if (!lessonSnapshot.hasData) return LinearProgressIndicator();
+                  if (!lessonSnapshot.hasData) return const LinearProgressIndicator();
                   final lessons = lessonSnapshot.data!.docs;
                   if (lessons.isEmpty) {
-                    return Card(child: Padding(padding: EdgeInsets.all(24), child: Text(fypTranslate(context, 'no_lessons', 'No lessons yet. Use Add lesson to build the course outline.'))));
+                    return Card(child: Padding(padding: const EdgeInsets.all(24), child: Text(fypTranslate(context, 'no_lessons', 'No lessons yet. Use Add lesson or Sync Drive Playlist to build course lessons.'))));
                   }
                   return Column(
                     children: lessons.map((doc) {
@@ -273,7 +372,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                         margin: const EdgeInsets.only(bottom: 10),
                         child: ListTile(
                           leading: CircleAvatar(backgroundColor: Theme.of(context).colorScheme.primaryContainer, child: Text('${data['order'] ?? '•'}')),
-                          title: Text((data['title'] ?? 'Lesson').toString(), style: TextStyle(fontWeight: FontWeight.bold)),
+                          title: Text((data['title'] ?? 'Lesson').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['sourceLinked'] == true ? fypTranslate(context, 'video_linked', 'Video linked') : fypTranslate(context, 'video_not_linked', 'Video not linked')} • ${AppLocalizations.of(context)?.translateStatus((data['approvalStatus'] ?? 'pending review').toString()) ?? (data['approvalStatus'] ?? 'pending review')}'),
                           trailing: IconButton(
                             tooltip: fypTranslate(context, 'upload_video', 'Upload video'),
@@ -286,7 +385,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                   );
                 },
               ),
-              SizedBox(height: 70),
+              const SizedBox(height: 70),
             ],
           );
         },
