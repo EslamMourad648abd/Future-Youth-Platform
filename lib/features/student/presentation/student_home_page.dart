@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../app/fyp_routes.dart';
 import '../../../core/constants/firestore_paths.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
+import '../../../widgets/appbar_actions.dart';
 
 class StudentHomePage extends StatefulWidget {
   const StudentHomePage({super.key});
@@ -39,9 +41,14 @@ class _StudentHomePageState extends State<StudentHomePage> {
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection(FirestorePaths.courses)
+          .where('status', isEqualTo: 'published')
+          .where('approvalStatus', isEqualTo: 'approved')
           .get();
 
-      final list = snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+      final list = snapshot.docs
+          .where((doc) => doc.data()['status'] == 'published' && doc.data()['approvalStatus'] == 'approved')
+          .map((doc) => {'id': doc.id, ...doc.data()})
+          .toList();
 
       if (!mounted) return;
       setState(() {
@@ -56,60 +63,21 @@ class _StudentHomePageState extends State<StudentHomePage> {
     }
   }
 
-  Future<void> _requestParentInvoice(Map<String, dynamic> course) async {
-    final studentUser = FirebaseAuth.instance.currentUser;
-    if (studentUser == null) return;
-
-    try {
-      final userDoc = await FirebaseFirestore.instance
-          .collection(FirestorePaths.users)
-          .doc(studentUser.uid)
-          .get();
-
-      final parentId = userDoc.data()?['parentId'];
-      final studentName = userDoc.data()?['displayName'] ?? studentUser.email ?? 'Student';
-
-      if (parentId == null || parentId.toString().isEmpty) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No parent account linked. Please ask your parent to register you.'),
-            backgroundColor: BrandColors.error,
-          ),
-        );
-        return;
-      }
-
-      await FirebaseFirestore.instance.collection('invoices').add({
-        'parentId': parentId,
-        'studentId': studentUser.uid,
-        'studentName': studentName,
-        'teacherId': course['teacherId'] ?? '',
-        'teacherName': course['teacherName'] ?? 'Teacher',
-        'courseId': course['id'],
-        'courseTitle': course['title'] ?? 'Course',
-        'amount': 250,
-        'currency': 'EGP',
-        'status': 'pending',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invoice notification sent to your parent for checkout!'),
-          backgroundColor: BrandColors.greenText,
+  Future<void> _showEnrollmentInfo(Map<String, dynamic> course) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: Icon(Icons.family_restroom, color: Theme.of(context).colorScheme.primary, size: 36),
+        title: Text(fypTranslate(dialogContext, 'ask_parent_enrol', 'Ask your parent to enrol')),
+        content: Text(
+          'Your parent can review subscription options for "${course['title'] ?? 'this course'}" from Parent Workspace. '
+          'Checkout is currently a UI preview only; no invoice or payment request will be created.',
         ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to request invoice: $e'),
-          backgroundColor: BrandColors.error,
-        ),
-      );
-    }
+        actions: [
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text(fypTranslate(dialogContext, 'got_it', 'Understood'))),
+        ],
+      ),
+    );
   }
 
   Future<void> _signOut() async {
@@ -129,17 +97,20 @@ class _StudentHomePageState extends State<StudentHomePage> {
     final displayName = user?.displayName ?? user?.email ?? 'Student';
 
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Student Learning Portal'),
+        title: Text(fypTranslate(context, 'student_learning_portal', 'Student Learning Portal')),
         backgroundColor: BrandColors.navy,
         foregroundColor: Colors.white,
         actions: [
+          const GlobalAppBarActions(iconColor: Colors.white),
+          const SizedBox(width: 4),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Sign Out',
             onPressed: _signOut,
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
@@ -156,24 +127,24 @@ class _StudentHomePageState extends State<StudentHomePage> {
                   padding: const EdgeInsets.all(20),
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 28,
                         backgroundColor: BrandColors.greenTint,
-                        child: Icon(Icons.school, color: BrandColors.greenText, size: 30),
+                        child: Icon(Icons.school, color: Theme.of(context).brightness == Brightness.dark ? BrandColors.green : BrandColors.greenText, size: 30),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Welcome, $displayName',
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                              fypTranslate(context, 'welcome_student', 'Welcome, {name}').replaceAll('{name}', displayName),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                             ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Watch 1st free video preview, take quizzes, and learn from top teachers',
-                              style: TextStyle(fontSize: 13, color: Colors.grey),
+                            SizedBox(height: 4),
+                            Text(
+                              fypTranslate(context, 'watch_free_preview_desc', 'Watch the first free video preview, take quizzes, and learn from top teachers.'),
+                              style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -182,18 +153,18 @@ class _StudentHomePageState extends State<StudentHomePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Explore by Subject',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy),
+              SizedBox(height: 20),
+              Text(
+                fypTranslate(context, 'explore_subjects', 'Explore by subject'),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               SizedBox(
                 height: 40,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: subjects.length,
-                  separatorBuilder: (context, index) => const SizedBox(width: 8),
+                  separatorBuilder: (context, index) => SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     final sub = subjects[index];
                     final selected = selectedSubject == sub;
@@ -210,7 +181,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                   },
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               _buildCourseList(context),
             ],
           ),
@@ -221,7 +192,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
   Widget _buildCourseList(BuildContext context) {
     if (loading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator());
     }
 
     if (_filteredCourses.isEmpty) {
@@ -232,11 +203,11 @@ class _StudentHomePageState extends State<StudentHomePage> {
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.video_library_outlined, size: 60, color: Colors.grey.shade400),
-                const SizedBox(height: 12),
-                const Text(
-                  'No teacher playlists found for this subject.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.bold),
+                Icon(Icons.video_library_outlined, size: 60, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                SizedBox(height: 12),
+                Text(
+                  fypTranslate(context, 'no_playlists_subject', 'No teacher playlists found for this subject.'),
+                  style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -249,7 +220,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: _filteredCourses.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      separatorBuilder: (context, index) => SizedBox(height: 16),
       itemBuilder: (context, index) {
         final course = _filteredCourses[index];
         final subject = course['subject'] ?? 'General';
@@ -270,15 +241,15 @@ class _StudentHomePageState extends State<StudentHomePage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: BrandColors.navyTint,
+                        color: Theme.of(context).colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         subject.toUpperCase(),
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
@@ -287,59 +258,59 @@ class _StudentHomePageState extends State<StudentHomePage> {
                       ),
                       child: Text(
                         schoolYear,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: BrandColors.greenText),
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? BrandColors.green : BrandColors.greenText),
                       ),
                     ),
                     const Spacer(),
                     Row(
                       children: [
-                        const Icon(Icons.person, size: 16, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(teacherName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        Icon(Icons.person, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        SizedBox(width: 4),
+                        Text(teacherName, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   course['title'] ?? 'Course Title',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                 ),
                 if ((course['description'] ?? '').toString().isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     course['description'],
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                    style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          context.go('/student/courses/${course['id']}/videos/lesson_1');
+                          context.go(FypRoutes.studentCourseFor(course['id'].toString()));
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: BrandColors.green,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        icon: const Icon(Icons.play_arrow, size: 20),
-                        label: const Text('1st Free Video Preview'),
+                        icon: Icon(Icons.play_arrow, size: 20),
+                        label: Text(fypTranslate(context, 'first_free_video_preview', 'First free video preview')),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () => _requestParentInvoice(course),
+                        onPressed: () => _showEnrollmentInfo(course),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: BrandColors.navy,
-                          side: const BorderSide(color: BrandColors.navy),
+                          side: BorderSide(color: Theme.of(context).colorScheme.primary),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        icon: const Icon(Icons.receipt, size: 18),
-                        label: const Text('Request Enrollment'),
+                        icon: Icon(Icons.receipt, size: 18),
+                        label: Text(fypTranslate(context, 'subscription_info', 'Subscription info')),
                       ),
                     ),
                   ],

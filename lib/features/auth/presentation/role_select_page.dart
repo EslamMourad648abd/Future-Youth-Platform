@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/fyp_routes.dart';
 import '../../../core/constants/user_role.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../widgets/appbar_actions.dart';
 
 class RoleSelectPage extends StatelessWidget {
   const RoleSelectPage({super.key});
@@ -12,10 +13,15 @@ class RoleSelectPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BrandColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: const [GlobalAppBarActions()],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 460),
               child: Card(

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/fyp_routes.dart';
 import '../../../core/constants/firestore_paths.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
 
 class SubscriptionPage extends StatefulWidget {
   final String? invoiceId;
@@ -50,6 +51,15 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     super.dispose();
   }
 
+  double _priceForCourse(String? id) {
+    for (final course in courses) {
+      if (course['id']?.toString() == id) {
+        return (course['price'] as num?)?.toDouble() ?? 250.0;
+      }
+    }
+    return 250.0;
+  }
+
   Future<void> _loadCheckoutData() async {
     final parentUser = FirebaseAuth.instance.currentUser;
     if (parentUser == null) return;
@@ -64,6 +74,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
       final courseSnapshot = await FirebaseFirestore.instance
           .collection(FirestorePaths.courses)
+          .where('status', isEqualTo: 'published')
+          .where('approvalStatus', isEqualTo: 'approved')
           .get();
 
       final courseList = courseSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
@@ -74,6 +86,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         courses = courseList;
         selectedStudentId = widget.studentId ?? (students.isNotEmpty ? students.first['id'] : null);
         selectedCourseId = widget.courseId ?? (courses.isNotEmpty ? courses.first['id'] : null);
+        coursePrice = _priceForCourse(selectedCourseId);
         loading = false;
       });
     } catch (e) {
@@ -86,91 +99,52 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   Future<void> _processPayment() async {
     if (!_formKey.currentState!.validate()) return;
-    if (selectedStudentId == null || selectedCourseId == null) {
+    if (selectedStudentId == null || selectedCourseId == null || selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select both a student and a course.'),
-          backgroundColor: BrandColors.error,
-        ),
+        SnackBar(content: Text(fypTranslate(context, 'please_select_student_course_payment', 'Please select a student, course and payment method.'))),
       );
       return;
     }
 
-    setState(() {
-      submitting = true;
-    });
-
-    final parentUser = FirebaseAuth.instance.currentUser;
-
-    try {
-      final paymentRef = await FirebaseFirestore.instance.collection(FirestorePaths.payments).add({
-        'parentId': parentUser?.uid,
-        'studentId': selectedStudentId,
-        'courseId': selectedCourseId,
-        'amount': coursePrice,
-        'currency': 'EGP',
-        'paymentMethod': selectedPaymentMethod,
-        'referenceNumber': _referenceCtrl.text.trim(),
-        'status': 'completed',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      await FirebaseFirestore.instance.collection(FirestorePaths.subscriptions).add({
-        'parentId': parentUser?.uid,
-        'studentId': selectedStudentId,
-        'courseId': selectedCourseId,
-        'paymentId': paymentRef.id,
-        'status': 'active',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      if (widget.invoiceId != null && widget.invoiceId!.isNotEmpty) {
-        await FirebaseFirestore.instance.collection('invoices').doc(widget.invoiceId).update({
-          'status': 'paid',
-          'paymentMethod': selectedPaymentMethod,
-          'paidAt': FieldValue.serverTimestamp(),
-        });
-      }
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Payment processed successfully! Subscription is active.'),
-          backgroundColor: BrandColors.greenText,
+    // Checkout is intentionally a UI prototype. Do not write payment data,
+    // activate a subscription, or grant points from the client.
+    setState(() => submitting = true);
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        icon: Icon(Icons.construction_outlined, color: Theme.of(context).colorScheme.primary, size: 38),
+        title: Text(fypTranslate(dialogContext, 'checkout_preview', 'Checkout preview')),
+        content: Text(
+          'The checkout screen is ready for review, but payment processing is currently disabled. '
+          'No transfer has been submitted, no subscription has been activated, and no points have been granted.',
         ),
-      );
-
-      context.go(FypRoutes.parent);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        submitting = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Payment failed: $e'),
-          backgroundColor: BrandColors.error,
-        ),
-      );
-    }
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(fypTranslate(dialogContext, 'got_it', 'Understood')),
+          ),
+        ],
+      ),
+    );
+    if (mounted) setState(() => submitting = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Course Subscription Checkout'),
-        backgroundColor: BrandColors.navy,
-        foregroundColor: Colors.white,
+        title: Text(fypTranslate(context, 'subscription_access', 'Course subscription checkout')),
+        
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => context.go(FypRoutes.parent),
         ),
       ),
       body: SafeArea(
         child: loading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
                 child: Center(
@@ -178,10 +152,10 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                     constraints: const BoxConstraints(maxWidth: 520),
                     child: Card(
                       elevation: 4,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
-                        side: const BorderSide(color: Color(0xFFE2E8EF)),
+                        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(28),
@@ -190,23 +164,23 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Row(
+                              Row(
                                 children: [
-                                  Icon(Icons.payment, size: 32, color: BrandColors.navy),
+                                  Icon(Icons.payment, size: 32, color: Theme.of(context).colorScheme.primary),
                                   SizedBox(width: 12),
                                   Text(
-                                    'Egyptian Payment Gateway',
-                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                                    fypTranslate(context, 'egyptian_payment_gateway', 'Egyptian payment options'),
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 16),
-                              const Divider(),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
+                              Divider(),
+                              SizedBox(height: 16),
                               DropdownButtonFormField<String>(
                                 value: selectedStudentId,
-                                decoration: const InputDecoration(
-                                  labelText: 'Select Student Child',
+                                decoration: InputDecoration(
+                                  labelText: fypTranslate(context, 'select_student_child', 'Select student'),
                                   prefixIcon: Icon(Icons.person_outline),
                                 ),
                                 items: students.map((s) {
@@ -218,11 +192,11 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                 onChanged: (val) => setState(() => selectedStudentId = val),
                                 validator: (val) => val == null ? 'Please select a student' : null,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
                               DropdownButtonFormField<String>(
                                 value: selectedCourseId,
-                                decoration: const InputDecoration(
-                                  labelText: 'Select Course / Teacher Playlist',
+                                decoration: InputDecoration(
+                                  labelText: fypTranslate(context, 'select_course', 'Select course'),
                                   prefixIcon: Icon(Icons.school_outlined),
                                 ),
                                 items: courses.map((c) {
@@ -231,65 +205,68 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                     child: Text(c['title'] ?? 'Course'),
                                   );
                                 }).toList(),
-                                onChanged: (val) => setState(() => selectedCourseId = val),
+                                onChanged: (val) => setState(() {
+                                  selectedCourseId = val;
+                                  coursePrice = _priceForCourse(val);
+                                }),
                                 validator: (val) => val == null ? 'Please select a course' : null,
                               ),
-                              const SizedBox(height: 20),
+                              SizedBox(height: 20),
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: BrandColors.navyTint,
+                                  color: Theme.of(context).colorScheme.primaryContainer,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text('Total Amount:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                    Text('$coursePrice EGP', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: BrandColors.navy)),
+                                    Text(fypTranslate(context, 'total_amount', 'Total amount'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    Text(AppLocalizations.of(context)?.translate('egp_per_month', params: {'price': '$coursePrice'}) ?? '$coursePrice EGP/month', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.primary)),
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 24),
-                              const Text('Select Payment Method', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: BrandColors.navy)),
-                              const SizedBox(height: 12),
+                              SizedBox(height: 24),
+                              Text(fypTranslate(context, 'select_payment_method', 'Select Payment Method'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Theme.of(context).colorScheme.primary)),
+                              SizedBox(height: 12),
                               RadioListTile<String>(
-                                title: const Text('InstaPay (National Bank / App Transfer)'),
-                                subtitle: const Text('Transfer to InstaPay IPA: futureyouth@instapay'),
+                                title: Text(fypTranslate(context, 'instapay_transfer', 'InstaPay (National Bank / App Transfer)')),
+                                subtitle: Text(fypTranslate(context, 'illustrative_account_details', 'Illustrative account details — to be configured')),
                                 value: 'instapay',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
-                                activeColor: BrandColors.navy,
+                                activeColor: Theme.of(context).colorScheme.primary,
                               ),
                               RadioListTile<String>(
-                                title: const Text('Vodafone Cash'),
-                                subtitle: const Text('Transfer to Wallet: 01012345678'),
+                                title: Text('Vodafone Cash'),
+                                subtitle: Text(fypTranslate(context, 'illustrative_wallet_details', 'Illustrative wallet details — to be configured')),
                                 value: 'vodafone_cash',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
                                 activeColor: BrandColors.navy,
                               ),
                               RadioListTile<String>(
-                                title: const Text('Orange Cash'),
-                                subtitle: const Text('Transfer to Wallet: 01212345678'),
+                                title: Text('Orange Cash'),
+                                subtitle: Text(fypTranslate(context, 'illustrative_wallet_details', 'Illustrative wallet details — to be configured')),
                                 value: 'orange_cash',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
                                 activeColor: BrandColors.navy,
                               ),
                               RadioListTile<String>(
-                                title: const Text('Etisalat Cash'),
-                                subtitle: const Text('Transfer to Wallet: 01112345678'),
+                                title: Text('Etisalat Cash'),
+                                subtitle: Text(fypTranslate(context, 'illustrative_wallet_details', 'Illustrative wallet details — to be configured')),
                                 value: 'etisalat_cash',
                                 groupValue: selectedPaymentMethod,
                                 onChanged: (val) => setState(() => selectedPaymentMethod = val),
                                 activeColor: BrandColors.navy,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
                               TextFormField(
                                 controller: _referenceCtrl,
-                                decoration: const InputDecoration(
-                                  labelText: 'Transaction Reference / Sender Mobile No.',
-                                  hintText: 'e.g. TRX12345678 or 010xxxxxxxx',
+                                decoration: InputDecoration(
+                                  labelText: fypTranslate(context, 'transaction_reference_mobile', 'Transaction Reference / Sender Mobile No.'),
+                                  hintText: fypTranslate(context, 'transaction_reference_example', 'e.g. TRX12345678 or 010xxxxxxxx'),
                                   prefixIcon: Icon(Icons.confirmation_number_outlined),
                                 ),
                                 validator: (val) {
@@ -297,18 +274,18 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                                   return null;
                                 },
                               ),
-                              const SizedBox(height: 28),
+                              SizedBox(height: 28),
                               ElevatedButton(
                                 onPressed: submitting ? null : _processPayment,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: BrandColors.green,
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                                  foregroundColor: Theme.of(context).colorScheme.onSecondary,
                                   minimumSize: const Size.fromHeight(50),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 ),
                                 child: submitting
-                                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                    : const Text('Confirm Payment & Subscribe', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                    ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    : Text(fypTranslate(context, 'preview_checkout_disabled', 'Preview checkout (payments disabled)'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               ),
                             ],
                           ),

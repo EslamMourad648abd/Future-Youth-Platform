@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/fyp_routes.dart';
 import '../../../core/constants/user_role.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../widgets/appbar_actions.dart';
 import '../data/auth_repository.dart';
 import '../domain/auth_session.dart';
 
@@ -93,6 +94,7 @@ class _LoginPageState extends State<LoginPage> {
           onPressed: () => context.go(FypRoutes.entry),
         ),
         title: Text('Sign in as $roleTitle'),
+        actions: const [GlobalAppBarActions(iconColor: Colors.white)],
       ),
       body: SafeArea(
         child: Center(
@@ -126,7 +128,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         child: Text(
                           _errorMessage!,
-                          style: const TextStyle(color: BrandColors.error, fontSize: 13),
+                          style: TextStyle(color: BrandColors.error, fontSize: 13),
                         ),
                       ),
                       const SizedBox(height: 16),

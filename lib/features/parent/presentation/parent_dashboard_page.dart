@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../app/fyp_routes.dart';
 import '../../../core/constants/firestore_paths.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
+import '../../../widgets/appbar_actions.dart';
 
 class ParentDashboardPage extends StatefulWidget {
   const ParentDashboardPage({super.key});
@@ -17,7 +19,6 @@ class ParentDashboardPage extends StatefulWidget {
 class _ParentDashboardPageState extends State<ParentDashboardPage> {
   bool loading = true;
   List<Map<String, dynamic>> students = [];
-  List<Map<String, dynamic>> invoices = [];
 
   @override
   void initState() {
@@ -37,18 +38,11 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
 
       final studentList = studentSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
 
-      final invoiceSnapshot = await FirebaseFirestore.instance
-          .collection('invoices')
-          .where('parentId', isEqualTo: parentUser.uid)
-          .where('status', isEqualTo: 'pending')
-          .get();
 
-      final invoiceList = invoiceSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
 
       if (!mounted) return;
       setState(() {
         students = studentList;
-        invoices = invoiceList;
         loading = false;
       });
     } catch (e) {
@@ -71,17 +65,20 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
     final displayName = user?.displayName ?? user?.email ?? 'Parent';
 
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Parent Workspace'),
+        title: Text(fypTranslate(context, 'parent_workspace', 'Parent Workspace')),
         backgroundColor: BrandColors.navy,
         foregroundColor: Colors.white,
         actions: [
+          const GlobalAppBarActions(iconColor: Colors.white),
+          const SizedBox(width: 4),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Sign Out',
+            tooltip: fypTranslate(context, 'sign_out', 'Sign out'),
             onPressed: _signOut,
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
@@ -98,24 +95,24 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                   padding: const EdgeInsets.all(20),
                   child: Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 28,
-                        backgroundColor: BrandColors.navyTint,
-                        child: Icon(Icons.family_restroom, color: BrandColors.navy, size: 30),
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        child: Icon(Icons.family_restroom, color: Theme.of(context).colorScheme.primary, size: 30),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Welcome, $displayName',
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                              fypTranslate(context, 'welcome_parent', 'Welcome, {name}').replaceAll('{name}', displayName),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                             ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Manage student accounts, course invoices, and learning analytics',
-                              style: TextStyle(fontSize: 13, color: Colors.grey),
+                            SizedBox(height: 4),
+                            Text(
+                              fypTranslate(context, 'manage_student_accounts', 'Manage student accounts, course options, and learning progress.'),
+                              style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -124,85 +121,59 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-              if (invoices.isNotEmpty) ...[
-                const Row(
-                  children: [
-                    Icon(Icons.notifications_active, color: Colors.amber, size: 22),
-                    SizedBox(width: 8),
-                    Text(
-                      'Pending Course Invoices',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy),
-                    ),
-                  ],
+              SizedBox(height: 24),
+              Card(
+                color: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                 ),
-                const SizedBox(height: 12),
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: invoices.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) {
-                    final inv = invoices[index];
-                    return Card(
-                      color: Colors.amber.shade50,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Colors.amber.shade300),
+                child: Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        child: Icon(Icons.subscriptions_outlined, color: Theme.of(context).colorScheme.primary),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.receipt_long, color: BrandColors.navy, size: 30),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    inv['courseTitle'] ?? 'Course Request',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Requested by: ${inv['studentName'] ?? 'Child'}',
-                                    style: const TextStyle(fontSize: 13, color: Colors.black87),
-                                  ),
-                                  Text(
-                                    'Amount: ${inv['amount'] ?? 250} EGP',
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: BrandColors.navy),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () => context.go('/parent/subscriptions'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: BrandColors.green,
-                                foregroundColor: Colors.white,
-                              ),
-                              child: const Text('Pay Invoice'),
-                            ),
+                            Text(fypTranslate(context, 'subscription_access', 'Subscriptions & access'), style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary, fontSize: 16)),
+                            SizedBox(height: 4),
+                            Text(fypTranslate(context, 'checkout_disabled_parent_note', 'Review course options and see the checkout interface. Payment processing is disabled for now.'), style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
                           ],
                         ),
                       ),
-                    );
-                  },
+                      SizedBox(width: 8),
+                      SizedBox(
+                        width: 90,
+                        child: FilledButton(
+                          onPressed: () => context.go(FypRoutes.parentSubscriptions),
+                          child: Text(
+                            fypTranslate(context, 'open_action', 'Open'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 24),
-              ],
+              ),
+              SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Enrolled Students / Children',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                  Text(
+                    fypTranslate(context, 'enrolled_students_children', 'Enrolled students / children'),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                   ),
                   ElevatedButton.icon(
                     onPressed: () => context.go(FypRoutes.parentCreateStudent),
-                    icon: const Icon(Icons.person_add, size: 18),
-                    label: const Text('Add Student'),
+                    icon: Icon(Icons.person_add, size: 18),
+                    label: Text(fypTranslate(context, 'add_student', 'Add student')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: BrandColors.green,
                       foregroundColor: Colors.white,
@@ -211,7 +182,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               _buildStudentList(context),
             ],
           ),
@@ -222,7 +193,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
 
   Widget _buildStudentList(BuildContext context) {
     if (loading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator());
     }
 
     if (students.isEmpty) {
@@ -233,17 +204,17 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.face, size: 60, color: Colors.grey.shade400),
-                const SizedBox(height: 12),
-                const Text(
-                  'No student accounts created yet.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.bold),
+                Icon(Icons.face, size: 60, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                SizedBox(height: 12),
+                Text(
+                  fypTranslate(context, 'no_student_accounts', 'No student accounts created yet.'),
+                  style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Click "Add Student" above to register an account for your child.',
+                SizedBox(height: 8),
+                Text(
+                  fypTranslate(context, 'click_add_student', 'Click Add Student above to register an account for your child.'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -256,7 +227,7 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: students.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      separatorBuilder: (context, index) => SizedBox(height: 12),
       itemBuilder: (context, index) {
         final student = students[index];
         return Card(
@@ -273,57 +244,42 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
               children: [
                 Row(
                   children: [
-                    const CircleAvatar(
-                      backgroundColor: BrandColors.navyTint,
-                      child: Icon(Icons.school, color: BrandColors.navy),
+                    CircleAvatar(
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                      child: Icon(Icons.school, color: Theme.of(context).colorScheme.primary),
                     ),
-                    const SizedBox(width: 14),
+                    SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             student['displayName'] ?? student['email'] ?? 'Student',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
-                          Text(student['email'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                          Text(student['email'] ?? '', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ],
                       ),
                     ),
                     OutlinedButton(
                       onPressed: () => context.go(FypRoutes.parentSubscriptions),
-                      child: const Text('Manage Subscriptions'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      child: Text(fypTranslate(context, 'manage_subscriptions', 'Manage subscriptions')),
                     ),
                   ],
                 ),
-                const Divider(height: 24),
-                const Text(
-                  'Child Learning Analytics Summary',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: BrandColors.navy),
+                Divider(height: 24),
+                Text(
+                  fypTranslate(context, 'learning_analytics', 'Learning analytics'),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Theme.of(context).colorScheme.primary),
                 ),
-                const SizedBox(height: 8),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Column(
-                      children: [
-                        Text('85%', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.greenText)),
-                        Text('Avg Quiz Score', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        Text('4', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy)),
-                        Text('Courses Enrolled', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        Text('12 hrs', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: BrandColors.navy)),
-                        Text('Learning Time', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                      ],
-                    ),
-                  ],
+                SizedBox(height: 8),
+                Text(
+                  fypTranslate(context, 'learning_progress_placeholder', 'Progress, completed lessons, and learning time will appear here as activity tracking is connected.'),
+                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.4),
                 ),
               ],
             ),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/fyp_routes.dart';
 import '../../../core/constants/user_role.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../widgets/appbar_actions.dart';
 import '../data/auth_repository.dart';
 
 class SignupPage extends StatefulWidget {
@@ -80,6 +81,7 @@ class _SignupPageState extends State<SignupPage> {
           onPressed: () => context.go(FypRoutes.loginFor(widget.role)),
         ),
         title: Text('$roleTitle Sign up'),
+        actions: const [GlobalAppBarActions(iconColor: Colors.white)],
       ),
       body: SafeArea(
         child: Center(

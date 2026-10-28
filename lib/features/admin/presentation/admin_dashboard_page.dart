@@ -1,13 +1,427 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../core/widgets/placeholder_page.dart';
+import '../../../app/fyp_routes.dart';
+import '../../../core/theme/brand_colors.dart';
+import '../../../services/localization_service.dart';
+import '../../../widgets/app_header_actions.dart';
 
-/// Admin home: teacher approvals, accounts, platform overview. Task T07.
-class AdminDashboardPage extends StatelessWidget {
+class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const PlaceholderPage(title: 'Admin dashboard', taskId: 'T07');
+  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
+}
+
+class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  bool busy = false;
+
+  Future<String?> _rejectionReason(String title) async {
+    final controller = TextEditingController();
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          maxLines: 3,
+          decoration: InputDecoration(labelText: fypTranslate(dialogContext, 'reason_required', 'Reason (required)')),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(fypTranslate(dialogContext, 'cancel_action', 'Cancel'))),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) Navigator.pop(dialogContext, value);
+            },
+            child: Text(fypTranslate(context, 'reject_action', 'Reject')),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return reason;
   }
+
+  Future<void> _reviewTeacher(String id, String decision) async {
+    String? reason;
+    if (decision == 'reject') {
+      reason = await _rejectionReason('Reject teacher application');
+      if (reason == null) return;
+    }
+    await _call('reviewTeacher', {
+      'teacherId': id,
+      'decision': decision,
+      if (reason != null) 'reason': reason,
+    });
+  }
+
+  Future<void> _reviewCourse(String id, String decision) async {
+    String? reason;
+    if (decision == 'reject') {
+      reason = await _rejectionReason('Reject course submission');
+      if (reason == null) return;
+    }
+    await _call('reviewCourseContent', {
+      'courseId': id,
+      'decision': decision,
+      if (reason != null) 'reason': reason,
+    });
+  }
+
+  Future<void> _reviewVideo(String courseId, String videoId, String decision) async {
+    String? reason;
+    if (decision == 'reject') {
+      reason = await _rejectionReason('Reject lesson');
+      if (reason == null) return;
+    }
+    await _call('reviewCourseContent', {
+      'courseId': courseId,
+      'videoId': videoId,
+      'decision': decision,
+      if (reason != null) 'reason': reason,
+    });
+  }
+
+  Future<void> _call(String name, Map<String, dynamic> data) async {
+    setState(() => busy = true);
+    try {
+      await FirebaseFunctions.instance.httpsCallable(name).call(data);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(fypTranslate(context, 'review_saved', 'Review saved successfully.'))),
+        );
+      }
+    } on FirebaseFunctionsException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? fypTranslate(context, 'action_failed_prefix', 'Action failed'))),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${fypTranslate(context, 'action_failed_prefix', 'Action failed')}: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  Future<void> _showPaymentUiOnly() async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: Icon(Icons.construction_outlined, color: Theme.of(context).colorScheme.primary, size: 36),
+        title: Text(fypTranslate(dialogContext, 'payment_controls_ui_only', 'Payment controls are UI-only')),
+        content: Text(
+          fypTranslate(dialogContext, 'payment_full_notice', 'Payment verification is intentionally disabled for this development stage. No payment will be confirmed, no subscription will be activated, and no points will be granted.'),
+        ),
+        actions: [
+          FilledButton(onPressed: () => Navigator.pop(dialogContext), child: Text(fypTranslate(dialogContext, 'got_it', 'Got it'))),
+        ],
+      ),
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchPendingLessons(List<QueryDocumentSnapshot<Map<String, dynamic>>> courses) async {
+    final List<Map<String, dynamic>> list = [];
+    for (final cDoc in courses) {
+      try {
+        final lessonsSnap = await cDoc.reference.collection('videos').get();
+        for (final lDoc in lessonsSnap.docs) {
+          final data = lDoc.data();
+          if (data['approvalStatus'] == 'pending') {
+            list.add({
+              'courseId': cDoc.id,
+              'docId': lDoc.id,
+              'data': data,
+            });
+          }
+        }
+      } catch (e) {
+        debugPrint("Error loading lessons for course ${cDoc.id}: $e");
+      }
+    }
+    return list;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text(fypTranslate(context, 'future_youth_admin', 'Future Youth • Admin')),
+        actions: [
+          const AppHeaderActions(),
+          IconButton(
+            tooltip: fypTranslate(context, 'create_admin', 'Create admin'),
+            onPressed: () => context.push(FypRoutes.adminCreateAdmin),
+            icon: const Icon(Icons.person_add_alt_1),
+          ),
+          IconButton(
+            tooltip: fypTranslate(context, 'sign_out', 'Sign out'),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              if (context.mounted) context.go(FypRoutes.entry);
+            },
+            icon: const Icon(Icons.logout),
+          ),
+        ],
+      ),
+      body: busy
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [BrandColors.navy, Color(0xFF3D56A6)]),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.admin_panel_settings_outlined, color: Colors.white, size: 34),
+                      const SizedBox(height: 12),
+                      Text(fypTranslate(context, 'platform_control_center', 'Platform control center'), style: const TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Text(
+                        fypTranslate(context, 'review_educators_courses', 'Review educator applications and course submissions before students can access them.'),
+                        style: const TextStyle(color: Colors.white70, height: 1.4),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const _SectionHeading('Teacher applications', 'Approve educators before they publish courses.'),
+                const SizedBox(height: 10),
+                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: FirebaseFirestore.instance.collection('users')
+                      .where('role', isEqualTo: 'teacher')
+                      .where('approvalStatus', isEqualTo: 'pending')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) return _EmptyMessage('Could not load teacher applications: ${snapshot.error}');
+                    if (!snapshot.hasData) return const LinearProgressIndicator();
+                    if (snapshot.data!.docs.isEmpty) return const _EmptyMessage('No pending teacher applications.');
+                    return Column(
+                      children: snapshot.data!.docs.map((doc) {
+                        final data = doc.data();
+                        return _ReviewCard(
+                          icon: Icons.school_outlined,
+                          title: (data['displayName'] ?? 'Teacher').toString(),
+                          subtitle: (data['email'] ?? doc.id).toString(),
+                          onApprove: () => _reviewTeacher(doc.id, 'approve'),
+                          onReject: () => _reviewTeacher(doc.id, 'reject'),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+                const _SectionHeading('Course submissions', 'Review submitted courses before publication.'),
+                const SizedBox(height: 10),
+                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: FirebaseFirestore.instance.collection('courses')
+                      .where('approvalStatus', isEqualTo: 'pending')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) return _EmptyMessage('Could not load course submissions: ${snapshot.error}');
+                    if (!snapshot.hasData) return const LinearProgressIndicator();
+                    if (snapshot.data!.docs.isEmpty) return const _EmptyMessage('No pending course submissions.');
+                    return Column(
+                      children: snapshot.data!.docs.map((doc) {
+                        final data = doc.data();
+                        return _ReviewCard(
+                          icon: Icons.play_lesson_outlined,
+                          title: (data['title'] ?? 'Untitled course').toString(),
+                          subtitle: '${data['subject'] ?? 'Subject not set'} • Teacher: ${data['teacherId'] ?? 'Unknown'}',
+                          onApprove: () => _reviewCourse(doc.id, 'approve'),
+                          onReject: () => _reviewCourse(doc.id, 'reject'),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+                const _SectionHeading('Lesson submissions', 'Review each lesson before it becomes visible to students.'),
+                const SizedBox(height: 10),
+                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: FirebaseFirestore.instance.collection('courses').snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) return _EmptyMessage('Could not load lesson submissions: ${snapshot.error}');
+                    if (!snapshot.hasData) return const LinearProgressIndicator();
+                    final courseDocs = snapshot.data!.docs;
+                    if (courseDocs.isEmpty) return const _EmptyMessage('No pending lesson submissions.');
+
+                    return FutureBuilder<List<Map<String, dynamic>>>(
+                      future: _fetchPendingLessons(courseDocs),
+                      builder: (context, lessonSnap) {
+                        if (lessonSnap.connectionState == ConnectionState.waiting) return const LinearProgressIndicator();
+                        final pendingLessons = lessonSnap.data ?? [];
+                        if (pendingLessons.isEmpty) return const _EmptyMessage('No pending lesson submissions.');
+
+                        return Column(
+                          children: pendingLessons.map((item) {
+                            final courseId = item['courseId'];
+                            final docId = item['docId'];
+                            final data = item['data'];
+                            return _ReviewCard(
+                              icon: Icons.video_file_outlined,
+                              title: (data['title'] ?? 'Untitled lesson').toString(),
+                              subtitle: 'Course: $courseId • ${data['durationMinutes'] ?? '—'} min',
+                              onApprove: () => _reviewVideo(courseId, docId, 'approve'),
+                              onReject: () => _reviewVideo(courseId, docId, 'reject'),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+                const _SectionHeading('Payments', 'Visual preview only — payment processing is disabled.'),
+                const SizedBox(height: 10),
+                Card(
+                  elevation: 0,
+                  color: Theme.of(context).colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.payments_outlined, color: Theme.of(context).colorScheme.primary, size: 30),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text(fypTranslate(context, 'payment_verification_workspace', 'Payment verification workspace'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+                            Chip(label: Text(fypTranslate(context, 'preview_action', 'Preview'))),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(fypTranslate(context, 'verification_later_notice', 'The final verification workflow will be connected later. This control does not confirm transfers or grant access.')),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: _showPaymentUiOnly,
+                          icon: const Icon(Icons.visibility_outlined),
+                          label: Text(fypTranslate(context, 'payment_workflow_notice', 'View payment workflow notice')),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: () => context.push(FypRoutes.adminCreateAdmin),
+                  icon: const Icon(Icons.admin_panel_settings_outlined),
+                  label: Text(fypTranslate(context, 'create_administrator', 'Create administrator')),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _SectionHeading extends StatelessWidget {
+  const _SectionHeading(this.title, this.subtitle);
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
+          const SizedBox(height: 4),
+          Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        ],
+      );
+}
+
+class _ReviewCard extends StatelessWidget {
+  const _ReviewCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onApprove,
+    required this.onReject,
+  });
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onApprove;
+  final VoidCallback onReject;
+
+  @override
+  Widget build(BuildContext context) => Card(
+        elevation: 0,
+        margin: const EdgeInsets.only(bottom: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 4),
+                        Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(child: OutlinedButton(onPressed: onReject, child: Text(fypTranslate(context, 'reject_action', 'Reject')))),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(backgroundColor: BrandColors.green),
+                      onPressed: onApprove,
+                      child: Text(fypTranslate(context, 'approve_action', 'Approve')),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+}
+
+class _EmptyMessage extends StatelessWidget {
+  const _EmptyMessage(this.message);
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16)),
+        child: Text(message),
+      );
 }
