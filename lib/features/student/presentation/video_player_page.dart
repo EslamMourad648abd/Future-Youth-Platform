@@ -126,6 +126,18 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     }
   }
 
+  Future<void> _reportPlaybackProgress(int positionSeconds, bool isPlaying) async {
+    final sessionId = playbackSessionId;
+    if (sessionId == null || sessionId.isEmpty) return;
+    await FirebaseFunctions.instanceFor(region: 'us-central1')
+        .httpsCallable('reportVideoPlaybackProgress')
+        .call({
+      'sessionId': sessionId,
+      'positionSeconds': positionSeconds,
+      'isPlaying': isPlaying,
+    });
+  }
+
   Future<void> _completeView() async {
     final sessionId = playbackSessionId;
     if (sessionId == null || sessionId.isEmpty) return;
@@ -268,6 +280,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                           key: ValueKey(videoUrl),
                           url: videoUrl!,
                           onCompleted: _completeView,
+                          onProgress: _reportPlaybackProgress,
                         ),
                       )
                     else
