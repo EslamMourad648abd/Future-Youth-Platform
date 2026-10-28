@@ -29,6 +29,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   bool locked = false;
   String? loadError;
   String? videoUrl;
+  String? playbackSessionId;
   String title = 'Lesson video';
   String description = '';
   int userRating = 0;
@@ -72,8 +73,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             'courseId': widget.courseId,
             'videoId': widget.videoId,
           });
-          videoUrl = (result.data as Map)['videoUrl']?.toString();
-          locked = videoUrl == null || videoUrl!.isEmpty;
+          final playback = Map<String, dynamic>.from(result.data as Map);
+          videoUrl = playback['videoUrl']?.toString();
+          playbackSessionId = playback['sessionId']?.toString();
+          locked = videoUrl == null || videoUrl!.isEmpty || playbackSessionId == null || playbackSessionId!.isEmpty;
         }
 
       }
@@ -120,6 +123,35 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         locked = true;
         loadError = e.toString();
       });
+    }
+  }
+
+  Future<void> _completeView() async {
+    final sessionId = playbackSessionId;
+    if (sessionId == null || sessionId.isEmpty) return;
+    try {
+      final result = await FirebaseFunctions.instanceFor(region: 'us-central1')
+          .httpsCallable('completeVideoView')
+          .call({'sessionId': sessionId});
+      if (!mounted) return;
+      final data = Map<String, dynamic>.from(result.data as Map);
+      final charged = data['charged'] == true;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            charged
+                ? fypTranslate(context, 'lesson_completed_point_deducted', 'Lesson completed. One point was used.')
+                : fypTranslate(context, 'lesson_completed', 'Lesson completion recorded.'),
+          ),
+        ),
+      );
+    } on FirebaseFunctionsException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message ?? fypTranslate(context, 'lesson_completion_failed', 'Could not record lesson completion yet.'))),
+      );
+    } catch (error) {
+      debugPrint('Video completion failed: $error');
     }
   }
 
@@ -232,7 +264,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     if (videoUrl != null && videoUrl!.isNotEmpty)
                       SizedBox(
                         height: 340,
-                        child: PrivateLessonVideoPlayer(key: ValueKey(videoUrl), url: videoUrl!),
+                        child: PrivateLessonVideoPlayer(
+                          key: ValueKey(videoUrl),
+                          url: videoUrl!,
+                          onCompleted: _completeView,
+                        ),
                       )
                     else
                       Container(
