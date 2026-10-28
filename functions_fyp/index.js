@@ -555,9 +555,10 @@ export const reportVideoPlaybackProgress = onCall(async (request) => {
       if (previousPlaying && isPlaying && positionDelta > 0) {
         addedWatchSeconds = Math.min(elapsedSeconds, positionDelta, 15);
       }
-    } else if (isPlaying) {
+    } else if (positionSeconds > 0) {
       // The first checkpoint can count only the portion consistent with elapsed
-      // time since the server created the playback session.
+      // time since the server created the playback session. A completed video
+      // may already be paused when its first checkpoint is submitted.
       addedWatchSeconds = Math.min(positionSeconds, Math.max(0, (now - startedAtMs) / 1000), 15);
     }
 
