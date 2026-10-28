@@ -10,8 +10,14 @@ import '../services/localization_service.dart';
 class PrivateLessonVideoPlayer extends StatefulWidget {
   final String url;
   final Future<void> Function()? onCompleted;
+  final Future<void> Function(int positionSeconds, bool isPlaying)? onProgress;
 
-  const PrivateLessonVideoPlayer({super.key, required this.url, this.onCompleted});
+  const PrivateLessonVideoPlayer({
+    super.key,
+    required this.url,
+    this.onCompleted,
+    this.onProgress,
+  });
 
   @override
   State<PrivateLessonVideoPlayer> createState() => _PrivateLessonVideoPlayerState();
@@ -24,12 +30,15 @@ class _PrivateLessonVideoPlayerState extends State<PrivateLessonVideoPlayer> {
   Duration _lastPosition = Duration.zero;
   int _watchedMilliseconds = 0;
   bool _completionNotified = false;
+  Timer? _progressTimer;
+  bool _progressReportInFlight = false;
 
   @override
   void initState() {
     super.initState();
     _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
     _controller.addListener(_onControllerChanged);
+    _progressTimer = Timer.periodic(const Duration(seconds: 10), (_) => _reportProgress());
     _initialize();
   }
 
@@ -41,6 +50,19 @@ class _PrivateLessonVideoPlayerState extends State<PrivateLessonVideoPlayer> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = error);
+    }
+  }
+
+  Future<void> _reportProgress() async {
+    final callback = widget.onProgress;
+    if (!mounted || !_ready || callback == null || _progressReportInFlight) return;
+    _progressReportInFlight = true;
+    try {
+      await callback(_controller.value.position.inSeconds, _controller.value.isPlaying);
+    } catch (error) {
+      debugPrint('Playback progress report failed: $error');
+    } finally {
+      _progressReportInFlight = false;
     }
   }
 
@@ -68,6 +90,7 @@ class _PrivateLessonVideoPlayerState extends State<PrivateLessonVideoPlayer> {
 
   @override
   void dispose() {
+    _progressTimer?.cancel();
     _controller.removeListener(_onControllerChanged);
     _controller.dispose();
     super.dispose();
