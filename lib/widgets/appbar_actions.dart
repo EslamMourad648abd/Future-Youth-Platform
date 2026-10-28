@@ -34,23 +34,28 @@ class GlobalAppBarActions extends StatelessWidget {
                   child: InkWell(
                     onTap: AppLocalizations.toggleLocale,
                     borderRadius: BorderRadius.circular(20),
-                    child: Padding(
+                    child: Tooltip(
+                      message: isEn ? 'العربية' : 'English',
+                      child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.language, size: 18, color: activeColor),
-                          const SizedBox(width: 6),
-                          Text(
-                            isEn ? 'العربية' : 'English',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: activeColor,
+                          if (MediaQuery.sizeOf(context).width >= 380) ...[
+                            const SizedBox(width: 6),
+                            Text(
+                              isEn ? 'العربية' : 'English',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: activeColor,
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
+                    ),
                     ),
                   ),
                 ),
