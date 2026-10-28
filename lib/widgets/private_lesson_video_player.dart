@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -7,8 +9,9 @@ import '../services/localization_service.dart';
 /// in Firestore and is expected to expire after a few minutes.
 class PrivateLessonVideoPlayer extends StatefulWidget {
   final String url;
+  final Future<void> Function()? onCompleted;
 
-  const PrivateLessonVideoPlayer({super.key, required this.url});
+  const PrivateLessonVideoPlayer({super.key, required this.url, this.onCompleted});
 
   @override
   State<PrivateLessonVideoPlayer> createState() => _PrivateLessonVideoPlayerState();
@@ -18,6 +21,9 @@ class _PrivateLessonVideoPlayerState extends State<PrivateLessonVideoPlayer> {
   late final VideoPlayerController _controller;
   bool _ready = false;
   Object? _error;
+  Duration _lastPosition = Duration.zero;
+  int _watchedMilliseconds = 0;
+  bool _completionNotified = false;
 
   @override
   void initState() {
@@ -39,7 +45,25 @@ class _PrivateLessonVideoPlayerState extends State<PrivateLessonVideoPlayer> {
   }
 
   void _onControllerChanged() {
-    if (mounted && _ready) setState(() {});
+    if (!mounted || !_ready) return;
+    final value = _controller.value;
+    final position = value.position;
+    final delta = position - _lastPosition;
+    // Count forward playback only; a seek jump is not treated as watched time.
+    if (value.isPlaying && delta.inMilliseconds > 0 && delta.inMilliseconds <= 2000) {
+      _watchedMilliseconds += delta.inMilliseconds;
+    }
+    _lastPosition = position;
+
+    final durationMs = value.duration.inMilliseconds;
+    if (!_completionNotified &&
+        durationMs > 0 &&
+        _watchedMilliseconds >= durationMs * 0.9 &&
+        widget.onCompleted != null) {
+      _completionNotified = true;
+      unawaited(widget.onCompleted!.call());
+    }
+    setState(() {});
   }
 
   @override
