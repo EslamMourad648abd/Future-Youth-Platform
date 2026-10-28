@@ -207,12 +207,13 @@ export const reviewCourseContent = onCall(async (request) => {
       throw new HttpsError("failed-precondition", "The uploaded video is missing from private storage.");
     }
   }
+  let courseVideos = null;
   if (decision === "approve" && !videoId) {
-    const videos = await contentRef.collection("videos").get();
-    if (videos.empty) {
+    courseVideos = await contentRef.collection("videos").get();
+    if (courseVideos.empty) {
       throw new HttpsError("failed-precondition", "Add lessons and upload private videos before approving this course.");
     }
-    for (const video of videos.docs) {
+    for (const video of courseVideos.docs) {
       const source = await db.collection("video_sources").doc(video.id).get();
       const sourceData = source.data();
       if (!source.exists || sourceData?.courseId !== courseId ||
@@ -237,9 +238,9 @@ export const reviewCourseContent = onCall(async (request) => {
     }
     if (!videoId && decision === "approve") {
       const lessonCount = Number(data.lessonCount || 0);
-      const registeredVideoCount = videos.docs.filter((video) => video.data()?.sourceLinked === true).length;
+      const registeredVideoCount = courseVideos.docs.filter((video) => video.data()?.sourceLinked === true).length;
       if (!Number.isInteger(lessonCount) || lessonCount < 1 ||
-          videos.docs.length < lessonCount || registeredVideoCount < lessonCount) {
+          courseVideos.docs.length < lessonCount || registeredVideoCount < lessonCount) {
         throw new HttpsError("failed-precondition", "A course needs at least as many registered private lesson videos as its school-book lesson count before approval.");
       }
     }
