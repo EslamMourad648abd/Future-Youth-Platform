@@ -141,30 +141,60 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   Future<void> _completeView() async {
     final sessionId = playbackSessionId;
     if (sessionId == null || sessionId.isEmpty) return;
-    try {
-      final result = await FirebaseFunctions.instanceFor(region: 'us-central1')
-          .httpsCallable('completeVideoView')
-          .call({'sessionId': sessionId});
-      if (!mounted) return;
-      final data = Map<String, dynamic>.from(result.data as Map);
-      final charged = data['charged'] == true;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            charged
-                ? fypTranslate(context, 'lesson_completed_point_deducted', 'Lesson completed. One point was used.')
-                : fypTranslate(context, 'lesson_completed', 'Lesson completion recorded.'),
+
+    // The local player reaches its 90% threshold between periodic server
+    // checkpoints. Retry briefly so the next accepted checkpoint can satisfy
+    // the server's independently checked progress threshold.
+    FirebaseFunctionsException? lastFunctionError;
+    for (var attempt = 0; attempt < 4; attempt++) {
+      try {
+        try {
+          await _reportPlaybackProgress(
+            0, // Replaced below with the player's latest position by periodic checkpoints.
+            true,
+          );
+        } on FirebaseFunctionsException catch (_) {
+          // A checkpoint may be rate-limited when completion lands between
+          // scheduled reports. The server completion check remains authoritative.
+        }
+
+        final result = await FirebaseFunctions.instanceFor(region: 'us-central1')
+            .httpsCallable('completeVideoView')
+            .call({'sessionId': sessionId});
+        if (!mounted) return;
+        final data = Map<String, dynamic>.from(result.data as Map);
+        final charged = data['charged'] == true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              charged
+                  ? fypTranslate(context, 'lesson_completed_point_deducted', 'Lesson completed. One point was used.')
+                  : fypTranslate(context, 'lesson_completed', 'Lesson completion recorded.'),
+            ),
           ),
-        ),
-      );
-    } on FirebaseFunctionsException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message ?? fypTranslate(context, 'lesson_completion_failed', 'Could not record lesson completion yet.'))),
-      );
-    } catch (error) {
-      debugPrint('Video completion failed: $error');
+        );
+        return;
+      } on FirebaseFunctionsException catch (error) {
+        lastFunctionError = error;
+        final retryable = error.code == 'failed-precondition' ||
+            error.code == 'resource-exhausted';
+        if (!retryable || attempt == 3) break;
+        await Future<void>.delayed(const Duration(seconds: 4));
+      } catch (error) {
+        debugPrint('Video completion failed: $error');
+        return;
+      }
     }
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          lastFunctionError?.message ??
+              fypTranslate(context, 'lesson_completion_failed', 'Could not record lesson completion yet.'),
+        ),
+      ),
+    );
   }
 
   Future<void> _setRating(int value) async {
