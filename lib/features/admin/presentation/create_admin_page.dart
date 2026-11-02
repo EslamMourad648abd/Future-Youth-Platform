@@ -73,16 +73,14 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: BrandColors.navy,
-        foregroundColor: Colors.white,
+        title: const Text('Provision Admin Account'),
         actions: const [AppHeaderActions()],
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go(FypRoutes.admin),
         ),
-        title: const Text('Provision Admin Account'),
       ),
       body: SafeArea(
         child: Center(
@@ -101,7 +99,7 @@ class _CreateAdminPageState extends State<CreateAdminPage> {
                       'Provision New Admin',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: BrandColors.navy,
+                            color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                     ),

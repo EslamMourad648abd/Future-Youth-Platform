@@ -204,18 +204,24 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance.collection('users')
                       .where('role', isEqualTo: 'teacher')
-                      .where('approvalStatus', isEqualTo: 'pending')
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) return _EmptyMessage('Could not load teacher applications: ${snapshot.error}');
                     if (!snapshot.hasData) return const LinearProgressIndicator();
-                    if (snapshot.data!.docs.isEmpty) return const _EmptyMessage('No pending teacher applications.');
+
+                    final pendingTeachers = snapshot.data!.docs.where((doc) {
+                      final status = (doc.data()['approvalStatus'] ?? '').toString();
+                      return status != 'approved';
+                    }).toList();
+
+                    if (pendingTeachers.isEmpty) return const _EmptyMessage('No pending teacher applications.');
+
                     return Column(
-                      children: snapshot.data!.docs.map((doc) {
+                      children: pendingTeachers.map((doc) {
                         final data = doc.data();
                         return _ReviewCard(
                           icon: Icons.school_outlined,
-                          title: (data['displayName'] ?? 'Teacher').toString(),
+                          title: (data['displayName'] ?? data['email'] ?? 'Teacher').toString(),
                           subtitle: (data['email'] ?? doc.id).toString(),
                           onApprove: () => _reviewTeacher(doc.id, 'approve'),
                           onReject: () => _reviewTeacher(doc.id, 'reject'),

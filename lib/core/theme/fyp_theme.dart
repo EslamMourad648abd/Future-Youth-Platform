@@ -2,12 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'brand_colors.dart';
 
-/// Light and dark themes for the Future Youth Platform.
-///
-/// Rules of thumb (see docs/ARCHITECTURE.md, "Brand"):
-/// - Navy is the primary color: app bars, primary buttons, headings.
-/// - Green is the accent: progress, success, selected states, highlights.
-/// - Never put small white text on a green fill (3.19:1). Use dark text.
 abstract final class FypTheme {
   static ThemeData get light {
     const scheme = ColorScheme(
@@ -17,13 +11,15 @@ abstract final class FypTheme {
       primaryContainer: BrandColors.navyTint,
       onPrimaryContainer: BrandColors.navy,
       secondary: BrandColors.green,
-      onSecondary: BrandColors.darkBackground,
+      onSecondary: Colors.white,
       secondaryContainer: BrandColors.greenTint,
       onSecondaryContainer: BrandColors.greenText,
       error: BrandColors.error,
       onError: Colors.white,
       surface: Colors.white,
       onSurface: BrandColors.ink,
+      onSurfaceVariant: Color(0xFF64748B),
+      outlineVariant: Color(0xFFE2E8EF),
     );
     return _base(scheme, BrandColors.background);
   }
@@ -33,16 +29,18 @@ abstract final class FypTheme {
       brightness: Brightness.dark,
       primary: BrandColors.darkNavyText,
       onPrimary: BrandColors.darkBackground,
-      primaryContainer: BrandColors.navy,
+      primaryContainer: Color(0xFF232D58),
       onPrimaryContainer: Colors.white,
-      secondary: BrandColors.green,
+      secondary: BrandColors.greenAccentDark,
       onSecondary: BrandColors.darkBackground,
-      secondaryContainer: BrandColors.greenText,
-      onSecondaryContainer: Colors.white,
+      secondaryContainer: Color(0xFF13382C),
+      onSecondaryContainer: Color(0xFF6EE7B7),
       error: Color(0xFFF2B8B5),
       onError: BrandColors.darkBackground,
       surface: BrandColors.darkSurface,
-      onSurface: Colors.white,
+      onSurface: BrandColors.darkTextPrimary,
+      onSurfaceVariant: BrandColors.darkTextSecondary,
+      outlineVariant: Color(0xFF2A3668),
     );
     return _base(scheme, BrandColors.darkBackground);
   }
@@ -75,11 +73,20 @@ abstract final class FypTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: isDark ? BrandColors.green : BrandColors.greenText,
+          foregroundColor: isDark ? BrandColors.greenAccentDark : BrandColors.greenText,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: radius),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF131A38) : Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
         focusedBorder: OutlineInputBorder(
           borderRadius: radius,
           borderSide: BorderSide(color: scheme.primary, width: 2),
@@ -90,13 +97,11 @@ abstract final class FypTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          side: BorderSide(
-            color: isDark ? const Color(0xFF26305E) : const Color(0xFFE2E8EF),
-          ),
+          side: BorderSide(color: scheme.outlineVariant),
         ),
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: BrandColors.green,
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: isDark ? BrandColors.greenAccentDark : BrandColors.green,
       ),
     );
   }

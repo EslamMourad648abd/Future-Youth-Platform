@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/fyp_routes.dart';
 import '../../../core/constants/user_role.dart';
-import '../../../core/theme/brand_colors.dart';
 import '../../../widgets/appbar_actions.dart';
 
 class RoleSelectPage extends StatelessWidget {
@@ -12,7 +11,7 @@ class RoleSelectPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -26,10 +25,9 @@ class RoleSelectPage extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 460),
               child: Card(
                 elevation: 6,
-                color: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
-                  side: const BorderSide(color: Color(0xFFE2E8EF)),
+                  side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(32),
@@ -41,22 +39,22 @@ class RoleSelectPage extends StatelessWidget {
                         child: Image.asset('assets/logo.png', height: 120),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'Future Youth Platform',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: BrandColors.navy,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
+                      Text(
                         'Select your portal to continue',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13,
-                          color: BrandColors.greenText,
+                          color: Theme.of(context).colorScheme.secondary,
                         ),
                       ),
                       const SizedBox(height: 28),
@@ -64,9 +62,9 @@ class RoleSelectPage extends StatelessWidget {
                       // ==============================================
                       // TEACHER SECTION
                       // ==============================================
-                      const Text(
+                      Text(
                         'Teacher Portal',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -75,8 +73,6 @@ class RoleSelectPage extends StatelessWidget {
                             child: ElevatedButton.icon(
                               onPressed: () => context.go(FypRoutes.loginFor(UserRole.teacher)),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: BrandColors.navy,
-                                foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                               icon: const Icon(Icons.login, size: 18),
@@ -88,8 +84,6 @@ class RoleSelectPage extends StatelessWidget {
                             child: OutlinedButton.icon(
                               onPressed: () => context.go(FypRoutes.signupFor(UserRole.teacher)),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: BrandColors.navy,
-                                side: const BorderSide(color: BrandColors.navy),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                               icon: const Icon(Icons.person_add_alt_1, size: 18),
@@ -103,9 +97,9 @@ class RoleSelectPage extends StatelessWidget {
                       // ==============================================
                       // PARENT SECTION
                       // ==============================================
-                      const Text(
+                      Text(
                         'Parent Portal',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: BrandColors.greenText),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.secondary),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -114,8 +108,6 @@ class RoleSelectPage extends StatelessWidget {
                             child: ElevatedButton.icon(
                               onPressed: () => context.go(FypRoutes.loginFor(UserRole.parent)),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: BrandColors.green,
-                                foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                               icon: const Icon(Icons.login, size: 18),
@@ -127,8 +119,6 @@ class RoleSelectPage extends StatelessWidget {
                             child: OutlinedButton.icon(
                               onPressed: () => context.go(FypRoutes.signupFor(UserRole.parent)),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: BrandColors.greenText,
-                                side: const BorderSide(color: BrandColors.green),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                               icon: const Icon(Icons.person_add_alt_1, size: 18),
@@ -142,26 +132,24 @@ class RoleSelectPage extends StatelessWidget {
                       // ==============================================
                       // STUDENT SECTION
                       // ==============================================
-                      const Text(
+                      Text(
                         'Student Portal',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: BrandColors.navy),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                       ),
                       const SizedBox(height: 8),
                       ElevatedButton.icon(
                         onPressed: () => context.go(FypRoutes.loginFor(UserRole.student)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: BrandColors.navy,
-                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         icon: const Icon(Icons.school, size: 18),
                         label: const Text('Student Login'),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
+                      Text(
                         '* Student accounts are registered by parents',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11, color: Colors.grey, fontStyle: FontStyle.italic),
+                        style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant, fontStyle: FontStyle.italic),
                       ),
                       const SizedBox(height: 20),
 
@@ -174,9 +162,6 @@ class RoleSelectPage extends StatelessWidget {
                           onPressed: () => context.go(FypRoutes.loginFor(UserRole.admin)),
                           icon: const Icon(Icons.admin_panel_settings, size: 18),
                           label: const Text('Admin Console Login'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: BrandColors.navy,
-                          ),
                         ),
                       ),
                     ],

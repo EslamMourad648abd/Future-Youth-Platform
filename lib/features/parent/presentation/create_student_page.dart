@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/fyp_routes.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../widgets/app_header_actions.dart';
 
 class CreateStudentPage extends StatefulWidget {
   const CreateStudentPage({super.key});
@@ -68,15 +69,14 @@ class _CreateStudentPageState extends State<CreateStudentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: BrandColors.navy,
-        foregroundColor: Colors.white,
+        title: const Text('Add Student / Child'),
+        actions: const [AppHeaderActions()],
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go(FypRoutes.parent),
         ),
-        title: const Text('Add Student / Child'),
       ),
       body: SafeArea(
         child: Center(
@@ -95,7 +95,7 @@ class _CreateStudentPageState extends State<CreateStudentPage> {
                       'Create Student Account',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: BrandColors.navy,
+                            color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                     ),
