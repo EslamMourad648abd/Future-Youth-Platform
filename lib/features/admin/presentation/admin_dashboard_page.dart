@@ -8,6 +8,7 @@ import '../../../app/fyp_routes.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../services/localization_service.dart';
 import '../../../widgets/app_header_actions.dart';
+import '../../../widgets/embedded_video_player.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -18,6 +19,59 @@ class AdminDashboardPage extends StatefulWidget {
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   bool busy = false;
+
+  Future<void> _previewVideoDialog(String courseId, String videoId, String title, Map<String, dynamic> lesson) async {
+    final driveUrl = lesson['driveUrl'] ?? lesson['videoUrl'] ?? lesson['driveFolderUrl'];
+    final storagePath = lesson['storagePath'];
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.play_circle_fill, color: BrandColors.navy, size: 28),
+            const SizedBox(width: 10),
+            Expanded(child: Text('Video Preview: $title', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+          ],
+        ),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Lesson: ${lesson['title'] ?? title}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 4),
+                Text('Duration: ${lesson['durationMinutes'] ?? '—'} minutes', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                const SizedBox(height: 16),
+                EmbeddedVideoPlayer(
+                  courseId: courseId,
+                  videoId: videoId,
+                  lessonTitle: (lesson['title'] ?? title).toString(),
+                  driveUrl: driveUrl?.toString(),
+                  videoUrl: lesson['videoUrl']?.toString(),
+                  storagePath: storagePath?.toString(),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Review video quality, language content, and duration before approving.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close Preview'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<String?> _rejectionReason(String title) async {
     final controller = TextEditingController();
@@ -207,34 +261,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Future<List<Map<String, dynamic>>> _fetchPendingLessons(List<QueryDocumentSnapshot<Map<String, dynamic>>> courses) async {
-    final List<Map<String, dynamic>> list = [];
-    for (final cDoc in courses) {
-      try {
-        final lessonsSnap = await cDoc.reference.collection('videos').get();
-        for (final lDoc in lessonsSnap.docs) {
-          final data = lDoc.data();
-          if (data['approvalStatus'] == 'pending') {
-            list.add({
-              'courseId': cDoc.id,
-              'docId': lDoc.id,
-              'data': data,
-            });
-          }
-        }
-      } catch (e) {
-        debugPrint("Error loading lessons for course ${cDoc.id}: $e");
-      }
-    }
-    return list;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(fypTranslate(context, 'future_youth_admin', 'Future Youth • Admin')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
+          onPressed: () => context.go(FypRoutes.entry),
+        ),
         actions: [
           const AppHeaderActions(),
           IconButton(
@@ -310,63 +347,118 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   },
                 ),
                 const SizedBox(height: 24),
-                const _SectionHeading('Course submissions', 'Review submitted courses before publication.'),
-                const SizedBox(height: 10),
-                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: FirebaseFirestore.instance.collection('courses')
-                      .where('approvalStatus', isEqualTo: 'pending')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) return _EmptyMessage('Could not load course submissions: ${snapshot.error}');
-                    if (!snapshot.hasData) return const LinearProgressIndicator();
-                    if (snapshot.data!.docs.isEmpty) return const _EmptyMessage('No pending course submissions.');
-                    return Column(
-                      children: snapshot.data!.docs.map((doc) {
-                        final data = doc.data();
-                        return _ReviewCard(
-                          icon: Icons.play_lesson_outlined,
-                          title: (data['title'] ?? 'Untitled course').toString(),
-                          subtitle: '${data['subject'] ?? 'Subject not set'} • Teacher: ${data['teacherId'] ?? 'Unknown'}',
-                          onApprove: () => _reviewCourse(doc.id, 'approve'),
-                          onReject: () => _reviewCourse(doc.id, 'reject'),
-                        );
-                      }).toList(),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                const _SectionHeading('Lesson submissions', 'Review each lesson before it becomes visible to students.'),
+                const _SectionHeading('Course Submissions & Lessons', 'Review courses and preview nested lesson videos before publishing.'),
                 const SizedBox(height: 10),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance.collection('courses').snapshots(),
                   builder: (context, snapshot) {
-                    if (snapshot.hasError) return _EmptyMessage('Could not load lesson submissions: ${snapshot.error}');
+                    if (snapshot.hasError) return _EmptyMessage('Could not load courses: ${snapshot.error}');
                     if (!snapshot.hasData) return const LinearProgressIndicator();
-                    final courseDocs = snapshot.data!.docs;
-                    if (courseDocs.isEmpty) return const _EmptyMessage('No pending lesson submissions.');
+                    final courses = snapshot.data!.docs;
+                    if (courses.isEmpty) return const _EmptyMessage('No courses submitted for review.');
 
-                    return FutureBuilder<List<Map<String, dynamic>>>(
-                      future: _fetchPendingLessons(courseDocs),
-                      builder: (context, lessonSnap) {
-                        if (lessonSnap.connectionState == ConnectionState.waiting) return const LinearProgressIndicator();
-                        final pendingLessons = lessonSnap.data ?? [];
-                        if (pendingLessons.isEmpty) return const _EmptyMessage('No pending lesson submissions.');
+                    return Column(
+                      children: courses.map((cDoc) {
+                        final cData = cDoc.data();
+                        final courseId = cDoc.id;
+                        final courseTitle = cData['title'] ?? 'Course Title';
+                        final subject = cData['subject'] ?? 'General';
+                        final price = cData['price'] ?? 250;
+                        final approvalStatus = cData['approvalStatus'] ?? 'pending';
 
-                        return Column(
-                          children: pendingLessons.map((item) {
-                            final courseId = item['courseId'];
-                            final docId = item['docId'];
-                            final data = item['data'];
-                            return _ReviewCard(
-                              icon: Icons.video_file_outlined,
-                              title: (data['title'] ?? 'Untitled lesson').toString(),
-                              subtitle: 'Course: $courseId • ${data['durationMinutes'] ?? '—'} min',
-                              onApprove: () => _reviewVideo(courseId, docId, 'approve'),
-                              onReject: () => _reviewVideo(courseId, docId, 'reject'),
-                            );
-                          }).toList(),
+                        return Card(
+                          elevation: 1,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                          ),
+                          child: ExpansionTile(
+                            leading: Icon(
+                              approvalStatus == 'approved' ? Icons.check_circle : Icons.play_lesson_outlined,
+                              color: approvalStatus == 'approved' ? BrandColors.green : BrandColors.navy,
+                            ),
+                            title: Text(courseTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            subtitle: Text('$subject • $price EGP/month • Status: $approvalStatus'),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    OutlinedButton.icon(
+                                      onPressed: () => _reviewCourse(courseId, 'reject'),
+                                      icon: const Icon(Icons.close, size: 16),
+                                      label: const Text('Reject Course'),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    FilledButton.icon(
+                                      style: FilledButton.styleFrom(backgroundColor: BrandColors.green),
+                                      onPressed: () => _reviewCourse(courseId, 'approve'),
+                                      icon: const Icon(Icons.check, size: 16),
+                                      label: const Text('Approve Course'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Divider(height: 1),
+                              StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('courses')
+                                    .doc(courseId)
+                                    .collection('videos')
+                                    .snapshots(),
+                                builder: (context, lessonSnap) {
+                                  if (!lessonSnap.hasData) return const LinearProgressIndicator();
+                                  final lessons = lessonSnap.data!.docs;
+                                  if (lessons.isEmpty) {
+                                    return const Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: Text('No lessons added to this course yet.', style: TextStyle(color: Colors.grey)),
+                                    );
+                                  }
+
+                                  return Column(
+                                    children: lessons.map((lDoc) {
+                                      final lData = lDoc.data();
+                                      final lessonId = lDoc.id;
+                                      final lTitle = lData['title'] ?? 'Lesson';
+                                      final lStatus = lData['approvalStatus'] ?? 'pending';
+
+                                      return ListTile(
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                                        leading: const Icon(Icons.video_file, color: BrandColors.navy),
+                                        title: Text(lTitle, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                        subtitle: Text('${lData['durationMinutes'] ?? '—'} min • Status: $lStatus'),
+                                        trailing: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(Icons.play_circle_fill, color: Colors.blue),
+                                              tooltip: 'Preview Video',
+                                              onPressed: () => _previewVideoDialog(courseId, lessonId, lTitle, lData),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.check_circle, color: BrandColors.green),
+                                              tooltip: 'Approve Lesson',
+                                              onPressed: () => _reviewVideo(courseId, lessonId, 'approve'),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.cancel, color: BrandColors.error),
+                                              tooltip: 'Reject Lesson',
+                                              onPressed: () => _reviewVideo(courseId, lessonId, 'reject'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         );
-                      },
+                      }).toList(),
                     );
                   },
                 ),

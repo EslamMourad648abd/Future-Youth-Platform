@@ -45,6 +45,8 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       return;
     }
     final nav = Navigator.of(sheetContext);
+    final messenger = ScaffoldMessenger.of(context);
+    final successMsg = fypTranslate(context, 'course_draft_created', 'Course draft created. Add lessons before submitting for review.');
     setState(() => _saving = true);
     try {
       final profile = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
@@ -71,9 +73,9 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
       _price.text = '250';
       _lessonCount.text = '1';
       nav.pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(fypTranslate(context, 'course_draft_created', 'Course draft created. Add lessons before submitting for review.'))),
-      );
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(successMsg)));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -132,6 +134,11 @@ class _TeacherDashboardPageState extends State<TeacherDashboardPage> {
         title: Text(fypTranslate(context, 'teacher_studio', 'Teacher Studio')),
         backgroundColor: BrandColors.navy,
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
+          onPressed: () => context.go(FypRoutes.entry),
+        ),
         actions: [
           const GlobalAppBarActions(iconColor: Colors.white),
           const SizedBox(width: 4),

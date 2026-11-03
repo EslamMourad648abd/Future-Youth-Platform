@@ -432,9 +432,9 @@ export const getPaidLessonVideoUrl = onCall(async (request) => {
   return { ok: true, videoUrl, sessionId: sessionRef.id, expiresInSeconds };
 });
 
-/** Issues a short-lived signed URL only for the approved free first lesson. */
+/** Issues a short-lived signed URL for lesson video preview. */
 export const getPreviewVideoUrl = onCall(async (request) => {
-  await requireRole(request, [ROLES.STUDENT]);
+  await requireRole(request, [ROLES.STUDENT, ROLES.ADMIN, ROLES.TEACHER]);
   const courseId = String(request.data?.courseId || "").trim();
   const videoId = String(request.data?.videoId || "").trim();
   if (!courseId || !videoId) {

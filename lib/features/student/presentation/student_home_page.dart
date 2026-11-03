@@ -102,6 +102,11 @@ class _StudentHomePageState extends State<StudentHomePage> {
         title: Text(fypTranslate(context, 'student_learning_portal', 'Student Learning Portal')),
         backgroundColor: BrandColors.navy,
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
+          onPressed: () => context.go(FypRoutes.entry),
+        ),
         actions: [
           const GlobalAppBarActions(iconColor: Colors.white),
           const SizedBox(width: 4),

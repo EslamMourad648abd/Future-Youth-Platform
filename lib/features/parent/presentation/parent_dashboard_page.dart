@@ -70,6 +70,11 @@ class _ParentDashboardPageState extends State<ParentDashboardPage> {
         title: Text(fypTranslate(context, 'parent_workspace', 'Parent Workspace')),
         backgroundColor: BrandColors.navy,
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
+          onPressed: () => context.go(FypRoutes.entry),
+        ),
         actions: [
           const GlobalAppBarActions(iconColor: Colors.white),
           const SizedBox(width: 4),

@@ -4,7 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/fyp_routes.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../services/localization_service.dart';
 import '../../../widgets/app_header_actions.dart';
@@ -18,6 +20,231 @@ class CourseEditorPage extends StatefulWidget {
 
 class _CourseEditorPageState extends State<CourseEditorPage> {
   bool saving = false;
+
+  Future<void> _attachVideoSourceOptions(String videoId) async {
+    final driveUrlController = TextEditingController();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.fromLTRB(20, 8, 20, MediaQuery.of(sheetContext).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text('Attach Lesson Video Source', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text('Choose to upload a local video file OR paste a Google Drive Video/Playlist URL.', style: TextStyle(color: Colors.grey, fontSize: 13)),
+            const SizedBox(height: 20),
+
+            // ===============================================
+            // OPTION 1: LOCAL FILE UPLOAD
+            // ===============================================
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: BrandColors.navy,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              icon: const Icon(Icons.upload_file),
+              label: const Text('Upload Local Video File (up to 500 MB)', style: TextStyle(fontWeight: FontWeight.bold)),
+              onPressed: () {
+                Navigator.pop(sheetContext);
+                _uploadLocalVideo(videoId);
+              },
+            ),
+
+            const SizedBox(height: 16),
+            const Row(
+              children: [
+                Expanded(child: Divider()),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: Text('OR', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                ),
+                Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // ===============================================
+            // OPTION 2: GOOGLE DRIVE VIDEO / PLAYLIST LINK
+            // ===============================================
+            TextField(
+              controller: driveUrlController,
+              decoration: const InputDecoration(
+                labelText: 'Google Drive Video / Folder URL',
+                hintText: 'https://drive.google.com/...',
+                prefixIcon: Icon(Icons.add_link),
+              ),
+            ),
+            const SizedBox(height: 14),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: BrandColors.navy,
+                side: const BorderSide(color: BrandColors.navy),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              icon: const Icon(Icons.link),
+              label: const Text('Attach Google Drive Video URL', style: TextStyle(fontWeight: FontWeight.bold)),
+              onPressed: () {
+                final url = driveUrlController.text.trim();
+                if (url.isNotEmpty) {
+                  Navigator.pop(sheetContext);
+                  _attachDriveVideoUrl(videoId, url);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+    driveUrlController.dispose();
+  }
+
+  Future<void> _attachDriveVideoUrl(String videoId, String driveUrl) async {
+    final user = FirebaseAuth.instance.currentUser;
+    setState(() => saving = true);
+    try {
+      final videoRef = FirebaseFirestore.instance
+          .collection('courses')
+          .doc(widget.courseId)
+          .collection('videos')
+          .doc(videoId);
+
+      await videoRef.set({
+        'videoId': videoId,
+        'courseId': widget.courseId,
+        'teacherId': user?.uid,
+        'driveUrl': driveUrl,
+        'videoUrl': driveUrl,
+        'sourceLinked': true,
+        'approvalStatus': 'pending',
+        'status': 'draft',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      await FirebaseFirestore.instance.collection('video_sources').doc(videoId).set({
+        'videoId': videoId,
+        'courseId': widget.courseId,
+        'teacherId': user?.uid,
+        'provider': 'google_drive',
+        'driveUrl': driveUrl,
+        'videoUrl': driveUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google Drive video link attached to lesson!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to attach Drive URL: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
+  }
+
+  Future<void> _uploadLocalVideo(String videoId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.video,
+      allowMultiple: false,
+      withData: true,
+    );
+    if (picked == null || picked.files.isEmpty || !mounted) return;
+    final file = picked.files.single;
+    final bytes = file.bytes;
+    if (bytes == null || bytes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(fypTranslate(context, 'upload_read_error', 'Could not read the selected video file. Please try again.'))),
+      );
+      return;
+    }
+    if (bytes.length > 500 * 1024 * 1024) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(fypTranslate(context, 'video_size_limit', 'Videos must be 500 MB or smaller.'))),
+      );
+      return;
+    }
+
+    final safeName = file.name.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    final storagePath = 'course-videos/${widget.courseId}/$videoId/${DateTime.now().millisecondsSinceEpoch}_$safeName';
+    setState(() => saving = true);
+    try {
+      final task = await FirebaseStorage.instance.ref(storagePath).putData(
+        bytes,
+        SettableMetadata(contentType: _videoContentType(file.extension)),
+      );
+      if (task.state != TaskState.success) {
+        throw StateError('Video upload did not complete.');
+      }
+      await FirebaseFunctions.instance.httpsCallable('registerVideoSource').call({
+        'courseId': widget.courseId,
+        'videoId': videoId,
+        'storagePath': storagePath,
+      });
+
+      final downloadUrl = await FirebaseStorage.instance.ref(storagePath).getDownloadURL();
+
+      await FirebaseFirestore.instance
+          .collection('courses')
+          .doc(widget.courseId)
+          .collection('videos')
+          .doc(videoId)
+          .set({
+        'videoId': videoId,
+        'courseId': widget.courseId,
+        'teacherId': user.uid,
+        'storagePath': storagePath,
+        'videoUrl': downloadUrl,
+        'sourceLinked': true,
+        'approvalStatus': 'pending',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      await FirebaseFirestore.instance.collection('video_sources').doc(videoId).set({
+        'videoId': videoId,
+        'courseId': widget.courseId,
+        'teacherId': user.uid,
+        'provider': 'firebase_storage',
+        'storagePath': storagePath,
+        'videoUrl': downloadUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(fypTranslate(context, 'video_upload_success', 'Video uploaded to private storage. It becomes available after lesson and course approval.'))),
+        );
+      }
+    } on FirebaseFunctionsException catch (error) {
+      try { await FirebaseStorage.instance.ref(storagePath).delete(); } catch (_) {}
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? 'Could not register the uploaded video.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        final messagePrefix = fypTranslate(context, 'upload_failed', 'Could not upload video');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$messagePrefix: $error')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
+  }
 
   Future<void> _addLesson() async {
     final titleController = TextEditingController();
@@ -57,7 +284,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Upload a video file (up to 500 MB). The video stays private until approval.',
+                  'Upload a local video file (up to 500 MB) or attach a Google Drive link after creating this lesson.',
                   style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                 ),
               ],
@@ -113,78 +340,13 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(fypTranslate(context, 'lesson_saved_upload_video', 'Lesson details saved. Upload its video using the video button.'))),
+          SnackBar(content: Text(fypTranslate(context, 'lesson_saved_upload_video', 'Lesson details saved. Attach its video source using the video button.'))),
         );
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${fypTranslate(context, 'lesson_add_failed', 'Could not add lesson')}: ${error.toString().replaceFirst('Bad state: ', '')}')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => saving = false);
-    }
-  }
-
-  Future<void> _addVideoSource(String videoId) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final picked = await FilePicker.platform.pickFiles(
-      type: FileType.video,
-      allowMultiple: false,
-      withData: true,
-    );
-    if (picked == null || picked.files.isEmpty || !mounted) return;
-    final file = picked.files.single;
-    final bytes = file.bytes;
-    if (bytes == null || bytes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(fypTranslate(context, 'upload_read_error', 'Could not read the selected video file. Please try again.'))),
-      );
-      return;
-    }
-    if (bytes.length > 500 * 1024 * 1024) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(fypTranslate(context, 'video_size_limit', 'Videos must be 500 MB or smaller.'))),
-      );
-      return;
-    }
-
-    final safeName = file.name.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
-    final storagePath = 'course-videos/${widget.courseId}/$videoId/${DateTime.now().millisecondsSinceEpoch}_$safeName';
-    setState(() => saving = true);
-    try {
-      final task = await FirebaseStorage.instance.ref(storagePath).putData(
-        bytes,
-        SettableMetadata(contentType: _videoContentType(file.extension)),
-      );
-      if (task.state != TaskState.success) {
-        throw StateError('Video upload did not complete.');
-      }
-      await FirebaseFunctions.instance.httpsCallable('registerVideoSource').call({
-        'courseId': widget.courseId,
-        'videoId': videoId,
-        'storagePath': storagePath,
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(fypTranslate(context, 'video_upload_success', 'Video uploaded to private storage. It becomes available after lesson and course approval.'))),
-        );
-      }
-    } on FirebaseFunctionsException catch (error) {
-      try { await FirebaseStorage.instance.ref(storagePath).delete(); } catch (_) {}
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message ?? 'Could not register the uploaded video.')),
-        );
-      }
-    } catch (error) {
-      if (mounted) {
-        final messagePrefix = fypTranslate(context, 'upload_failed', 'Could not upload video');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$messagePrefix: $error')),
         );
       }
     } finally {
@@ -213,6 +375,11 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(fypTranslate(context, 'course_editor', 'Course editor')),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
+          onPressed: () => context.go(FypRoutes.teacher),
+        ),
         actions: const [AppHeaderActions()],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -240,12 +407,7 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.edit_note, color: Colors.white, size: 32),
-                      const Spacer(),
-                    ],
-                  ),
+                  const Icon(Icons.edit_note, color: Colors.white, size: 32),
                   const SizedBox(height: 12),
                   Text((course['title'] ?? fypTranslate(context, 'course_label', 'Course')).toString(), style: const TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
@@ -277,9 +439,9 @@ class _CourseEditorPageState extends State<CourseEditorPage> {
                           title: Text((data['title'] ?? 'Lesson').toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text('${data['durationMinutes'] ?? '—'} min • ${data['sourceLinked'] == true ? fypTranslate(context, 'video_linked', 'Video linked') : fypTranslate(context, 'video_not_linked', 'Video not linked')} • ${AppLocalizations.of(context)?.translateStatus((data['approvalStatus'] ?? 'pending review').toString()) ?? (data['approvalStatus'] ?? 'pending review')}'),
                           trailing: IconButton(
-                            tooltip: fypTranslate(context, 'upload_video', 'Upload video'),
+                            tooltip: fypTranslate(context, 'upload_video', 'Attach Local Video or Drive URL'),
                             icon: Icon(data['sourceLinked'] == true ? Icons.check_circle_outline : Icons.upload_file_outlined, color: Theme.of(context).colorScheme.primary),
-                            onPressed: saving ? null : () => _addVideoSource(doc.id),
+                            onPressed: saving ? null : () => _attachVideoSourceOptions(doc.id),
                           ),
                         ),
                       );
