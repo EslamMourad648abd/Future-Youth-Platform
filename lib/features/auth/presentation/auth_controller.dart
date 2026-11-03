@@ -53,14 +53,6 @@ class AuthController extends ChangeNotifier {
       return;
     }
 
-    final email = user.email?.trim().toLowerCase() ?? "";
-    if (email == "eslammourad2000@yahoo.com") {
-      _role = UserRole.admin;
-      _initialized = true;
-      notifyListeners();
-      return;
-    }
-
     try {
       final tokenResult = await user.getIdTokenResult(true);
       final claimRoleStr = tokenResult.claims?['role']?.toString();

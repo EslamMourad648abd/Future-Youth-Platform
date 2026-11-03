@@ -57,31 +57,15 @@ class DefaultFirebaseOptions {
     projectId: 'future-youth-platform',
     storageBucket: 'future-youth-platform.firebasestorage.app',
   );
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAMrMTtVV5erlMQPbO21xBl8mJh7SLd2bs',
-    appId: '1:259169067995:ios:21039dda2d978e8e98fdfe',
-    messagingSenderId: '259169067995',
-    projectId: 'future-youth-platform',
-    storageBucket: 'future-youth-platform.firebasestorage.app',
-    iosBundleId: 'com.example.FutureYouthPlatform',
-  );
+  static FirebaseOptions get ios => throw UnsupportedError(
+        'iOS Firebase options are not yet verified for future-youth-platform. Run flutterfire configure --project=future-youth-platform --platforms=ios.',
+      );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAMrMTtVV5erlMQPbO21xBl8mJh7SLd2bs',
-    appId: '1:259169067995:ios:21039dda2d978e8e98fdfe',
-    messagingSenderId: '259169067995',
-    projectId: 'future-youth-platform',
-    storageBucket: 'future-youth-platform.firebasestorage.app',
-    iosBundleId: 'com.example.FutureYouthPlatform',
-  );
+  static FirebaseOptions get macos => throw UnsupportedError(
+        'macOS Firebase options are not yet verified for future-youth-platform. Run flutterfire configure --project=future-youth-platform --platforms=macos.',
+      );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDrknr-61yICu60A_uRhbO0a0FBMLOsBvA',
-    appId: '1:259169067995:web:49b36decedc7584e98fdfe',
-    messagingSenderId: '259169067995',
-    projectId: 'future-youth-platform',
-    authDomain: 'future-youth-platform.firebaseapp.com',
-    storageBucket: 'future-youth-platform.firebasestorage.app',
-    measurementId: 'G-JLVDB5Q97S',
-  );
+  static FirebaseOptions get windows => throw UnsupportedError(
+        'Windows Firebase options are not yet verified for future-youth-platform. Run flutterfire configure --project=future-youth-platform --platforms=windows.',
+      );
 }

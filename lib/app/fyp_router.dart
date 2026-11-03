@@ -11,8 +11,11 @@ import '../features/parent/presentation/create_student_page.dart';
 import '../features/parent/presentation/parent_dashboard_page.dart';
 import '../features/parent/presentation/subscription_page.dart';
 import '../features/student/presentation/student_home_page.dart';
+import '../features/student/presentation/course_details_page.dart';
 import '../features/student/presentation/video_player_page.dart';
 import '../features/teacher/presentation/teacher_dashboard_page.dart';
+import '../features/teacher/presentation/course_editor_page.dart';
+import '../features/teacher/presentation/course_analytics_page.dart';
 import 'fyp_redirect.dart';
 import 'fyp_routes.dart';
 
@@ -75,6 +78,12 @@ GoRouter createFypRouter(AuthController authController) {
         builder: (context, state) => const StudentHomePage(),
       ),
       GoRoute(
+        path: FypRoutes.studentCourse,
+        builder: (context, state) => StudentCourseDetailsPage(
+          courseId: state.pathParameters['courseId'] ?? '',
+        ),
+      ),
+      GoRoute(
         path: FypRoutes.studentVideo,
         builder: (context, state) {
           final courseId = state.pathParameters['courseId'] ?? '';
@@ -85,6 +94,18 @@ GoRouter createFypRouter(AuthController authController) {
       GoRoute(
         path: FypRoutes.teacher,
         builder: (context, state) => const TeacherDashboardPage(),
+      ),
+      GoRoute(
+        path: FypRoutes.teacherCourseEditor,
+        builder: (context, state) => CourseEditorPage(
+          courseId: state.pathParameters['courseId'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: FypRoutes.teacherCourseAnalytics,
+        builder: (context, state) => CourseAnalyticsPage(
+          courseId: state.pathParameters['courseId'] ?? '',
+        ),
       ),
     ],
   );

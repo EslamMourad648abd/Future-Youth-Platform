@@ -17,10 +17,10 @@ Requirements: `docs/REQUIREMENTS.md`. Design and data model:
 
 ## Where code goes
 
-- The live skeleton is the existing app construction (`lib/modules`, `lib/router`,
-  `lib/services`, `lib/admin_console`, `functions/`). Do not rewrite screens or
-  user-creation logic. Permission checks and identity (BrandColors / FypTheme)
-  are the only allowed edits there.
+- Preserve existing operational modules and the legacy `functions/` codebase unless a
+  requirement explicitly needs a change. Future Youth functionality belongs in
+  `lib/app`, `lib/core`, `lib/features`, `functions_fyp/`, and tests. Do not make
+  destructive replacements of working screens or user-creation logic.
 - Future feature code still goes in `lib/app`, `lib/core`, `lib/features`,
   `functions_fyp/`, `docs/`, and tests under `test/fyp/`.
 - `lib/main.dart` and `lib/main_fyp.dart` start the same Future Youth Platform
@@ -43,5 +43,6 @@ Requirements: `docs/REQUIREMENTS.md`. Design and data model:
   Access decisions are made again on the server.
 - Secrets: never commit or print service-account keys, `.env` files or tokens.
   Cloud Functions use Application Default Credentials.
-- Keep the UI strings in English for now, but put them in one place per feature
-  so Arabic can be added later.
+- Support English and Arabic using the existing AppLocalizations in
+  lib/services/localization_service.dart. New user-facing strings must be
+  localized in both languages, with RTL layout for Arabic.

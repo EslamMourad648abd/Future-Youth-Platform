@@ -21,6 +21,12 @@ reading used is written as an **Assumption** and the open points are in
 | FR-10 | If the parent has not paid, the student sees only a loading screen until payment is done. | Paid videos are locked. The unpaid student may still play the free first video (FR-05 / D-1). When payment is confirmed the rest of the course unlocks without a restart. |
 | FR-11 | A teacher sees analysis for their own course: video rating, comments, views. | Per video: average rating, rating count, comment count and the comments, view count. A teacher cannot see another teacher's course. |
 
+
+| FR-12 | Teacher accounts require Admin approval before they can publish or appear in student discovery. | Self-signup creates `approvalStatus: pending`; pending/rejected teachers cannot publish or appear in the approved catalog. |
+| FR-13 | Admin reviews submitted course/video content before students can access it. | New content remains pending until approved; rejection stores reviewer, timestamp, and reason. |
+| FR-14 | Parents can submit subscription payment requests using Egyptian payment methods. | Supported request labels: InstaPay, Vodafone Cash, Orange Cash, Etisalat Cash. Requests do not grant access or points until an Admin confirms receipt. |
+| FR-15 | The platform supports English and Arabic. | Existing `AppLocalizations` is the source of UI strings; Arabic uses RTL and English uses LTR. New feature strings must be localized rather than hard-coded. |
+
 ## Assumptions (change them by editing this file, then tell the agent)
 
 - **A-1 / D-1** "First video is free" means the video with `order == 1` in every

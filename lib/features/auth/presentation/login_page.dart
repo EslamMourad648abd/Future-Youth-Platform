@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/fyp_routes.dart';
 import '../../../core/constants/user_role.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../widgets/appbar_actions.dart';
 import '../data/auth_repository.dart';
 import '../domain/auth_session.dart';
 
@@ -84,15 +85,14 @@ class _LoginPageState extends State<LoginPage> {
     final roleTitle = widget.role.name[0].toUpperCase() + widget.role.name.substring(1);
 
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: BrandColors.navy,
-        foregroundColor: Colors.white,
+        title: Text('Sign in as $roleTitle'),
+        actions: const [GlobalAppBarActions(iconColor: Colors.white)],
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go(FypRoutes.entry),
         ),
-        title: Text('Sign in as $roleTitle'),
       ),
       body: SafeArea(
         child: Center(
@@ -111,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                       'Sign in as $roleTitle',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: BrandColors.navy,
+                            color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                     ),
@@ -167,7 +167,6 @@ class _LoginPageState extends State<LoginPage> {
                     FilledButton(
                       onPressed: _isLoading ? null : _handleLogin,
                       style: FilledButton.styleFrom(
-                        backgroundColor: BrandColors.navy,
                         minimumSize: const Size.fromHeight(48),
                       ),
                       child: _isLoading
@@ -183,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Don't have an account?"),
+                          Text("Don't have an account?", style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                           TextButton(
                             onPressed: () => context.go(FypRoutes.signupFor(widget.role)),
                             child: const Text('Create account'),

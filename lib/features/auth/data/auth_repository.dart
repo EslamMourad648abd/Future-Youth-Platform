@@ -157,6 +157,7 @@ class FirebaseAuthRepository implements AuthRepository {
         "email": email.trim().toLowerCase(),
         "displayName": name.trim(),
         "role": role.name,
+        "approvalStatus": role == UserRole.teacher ? "pending" : "approved",
         "createdAt": FieldValue.serverTimestamp(),
         "updatedAt": FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
