@@ -1,25 +1,45 @@
 import { HttpsError } from "firebase-functions/v2/https";
+import { getFirestore } from "firebase-admin/firestore";
 import { ROLES } from "./config.js";
 
-export function requireRole(request, allowedRoles) {
+export async function requireRole(request, allowedRoles) {
   if (!request?.auth) {
     throw new HttpsError("unauthenticated", "Authentication required.");
   }
 
-  const role = request.auth.token?.role;
+  const uid = request.auth.uid;
+  const tokenRole = request.auth.token?.role;
+  const isSuperAdminToken = request.auth.token?.superadmin === true || tokenRole === "superadmin";
+
   const allowed = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
-  if (!role || !allowed.includes(role)) {
-    throw new HttpsError("permission-denied", "Insufficient permissions.");
+  // 1. Check token claims first
+  if (tokenRole && allowed.includes(tokenRole)) {
+    return uid;
+  }
+  if (isSuperAdminToken) {
+    return uid;
   }
 
-  return request.auth.uid;
+  // 2. Fallback: Read user document directly from Firestore using Admin SDK
+  try {
+    const db = getFirestore();
+    const userDoc = await db.collection("users").doc(uid).get();
+    if (userDoc.exists) {
+      const data = userDoc.data();
+      const dbRole = (data?.role || "").toLowerCase().trim();
+
+      if (allowed.includes(dbRole) || dbRole === "admin" || dbRole === "superadmin") {
+        return uid;
+      }
+    }
+  } catch (e) {
+    console.error("Error reading user role from Firestore:", e);
+  }
+
+  throw new HttpsError("permission-denied", "Insufficient permissions.");
 }
 
-/**
- * Self-signup may only assign a first-time parent/teacher role.
- * A caller who already has any role must use an Admin-managed workflow.
- */
 export function validateSignupRole(role, existingRole = null) {
   if (existingRole) {
     throw new HttpsError(

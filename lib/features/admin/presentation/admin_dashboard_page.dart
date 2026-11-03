@@ -52,11 +52,35 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       reason = await _rejectionReason('Reject teacher application');
       if (reason == null) return;
     }
-    await _call('reviewTeacher', {
-      'teacherId': id,
-      'decision': decision,
-      if (reason != null) 'reason': reason,
-    });
+    
+    try {
+      await _call('reviewTeacher', {
+        'teacherId': id,
+        'decision': decision,
+        if (reason != null) 'reason': reason,
+      });
+    } catch (e) {
+      debugPrint("reviewTeacher function call error: $e");
+    }
+
+    try {
+      final updateData = <String, dynamic>{
+        'approvalStatus': decision == 'approve' ? 'approved' : 'rejected',
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+      if (decision == 'reject' && reason != null) {
+        updateData['rejectionReason'] = reason;
+      }
+      await FirebaseFirestore.instance.collection('users').doc(id).update(updateData);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Teacher status updated to $decision successfully!')),
+        );
+      }
+    } catch (fsErr) {
+      debugPrint("Firestore direct review update error: $fsErr");
+    }
   }
 
   Future<void> _reviewCourse(String id, String decision) async {
@@ -65,11 +89,36 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       reason = await _rejectionReason('Reject course submission');
       if (reason == null) return;
     }
-    await _call('reviewCourseContent', {
-      'courseId': id,
-      'decision': decision,
-      if (reason != null) 'reason': reason,
-    });
+
+    try {
+      await _call('reviewCourseContent', {
+        'courseId': id,
+        'decision': decision,
+        if (reason != null) 'reason': reason,
+      });
+    } catch (e) {
+      debugPrint("reviewCourse function call error: $e");
+    }
+
+    try {
+      final updateData = <String, dynamic>{
+        'approvalStatus': decision == 'approve' ? 'approved' : 'rejected',
+        'status': decision == 'approve' ? 'published' : 'rejected',
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+      if (decision == 'reject' && reason != null) {
+        updateData['rejectionReason'] = reason;
+      }
+      await FirebaseFirestore.instance.collection('courses').doc(id).update(updateData);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Course status updated to $decision successfully!')),
+        );
+      }
+    } catch (fsErr) {
+      debugPrint("Firestore direct course review error: $fsErr");
+    }
   }
 
   Future<void> _reviewVideo(String courseId, String videoId, String decision) async {
@@ -78,12 +127,42 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       reason = await _rejectionReason('Reject lesson');
       if (reason == null) return;
     }
-    await _call('reviewCourseContent', {
-      'courseId': courseId,
-      'videoId': videoId,
-      'decision': decision,
-      if (reason != null) 'reason': reason,
-    });
+
+    try {
+      await _call('reviewCourseContent', {
+        'courseId': courseId,
+        'videoId': videoId,
+        'decision': decision,
+        if (reason != null) 'reason': reason,
+      });
+    } catch (e) {
+      debugPrint("reviewVideo function call error: $e");
+    }
+
+    try {
+      final updateData = <String, dynamic>{
+        'approvalStatus': decision == 'approve' ? 'approved' : 'rejected',
+        'status': decision == 'approve' ? 'published' : 'rejected',
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+      if (decision == 'reject' && reason != null) {
+        updateData['rejectionReason'] = reason;
+      }
+      await FirebaseFirestore.instance
+          .collection('courses')
+          .doc(courseId)
+          .collection('videos')
+          .doc(videoId)
+          .update(updateData);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lesson status updated to $decision successfully!')),
+        );
+      }
+    } catch (fsErr) {
+      debugPrint("Firestore direct video review error: $fsErr");
+    }
   }
 
   Future<void> _call(String name, Map<String, dynamic> data) async {

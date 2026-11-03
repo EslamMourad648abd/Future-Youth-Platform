@@ -63,7 +63,7 @@ export const completeSignup = onCall(async (request) => {
 });
 
 export const createAdmin = onCall(async (request) => {
-  requireRole(request, [ROLES.ADMIN]);
+  await requireRole(request, [ROLES.ADMIN]);
 
   const email = (request.data?.email || "").toLowerCase().trim();
   const password = request.data?.password || "";
@@ -93,7 +93,7 @@ export const createAdmin = onCall(async (request) => {
 });
 
 export const createStudent = onCall(async (request) => {
-  const parentUid = requireRole(request, [ROLES.PARENT]);
+  const parentUid = await requireRole(request, [ROLES.PARENT]);
 
   const rawUsername = (request.data?.username || "").toLowerCase().trim();
   const password = request.data?.password || "";
@@ -143,7 +143,7 @@ export const createStudent = onCall(async (request) => {
  * directly by a client SDK.
  */
 export const reviewTeacher = onCall(async (request) => {
-  const reviewerUid = requireRole(request, [ROLES.ADMIN]);
+  const reviewerUid = await requireRole(request, [ROLES.ADMIN]);
   const teacherId = String(request.data?.teacherId || "").trim();
   const decision = request.data?.decision;
   const reason = String(request.data?.reason || "").trim();
@@ -178,7 +178,7 @@ export const reviewTeacher = onCall(async (request) => {
  * Content documents use courses/{courseId} or courses/{courseId}/videos/{videoId}.
  */
 export const reviewCourseContent = onCall(async (request) => {
-  const reviewerUid = requireRole(request, [ROLES.ADMIN]);
+  const reviewerUid = await requireRole(request, [ROLES.ADMIN]);
   const courseId = String(request.data?.courseId || "").trim();
   const videoId = request.data?.videoId == null ? null : String(request.data.videoId).trim();
   const decision = request.data?.decision;
@@ -272,7 +272,7 @@ export const reviewCourseContent = onCall(async (request) => {
  * public course document. Playback is issued only through trusted callables.
  */
 export const registerVideoSource = onCall(async (request) => {
-  const teacherUid = requireRole(request, [ROLES.TEACHER]);
+  const teacherUid = await requireRole(request, [ROLES.TEACHER]);
   const courseId = String(request.data?.courseId || "").trim();
   const videoId = String(request.data?.videoId || "").trim();
   const storagePath = String(request.data?.storagePath || "").trim();
@@ -345,7 +345,7 @@ export const registerVideoSource = onCall(async (request) => {
 
 /** Paid playback is enabled only when a trusted active subscription exists. */
 export const getPaidLessonVideoUrl = onCall(async (request) => {
-  requireRole(request, [ROLES.STUDENT]);
+  await requireRole(request, [ROLES.STUDENT]);
   const courseId = String(request.data?.courseId || "").trim();
   const videoId = String(request.data?.videoId || "").trim();
   if (!courseId || !videoId) {
@@ -434,7 +434,7 @@ export const getPaidLessonVideoUrl = onCall(async (request) => {
 
 /** Issues a short-lived signed URL only for the approved free first lesson. */
 export const getPreviewVideoUrl = onCall(async (request) => {
-  requireRole(request, [ROLES.STUDENT]);
+  await requireRole(request, [ROLES.STUDENT]);
   const courseId = String(request.data?.courseId || "").trim();
   const videoId = String(request.data?.videoId || "").trim();
   if (!courseId || !videoId) {
@@ -501,17 +501,8 @@ export const getPreviewVideoUrl = onCall(async (request) => {
   return { ok: true, videoUrl, sessionId: sessionRef.id, expiresInSeconds };
 });
 
-
-/**
- * Records server-timestamped playback checkpoints. This raises the cost of
- * bypassing the player: completion requires repeated, time-consistent progress
- * reports, not merely waiting and calling completeVideoView.
- *
- * This is anti-abuse telemetry, not cryptographic proof that a human watched
- * the frames; the client still supplies its playback position.
- */
 export const reportVideoPlaybackProgress = onCall(async (request) => {
-  const studentId = requireRole(request, [ROLES.STUDENT]);
+  const studentId = await requireRole(request, [ROLES.STUDENT]);
   const sessionId = String(request.data?.sessionId || "").trim();
   const positionSeconds = Number(request.data?.positionSeconds);
   const isPlaying = request.data?.isPlaying === true;
@@ -547,7 +538,6 @@ export const reportVideoPlaybackProgress = onCall(async (request) => {
       if (elapsedSeconds < 4) {
         throw new HttpsError("resource-exhausted", "Playback progress reports are arriving too quickly.");
       }
-      // Position may advance no faster than wall time plus a small tolerance.
       const positionDelta = positionSeconds - previousPosition;
       if (positionDelta > elapsedSeconds + 3) {
         throw new HttpsError("failed-precondition", "Playback position advanced too quickly.");
@@ -556,9 +546,6 @@ export const reportVideoPlaybackProgress = onCall(async (request) => {
         addedWatchSeconds = Math.min(elapsedSeconds, positionDelta, 15);
       }
     } else if (positionSeconds > 0) {
-      // The first checkpoint can count only the portion consistent with elapsed
-      // time since the server created the playback session. A completed video
-      // may already be paused when its first checkpoint is submitted.
       addedWatchSeconds = Math.min(positionSeconds, Math.max(0, (now - startedAtMs) / 1000), 15);
     }
 
@@ -580,7 +567,7 @@ export const reportVideoPlaybackProgress = onCall(async (request) => {
 });
 
 export const completeVideoView = onCall(async (request) => {
-  const studentId = requireRole(request, [ROLES.STUDENT]);
+  const studentId = await requireRole(request, [ROLES.STUDENT]);
   const sessionId = String(request.data?.sessionId || "").trim();
   if (!sessionId) throw new HttpsError("invalid-argument", "sessionId is required.");
 
